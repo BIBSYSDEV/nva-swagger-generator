@@ -1,0 +1,25 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto11
+    commands:
+      - pip3 install aws-sam-cli -U
+  build:
+    commands:
+      - sam build
+      - sam package --s3-bucket $S3_BUCKET --output-template-file packaged_raw.yaml
+  post_build:
+    commands:
+      # Use timestamp to force update of ApiGatewayCreateDeploymentCustomResource
+      - BUILD_TIMESTAMP=$(date '+%s')
+      - envsubst '${BUILD_TIMESTAMP}' < packaged_raw.yaml > packaged.yaml
+artifacts:
+  files:
+    - packaged.yaml
+cache:
+  paths:
+    - '/root/venv/**/*'
+    - '/root/.cache/pip/**/*'
+    - '/root/.gradle/wrapper/**/*'
