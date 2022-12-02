@@ -1,0 +1,53 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Swagger Documentation Generator
+Globals:
+  Function:
+    Timeout: 60
+    MemorySize: 1800
+    Environment:
+      Variables:
+        ELASTICSEARCH_REGION: "eu-west-1"
+
+Parameters:
+  OutputBucketArn:
+    Type: String
+    Description: The ARN of the bucket where the documentation should be stored
+
+Resources:
+  SwaggerGeneratorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: writeLog
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
+
+  GenerateDocsHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Description: Handler for generating swagger documentation
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambda_ReadOnlyAccess
+      Handler: no.sikt.generator.GenerateDocsHandler::handleRequest
+      Runtime: java11
+      Role: !GetAtt SwaggerGeneratorRole.Arn
