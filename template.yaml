@@ -57,7 +57,7 @@ Resources:
                   - s3:ListBucket
                   - s3:PutObject
                 Resource:
-                  - !Sub 'arn:aws:s3:${AWS::Region}:${AWS::AccountId}:${OutputBucketName}'
+                  - !Sub 'arn:aws:s3:::${OutputBucketName}'
 
   GenerateDocsHandler:
     Type: AWS::Serverless::Function
