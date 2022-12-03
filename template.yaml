@@ -8,12 +8,12 @@ Globals:
     MemorySize: 1800
     Environment:
       Variables:
-        ELASTICSEARCH_REGION: "eu-west-1"
+        OUTPUT_BUCKET_NAME: !Ref OutputBucketName
 
 Parameters:
-  OutputBucketArn:
+  OutputBucketName:
     Type: String
-    Description: The ARN of the bucket where the documentation should be stored
+    Description: The name of the bucket where the documentation should be stored
 
 Resources:
   SwaggerGeneratorRole:
@@ -47,6 +47,17 @@ Resources:
                 Action:
                   - apigateway:GET
                 Resource: '*'
+        - PolicyName: readWriteS3
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:PutObject
+                Resource:
+                  - !Sub 'arn:aws:s3:${AWS::Region}:${AWS::AccountId}:${OutputBucketName}'
 
   GenerateDocsHandler:
     Type: AWS::Serverless::Function
