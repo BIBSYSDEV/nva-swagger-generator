@@ -56,8 +56,7 @@ Resources:
                   - s3:GetObject
                   - s3:ListBucket
                   - s3:PutObject
-                Resource:
-                  - !Sub 'arn:aws:s3:::${OutputBucketName}'
+                Resource: '*'
 
   GenerateDocsHandler:
     Type: AWS::Serverless::Function
