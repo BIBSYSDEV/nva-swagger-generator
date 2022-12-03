@@ -2,9 +2,12 @@ package no.sikt.generator;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
@@ -71,8 +74,9 @@ class GenerateDocsHandlerTest {
     public void shouldWriteFileToS3() {
         handler.handleRequest(null, null, null);
 
-        var file = s3Driver.getFile(UnixPath.of("docs/swagger.yaml"));
-        assertThat(file, notNullValue());
+        var fileContent = s3Driver.getFile(UnixPath.of("docs/swagger.yaml"));
+        assertThat(fileContent, notNullValue());
+        assertThat(fileContent, is(equalTo("no-body")));
     }
 
 }

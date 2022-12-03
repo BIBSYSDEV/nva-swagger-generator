@@ -4,6 +4,7 @@ import static no.sikt.generator.ApplicationConstants.OUTPUT_BUCKET_NAME;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
+import java.nio.charset.StandardCharsets;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UnixPath;
@@ -53,8 +54,10 @@ public class GenerateDocsHandler implements RequestStreamHandler {
         var export = attempt(() -> apiGatewayClient.getExport(getExportRequest).get())
                          .orElseThrow();
 
+        var data = export.body().asString(StandardCharsets.UTF_8);
+
         logger.info(export.toString());
-        logger.info(export.body().toString());
-        writeToS3(export.toString());
+        logger.info(data);
+        writeToS3(data);
     }
 }
