@@ -1,10 +1,12 @@
 package no.sikt.generator;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.Mockito.when;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeS3Client;
@@ -15,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mockito;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.apigateway.model.GetExportRequest;
 import software.amazon.awssdk.services.apigateway.model.GetExportResponse;
@@ -43,7 +46,9 @@ class GenerateDocsHandlerTest {
             restApi1, restApi2
         ).build();
 
-        var getExportResponse = GetExportResponse.builder().build();
+        var getExportResponse = GetExportResponse.builder()
+                                    .body(SdkBytes.fromString("no-body", UTF_8))
+                                    .build();
 
         when(apiGatewayAsyncClient.getRestApis()).thenReturn(CompletableFuture.completedFuture(getRestApisResponse));
         when(apiGatewayAsyncClient.getExport(any(GetExportRequest.class)))
