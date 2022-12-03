@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import java.io.InputStream;
 import java.io.OutputStream;
+import software.amazon.awssdk.services.apigateway.model.GetExportRequest;
 
 public class GenerateDocsHandler implements RequestStreamHandler {
 
@@ -28,6 +29,17 @@ public class GenerateDocsHandler implements RequestStreamHandler {
         try {
             var apis = apiGatewayClient.getRestApis().get();
             logger.info(apis.toString());
+            var firstApi = apis.items().get(0);
+
+            var getExportRequest = GetExportRequest.builder()
+                                       .restApiId(firstApi.id())
+                                       .stageName("Prod")
+                                       .accepts("application/yaml")
+                                       .exportType("swagger")
+                                       .build();
+
+            var export = apiGatewayClient.getExport(getExportRequest).get();
+            logger.info(export.toString());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
