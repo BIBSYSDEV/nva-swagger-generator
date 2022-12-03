@@ -54,6 +54,7 @@ public class GenerateDocsHandler implements RequestStreamHandler {
                          .orElseThrow();
 
         logger.info(export.toString());
+        logger.info(export.body().toString());
         writeToS3(export.toString());
     }
 }
