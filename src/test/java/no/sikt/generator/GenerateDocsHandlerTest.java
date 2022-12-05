@@ -29,6 +29,7 @@ import software.amazon.awssdk.services.apigateway.model.RestApi;
 
 class GenerateDocsHandlerTest {
 
+    public static final String OPEN_API_DATA = "no-body";
     private final ApiGatewayAsyncClient apiGatewayAsyncClient = Mockito.mock(ApiGatewayAsyncClient.class);
 
     private GenerateDocsHandler handler;
@@ -50,7 +51,7 @@ class GenerateDocsHandlerTest {
         ).build();
 
         var getExportResponse = GetExportResponse.builder()
-                                    .body(SdkBytes.fromString("no-body", UTF_8))
+                                    .body(SdkBytes.fromString(OPEN_API_DATA, UTF_8))
                                     .build();
 
         when(apiGatewayAsyncClient.getRestApis()).thenReturn(CompletableFuture.completedFuture(getRestApisResponse));
@@ -74,9 +75,9 @@ class GenerateDocsHandlerTest {
     public void shouldWriteFileToS3() {
         handler.handleRequest(null, null, null);
 
-        var fileContent = s3Driver.getFile(UnixPath.of("docs/swagger.yaml"));
+        var fileContent = s3Driver.getFile(UnixPath.of("docs/first-api.yaml"));
         assertThat(fileContent, notNullValue());
-        assertThat(fileContent, is(equalTo("no-body")));
+        assertThat(fileContent, is(equalTo(OPEN_API_DATA)));
     }
 
 }

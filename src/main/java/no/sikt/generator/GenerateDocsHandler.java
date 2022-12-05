@@ -19,6 +19,8 @@ import software.amazon.awssdk.services.s3.S3Client;
 public class GenerateDocsHandler implements RequestStreamHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GenerateDocsHandler.class);
+    public static final String EXPORT_TYPE_OA_3 = "oas30";
+    public static final String EXPORT_STAGE_PROD = "Prod";
     private final ApiGatewayAsyncClient apiGatewayClient;
     private final S3Client s3Client;
 
@@ -33,9 +35,28 @@ public class GenerateDocsHandler implements RequestStreamHandler {
         this.s3Client = s3Client;
     }
 
-    private void writeToS3(String content) {
+    private void writeToS3(String filename, String content) {
+        logger.info("Writing to file "+filename);
         var s3Driver = new S3Driver(s3Client, OUTPUT_BUCKET_NAME);
-        attempt(() -> s3Driver.insertFile(UnixPath.of("docs/swagger.yaml"), content)).orElseThrow();
+        attempt(() -> s3Driver.insertFile(UnixPath.of(filename), content)).orElseThrow();
+    }
+
+    private String fetchApiExport(String apiId, String stage, String exportType) {
+        var getExportRequest = GetExportRequest.builder()
+                                   .restApiId(apiId)
+                                   .stageName(stage)
+                                   .accepts("application/yaml")
+                                   .exportType(exportType)
+                                   .build();
+
+        var export = attempt(() -> apiGatewayClient.getExport(getExportRequest).get())
+                         .orElseThrow();
+
+        return export.body().asString(StandardCharsets.UTF_8);
+    }
+
+    private String toSnakeCase(String string) {
+        return string.replaceAll("\\s+", "-").toLowerCase();
     }
 
     @Override
@@ -44,20 +65,13 @@ public class GenerateDocsHandler implements RequestStreamHandler {
         logger.info(apis.toString());
         var firstApi = apis.items().get(0);
 
-        var getExportRequest = GetExportRequest.builder()
-                                   .restApiId(firstApi.id())
-                                   .stageName("Prod")
-                                   .accepts("application/yaml")
-                                   .exportType("swagger")
-                                   .build();
+        apis.items().forEach(api -> {
+            var export = fetchApiExport(api.id(), EXPORT_STAGE_PROD, EXPORT_TYPE_OA_3);
+            logger.info(export);
+            var filename = "docs/" + toSnakeCase(api.name()) + ".yaml";
+            writeToS3(filename, export);
+        });
 
-        var export = attempt(() -> apiGatewayClient.getExport(getExportRequest).get())
-                         .orElseThrow();
 
-        var data = export.body().asString(StandardCharsets.UTF_8);
-
-        logger.info(export.toString());
-        logger.info(data);
-        writeToS3(data);
     }
 }
