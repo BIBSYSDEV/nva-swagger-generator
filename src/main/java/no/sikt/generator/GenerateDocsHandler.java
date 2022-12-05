@@ -1,5 +1,6 @@
 package no.sikt.generator;
 
+import static java.util.Locale.ENGLISH;
 import static no.sikt.generator.ApplicationConstants.OUTPUT_BUCKET_NAME;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -38,7 +39,7 @@ public class GenerateDocsHandler implements RequestStreamHandler {
     }
 
     private void writeToS3(String filename, String content) {
-        logger.info("Writing to file "+filename);
+        logger.info("Writing to file " + filename);
         var s3Driver = new S3Driver(s3Client, OUTPUT_BUCKET_NAME);
         attempt(() -> s3Driver.insertFile(UnixPath.of(filename), content)).orElseThrow();
     }
@@ -58,7 +59,7 @@ public class GenerateDocsHandler implements RequestStreamHandler {
     }
 
     private String toSnakeCase(String string) {
-        return string.replaceAll("\\s+", "-").toLowerCase();
+        return string.replaceAll("\\s+", "-").toLowerCase(ENGLISH);
     }
 
     @Override
