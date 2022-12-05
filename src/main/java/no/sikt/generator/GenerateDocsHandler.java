@@ -21,6 +21,8 @@ public class GenerateDocsHandler implements RequestStreamHandler {
     private static final Logger logger = LoggerFactory.getLogger(GenerateDocsHandler.class);
     public static final String EXPORT_TYPE_OA_3 = "oas30";
     public static final String EXPORT_STAGE_PROD = "Prod";
+    public static final String APPLICATION_YAML = "application/yaml";
+    public static final String APPLICATION_JSON = "application/json";
     private final ApiGatewayAsyncClient apiGatewayClient;
     private final S3Client s3Client;
 
@@ -41,11 +43,11 @@ public class GenerateDocsHandler implements RequestStreamHandler {
         attempt(() -> s3Driver.insertFile(UnixPath.of(filename), content)).orElseThrow();
     }
 
-    private String fetchApiExport(String apiId, String stage, String exportType) {
+    private String fetchApiExport(String apiId, String stage, String contentType, String exportType) {
         var getExportRequest = GetExportRequest.builder()
                                    .restApiId(apiId)
                                    .stageName(stage)
-                                   .accepts("application/yaml")
+                                   .accepts(contentType)
                                    .exportType(exportType)
                                    .build();
 
@@ -63,13 +65,15 @@ public class GenerateDocsHandler implements RequestStreamHandler {
     public void handleRequest(InputStream input, OutputStream output, Context context) {
         var apis = attempt(() -> apiGatewayClient.getRestApis().get()).orElseThrow();
         logger.info(apis.toString());
-        var firstApi = apis.items().get(0);
 
         apis.items().forEach(api -> {
-            var export = fetchApiExport(api.id(), EXPORT_STAGE_PROD, EXPORT_TYPE_OA_3);
-            logger.info(export);
-            var filename = "docs/" + toSnakeCase(api.name()) + ".yaml";
-            writeToS3(filename, export);
+            var yaml = fetchApiExport(api.id(), EXPORT_STAGE_PROD, APPLICATION_YAML, EXPORT_TYPE_OA_3);
+            var yamlFilename = "docs/" + toSnakeCase(api.name()) + ".yaml";
+            writeToS3(yamlFilename, yaml);
+
+            var json = fetchApiExport(api.id(), EXPORT_STAGE_PROD, APPLICATION_JSON, EXPORT_TYPE_OA_3);
+            var jsonFilename = "docs/" + toSnakeCase(api.name()) + ".json";
+            writeToS3(jsonFilename, json);
         });
 
 
