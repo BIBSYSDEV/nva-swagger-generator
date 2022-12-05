@@ -10,6 +10,8 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeS3Client;
@@ -25,7 +27,11 @@ import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.apigateway.model.GetExportRequest;
 import software.amazon.awssdk.services.apigateway.model.GetExportResponse;
 import software.amazon.awssdk.services.apigateway.model.GetRestApisResponse;
+import software.amazon.awssdk.services.apigateway.model.GetStageRequest;
+import software.amazon.awssdk.services.apigateway.model.GetStagesRequest;
+import software.amazon.awssdk.services.apigateway.model.GetStagesResponse;
 import software.amazon.awssdk.services.apigateway.model.RestApi;
+import software.amazon.awssdk.services.apigateway.model.Stage;
 
 class GenerateDocsHandlerTest {
 
@@ -43,6 +49,10 @@ class GenerateDocsHandlerTest {
 
         handler = new GenerateDocsHandler(apiGatewayAsyncClient, fakeS3Client);
 
+        setupMocks();
+    }
+
+    private void setupMocks() {
         var restApi1 = RestApi.builder().name("First API").build();
         var restApi2 = RestApi.builder().name("Second API").build();
 
@@ -50,11 +60,20 @@ class GenerateDocsHandlerTest {
             restApi1, restApi2
         ).build();
 
+        var getStagesResponse = GetStagesResponse.builder().item(
+            List.of(
+                Stage.builder().stageName("Prod").build(),
+                Stage.builder().stageName("Stage").build()
+            )
+        ).build();
+
         var getExportResponse = GetExportResponse.builder()
                                     .body(SdkBytes.fromString(OPEN_API_DATA, UTF_8))
                                     .build();
 
         when(apiGatewayAsyncClient.getRestApis()).thenReturn(CompletableFuture.completedFuture(getRestApisResponse));
+        when(apiGatewayAsyncClient.getStages(any(GetStagesRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(getStagesResponse));
         when(apiGatewayAsyncClient.getExport(any(GetExportRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(getExportResponse));
     }

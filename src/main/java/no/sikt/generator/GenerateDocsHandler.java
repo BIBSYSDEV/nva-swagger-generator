@@ -6,6 +6,8 @@ import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.stream.Collectors;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UnixPath;
@@ -15,6 +17,8 @@ import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import java.io.InputStream;
 import java.io.OutputStream;
 import software.amazon.awssdk.services.apigateway.model.GetExportRequest;
+import software.amazon.awssdk.services.apigateway.model.GetStagesRequest;
+import software.amazon.awssdk.services.apigateway.model.Stage;
 import software.amazon.awssdk.services.s3.S3Client;
 
 public class GenerateDocsHandler implements RequestStreamHandler {
@@ -58,6 +62,13 @@ public class GenerateDocsHandler implements RequestStreamHandler {
         return export.body().asString(StandardCharsets.UTF_8);
     }
 
+    private List<String> fetchStages(String apiId) {
+        var request = GetStagesRequest.builder().restApiId(apiId).build();
+        var stages = attempt(() -> apiGatewayClient.getStages(request).get()).orElseThrow();
+
+        return stages.item().stream().map(Stage::stageName).collect(Collectors.toList());
+    }
+
     private String toSnakeCase(String string) {
         return string.replaceAll("\\s+", "-").toLowerCase(ENGLISH);
     }
@@ -68,13 +79,20 @@ public class GenerateDocsHandler implements RequestStreamHandler {
         logger.info(apis.toString());
 
         apis.items().forEach(api -> {
-            var yaml = fetchApiExport(api.id(), EXPORT_STAGE_PROD, APPLICATION_YAML, EXPORT_TYPE_OA_3);
-            var yamlFilename = "docs/" + toSnakeCase(api.name()) + ".yaml";
-            writeToS3(yamlFilename, yaml);
+            var stages = fetchStages(api.id());
+            var hasProdStage = stages.stream().anyMatch(stage -> EXPORT_STAGE_PROD.equals(stage));
+            if (hasProdStage) {
+                var yaml = fetchApiExport(api.id(), EXPORT_STAGE_PROD, APPLICATION_YAML, EXPORT_TYPE_OA_3);
+                var yamlFilename = "docs/" + toSnakeCase(api.name()) + ".yaml";
+                writeToS3(yamlFilename, yaml);
 
-            var json = fetchApiExport(api.id(), EXPORT_STAGE_PROD, APPLICATION_JSON, EXPORT_TYPE_OA_3);
-            var jsonFilename = "docs/" + toSnakeCase(api.name()) + ".json";
-            writeToS3(jsonFilename, json);
+                var json = fetchApiExport(api.id(), EXPORT_STAGE_PROD, APPLICATION_JSON, EXPORT_TYPE_OA_3);
+                var jsonFilename = "docs/" + toSnakeCase(api.name()) + ".json";
+                writeToS3(jsonFilename, json);
+            } else {
+                logger.warn("API {} ({}) does not have stage {}. Stages found: {}", api.name(), api.id(),
+                            EXPORT_STAGE_PROD, stages);
+            }
         });
 
 
