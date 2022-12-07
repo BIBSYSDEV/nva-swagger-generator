@@ -49,6 +49,9 @@ dependencies {
     implementation libs.json
     implementation libs.jsonld
 
+    implementation libs.swagger.core
+    implementation libs.swagger.parser
+
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
     implementation libs.guava
 

@@ -1,0 +1,92 @@
+openapi: "3.0.1"
+info:
+  title: "NVA Ontology Service"
+  description: "NVA Ontology Service. Provides ontological content in different formats."
+  version: "1.0.0"
+servers:
+- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+  variables:
+    basePath:
+      default: "/ontology"
+paths:
+  /{name}:
+    get:
+      operationId: "get"
+      parameters:
+      - name: "name"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "404":
+          description: "404 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "405":
+          description: "405 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "200 response"
+          content: {}
+        "406":
+          description: "406 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    options:
+      parameters:
+      - name: "name"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+components:
+  schemas:
+    Problem:
+      type: "object"
+      properties:
+        instance:
+          type: "string"
+          description: "The requested path associated with the error"
+        detail:
+          type: "string"
+          description: "A more detailed error message describing the error and potential\
+            \ mitigations"
+        type:
+          type: "string"
+          description: "A URI describing the error and mitigations, in generic cases,\
+            \ this is about:blank"
+        title:
+          type: "string"
+          description: "Human-readable description of the error status"
+        status:
+          type: "integer"
+          description: "The HTTP status code associated with the problem"
+          format: "int32"

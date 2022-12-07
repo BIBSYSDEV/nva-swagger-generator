@@ -1,0 +1,9 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: NVA Swagger main page
+  description: Some documentation that applies to all endpoints. Some documentation that applies to all endpoints. Some documentation that applies to all endpoints. Some documentation that applies to all endpoints.
+  license:
+    name: MIT
+servers:
+  - url: http://petstore.swagger.io/v1

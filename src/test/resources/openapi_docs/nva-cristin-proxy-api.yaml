@@ -1,0 +1,2264 @@
+openapi: "3.0.1"
+info:
+  title: "NVA Cristin Proxy API"
+  description: "The NVA Cristin Proxy API.\n\n  This API provides transformed Cristin\
+    \ data stored in [Cristin](https://api.cristin.no/v2).\n\n  The data is reformatted\
+    \ as JSON-LD with a schema defined in the [search ontology](https://bibsysdev.github.io/src/search-ontology.ttl),\
+    \ the [Organization ontology](https://bibsysdev.github.io/src/organization-ontology.ttl)\
+    \ and the [project ontology](https://bibsysdev.github.io/src/publication-channel-ontology.ttl).\n\
+    \n  To understand the semantic layer, take a look at the @context URI returned\
+    \ by the API, the data is marked up according to this and may be interpreted directly\
+    \ to RDF using this.\n"
+  version: "1.0.0"
+servers:
+- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+  variables:
+    basePath:
+      default: "/cristin"
+paths:
+  /person/{id}/employment/{employmentId}:
+    delete:
+      operationId: "DeletePersonEmploymentsByIdentifier"
+      parameters:
+      - name: "employmentId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "400":
+          description: "400 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: "401 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "204":
+          description: "204 response"
+          content: {}
+        "403":
+          description: "403 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "502 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: "404 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      parameters:
+      - name: "employmentId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+    patch:
+      operationId: "UpdatePersonEmployment"
+      parameters:
+      - name: "employmentId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonEmployment"
+          application/ld+json:
+            schema:
+              $ref: "#/components/schemas/PersonEmployment"
+        required: true
+      responses:
+        "400":
+          description: "400 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: "401 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "204":
+          description: "204 response"
+          content: {}
+        "403":
+          description: "403 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "502 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+  /person/{id}/employment:
+    get:
+      operationId: "GetPersonEmploymentsByIdentifier"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonEmploymentQuery"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/PersonEmploymentQuery"
+        "400":
+          description: "400 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: "401 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: "403 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "502 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: "404 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    post:
+      operationId: "PostPersonEmployment"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonEmployment"
+          application/ld+json:
+            schema:
+              $ref: "#/components/schemas/PersonEmployment"
+        required: true
+      responses:
+        "201":
+          description: "201 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonEmployment"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/PersonEmployment"
+        "400":
+          description: "400 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: "401 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: "403 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "502 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /organization/{identifier}/persons:
+    get:
+      operationId: "GetPersonsByOrganization"
+      parameters:
+      - name: "identifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "sort"
+        in: "query"
+        schema:
+          type: "string"
+      - name: "page"
+        in: "query"
+        schema:
+          type: "string"
+      - name: "results"
+        in: "query"
+        schema:
+          type: "string"
+      - name: "name"
+        in: "query"
+        schema:
+          type: "string"
+      responses:
+        "404":
+          description: "404 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationPersons"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/OrganizationPersons"
+        "400":
+          description: "400 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "502 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    options:
+      parameters:
+      - name: "identifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /organization/{identifier}:
+    get:
+      operationId: "GetOrganizationByIdentifier"
+      parameters:
+      - name: "identifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "depth"
+        in: "query"
+        schema:
+          type: "string"
+      responses:
+        "404":
+          description: "404 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+        "400":
+          description: "400 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "502 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    options:
+      parameters:
+      - name: "identifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /project/{identifier}:
+    get:
+      operationId: "GetProjectByidentifier"
+      parameters:
+      - name: "identifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "language"
+        in: "query"
+        schema:
+          type: "string"
+      responses:
+        "404":
+          description: "404 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "400":
+          description: "400 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "502 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    options:
+      parameters:
+      - name: "identifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+    patch:
+      operationId: "UpdateProject"
+      parameters:
+      - name: "identifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectPatch"
+          application/ld+json:
+            schema:
+              $ref: "#/components/schemas/ProjectPatch"
+        required: true
+      responses:
+        "400":
+          description: "400 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: "401 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "204":
+          description: "204 response"
+          content: {}
+        "403":
+          description: "403 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "502 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+  /person/{id}:
+    get:
+      operationId: "GetPersonById"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "404":
+          description: "404 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Person"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/Person"
+        "400":
+          description: "400 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: "401 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "502 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    options:
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+    patch:
+      operationId: "UpdatePerson"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonPatch"
+          application/ld+json:
+            schema:
+              $ref: "#/components/schemas/PersonPatch"
+        required: true
+      responses:
+        "400":
+          description: "400 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: "401 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "204":
+          description: "204 response"
+          content: {}
+        "403":
+          description: "403 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "502 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+  /person:
+    get:
+      operationId: "ListPersons"
+      parameters:
+      - name: "organization"
+        in: "query"
+        schema:
+          type: "string"
+      - name: "page"
+        in: "query"
+        schema:
+          type: "string"
+      - name: "results"
+        in: "query"
+        schema:
+          type: "string"
+      - name: "name"
+        in: "query"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Persons"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/Persons"
+        "400":
+          description: "400 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "502 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    post:
+      operationId: "PostPerson"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonPost"
+          application/ld+json:
+            schema:
+              $ref: "#/components/schemas/PersonPost"
+        required: true
+      responses:
+        "201":
+          description: "201 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonPostResponse"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/PersonPostResponse"
+        "400":
+          description: "400 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: "401 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: "403 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "502 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /project:
+    get:
+      operationId: "ListProjects"
+      parameters:
+      - name: "query"
+        in: "query"
+        required: true
+        schema:
+          type: "string"
+      - name: "organization"
+        in: "query"
+        schema:
+          type: "string"
+      - name: "status"
+        in: "query"
+        schema:
+          type: "string"
+      - name: "page"
+        in: "query"
+        schema:
+          type: "string"
+      - name: "results"
+        in: "query"
+        schema:
+          type: "string"
+      - name: "language"
+        in: "query"
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Projects"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/Projects"
+        "400":
+          description: "400 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "502 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    post:
+      operationId: "CreateProject"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectPost"
+          application/ld+json:
+            schema:
+              $ref: "#/components/schemas/ProjectPost"
+        required: true
+      responses:
+        "201":
+          description: "201 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Projects"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/Projects"
+        "400":
+          description: "400 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: "401 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: "403 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "502 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /organization:
+    get:
+      operationId: "ListOrganizations"
+      parameters:
+      - name: "query"
+        in: "query"
+        schema:
+          type: "string"
+      - name: "page"
+        in: "query"
+        schema:
+          type: "string"
+      - name: "results"
+        in: "query"
+        schema:
+          type: "string"
+      - name: "depth"
+        in: "query"
+        schema:
+          type: "string"
+      responses:
+        "404":
+          description: "404 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organizations"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/Organizations"
+        "400":
+          description: "400 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "502 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    options:
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /person/{id}/organization/{orgId}:
+    get:
+      operationId: "GetPersonOrganizationInfoByIdentifiers"
+      parameters:
+      - name: "orgId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonOrganizationInfo"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/PersonOrganizationInfo"
+        "400":
+          description: "400 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: "401 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: "403 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "502 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: "404 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      parameters:
+      - name: "orgId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+    patch:
+      operationId: "UpdatePersonInstitutionInfo"
+      parameters:
+      - name: "orgId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonInstInfoPatch"
+          application/ld+json:
+            schema:
+              $ref: "#/components/schemas/PersonInstInfoPatch"
+        required: true
+      responses:
+        "400":
+          description: "400 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: "401 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "204":
+          description: "204 response"
+          content: {}
+        "403":
+          description: "403 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "502 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+  /position:
+    get:
+      operationId: "GetPositionCodes"
+      parameters:
+      - name: "active"
+        in: "query"
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PositionCodes"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/PositionCodes"
+        "400":
+          description: "400 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: "401 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: "403 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "502 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: "404 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    options:
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /person/identityNumber:
+    post:
+      operationId: "GetPersonByNIN"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonNIN"
+        required: true
+      responses:
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Person"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/Person"
+        "400":
+          description: "400 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: "401 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: "403 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "502 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: "404 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /organization/{identifier}/projects:
+    get:
+      operationId: "GetProjectsByOrganization"
+      parameters:
+      - name: "identifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "page"
+        in: "query"
+        schema:
+          type: "string"
+      - name: "results"
+        in: "query"
+        schema:
+          type: "string"
+      responses:
+        "404":
+          description: "404 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationProjects"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/OrganizationProjects"
+        "400":
+          description: "400 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "502 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    options:
+      parameters:
+      - name: "identifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+components:
+  schemas:
+    PersonPostResponse:
+      type: "object"
+      properties:
+        names:
+          type: "array"
+          description: "Names for this person"
+          items:
+            type: "object"
+            properties:
+              type:
+                pattern: "PreferredFirstName|PreferredLastName|FirstName|LastName"
+                type: "string"
+                description: "Name of identifier"
+              value:
+                pattern: ".+"
+                type: "string"
+                description: "Value of identifier"
+        identifiers:
+          type: "array"
+          description: "Identifiers for this person"
+          items:
+            type: "object"
+            properties:
+              type:
+                pattern: "CristinIdentifier"
+                type: "string"
+                description: "Name of identifier"
+              value:
+                pattern: "\\d+"
+                type: "string"
+                description: "Value of identifier"
+        affiliations:
+          type: "array"
+          description: "The list of person affiliations"
+          items:
+            $ref: "#/components/schemas/Affiliation"
+        employments:
+          type: "array"
+          description: "Employments for this person"
+          items:
+            $ref: "#/components/schemas/PersonEmployment"
+    PersonInstInfoPatch:
+      type: "object"
+      properties:
+        phone:
+          type: "string"
+          description: "Phone number at this institution"
+        email:
+          type: "string"
+          description: "Email address at this institution"
+    PositionCodes:
+      type: "object"
+      properties:
+        positions:
+          type: "array"
+          description: "The list of position codes returned by the service"
+          items:
+            $ref: "#/components/schemas/PositionCode"
+        '@context':
+          $ref: "#/components/schemas/Context"
+    Organization:
+      type: "object"
+      properties:
+        partOf:
+          type: "array"
+          description: "List of Organizations this organization is part of"
+          items:
+            type: "object"
+            properties:
+              organization:
+                $ref: "#/components/schemas/Organization"
+        acronym:
+          pattern: ".*"
+          type: "string"
+          description: "Short mnemonic identifying Organization"
+        name:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Languages"
+        id:
+          $ref: "#/components/schemas/Id"
+        type:
+          pattern: "Organization"
+          type: "string"
+          description: "Always Organization"
+      description: "Affiliated organization"
+    Funding:
+      type: "object"
+      properties:
+        code:
+          type: "string"
+        source:
+          $ref: "#/components/schemas/FundingSource"
+        type:
+          pattern: "Funding"
+          type: "string"
+          description: "Always Funding"
+      description: "Funding"
+    Projects:
+      type: "object"
+      properties:
+        hits:
+          type: "array"
+          description: "The list of projects returned by the query"
+          items:
+            $ref: "#/components/schemas/Project"
+        searchString:
+          type: "string"
+          description: "The query string used"
+        previousResults:
+          pattern: "https:\\/\\/.*$"
+          type: "string"
+          description: "URI to the previous page in the query results"
+        size:
+          type: "integer"
+          description: "Number of results returned from query"
+          format: "int32"
+        id:
+          $ref: "#/components/schemas/Id"
+        firstRecord:
+          type: "integer"
+          description: "The first record in the current page"
+          format: "int32"
+        nextResults:
+          pattern: "https:\\/\\/.*$"
+          type: "string"
+          description: "URI to the next page in the query results"
+        '@context':
+          $ref: "#/components/schemas/Context"
+        processingTime:
+          type: "integer"
+          description: "Processing time in milliseconds for the query to complete"
+          format: "int32"
+    Languages:
+      pattern: "^[a-z]{2}$"
+      type: "object"
+      additionalProperties:
+        pattern: ".+"
+        type: "string"
+    PersonNIN:
+      type: "object"
+      properties:
+        type:
+          type: "string"
+          description: "The type of the object"
+        value:
+          type: "string"
+          description: "String representing the value of the object"
+    Persons:
+      type: "object"
+      properties:
+        hits:
+          type: "array"
+          description: "The list of persons returned by the query"
+          items:
+            $ref: "#/components/schemas/Person"
+        searchString:
+          type: "string"
+          description: "The query string used"
+        previousResults:
+          pattern: "https:\\/\\/.*$"
+          type: "string"
+          description: "URI to the previous page in the query results"
+        size:
+          type: "integer"
+          description: "Number of results returned from query"
+          format: "int32"
+        id:
+          $ref: "#/components/schemas/Id"
+        firstRecord:
+          type: "integer"
+          description: "The first record in the current page"
+          format: "int32"
+        nextResults:
+          pattern: "https:\\/\\/.*$"
+          type: "string"
+          description: "URI to the next page in the query results"
+        '@context':
+          $ref: "#/components/schemas/Context"
+        processingTime:
+          type: "integer"
+          description: "Processing time in milliseconds for the query to complete"
+          format: "int32"
+    PersonEmploymentQuery:
+      type: "object"
+      properties:
+        hits:
+          type: "array"
+          description: "The list of employments returned by the query"
+          items:
+            $ref: "#/components/schemas/PersonEmployment"
+        searchString:
+          type: "string"
+          description: "The query string used"
+        previousResults:
+          pattern: "https:\\/\\/.*$"
+          type: "string"
+          description: "URI to the previous page in the query results"
+        size:
+          type: "integer"
+          description: "Number of results returned from query"
+          format: "int32"
+        id:
+          $ref: "#/components/schemas/Id"
+        firstRecord:
+          type: "integer"
+          description: "The first record in the current page"
+          format: "int32"
+        nextResults:
+          pattern: "https:\\/\\/.*$"
+          type: "string"
+          description: "URI to the next page in the query results"
+        '@context':
+          $ref: "#/components/schemas/Context"
+        processingTime:
+          type: "integer"
+          description: "Processing time in milliseconds for the query to complete"
+          format: "int32"
+    ProjectPost:
+      type: "object"
+      properties:
+        coordinatingInstitution:
+          $ref: "#/components/schemas/Organization"
+        endDate:
+          type: "string"
+          description: "Project end date"
+          format: "date-time"
+        popularScientificSummary:
+          $ref: "#/components/schemas/Languages"
+        academicSummary:
+          $ref: "#/components/schemas/Languages"
+        language:
+          pattern: "^http:\\/\\/lexvo.org\\/id\\/iso639-3\\/[a-z]{3}$"
+          type: "string"
+          description: "The lexvo URI for the language of the Project"
+        contributors:
+          type: "array"
+          description: "List of contributors on the project"
+          items:
+            type: "object"
+            properties:
+              affiliation:
+                $ref: "#/components/schemas/Organization"
+              identity:
+                type: "object"
+                properties:
+                  id:
+                    $ref: "#/components/schemas/Id"
+                  type:
+                    pattern: "Person"
+                    type: "string"
+                    description: "Type of identity. Always Person"
+              type:
+                type: "string"
+                description: "Type of contributor. Can be ProjectManager or ProjectParticipant"
+                enum:
+                - "ProjectManager"
+                - "ProjectParticipant"
+            description: "One contributor"
+        title:
+          pattern: ".+"
+          type: "string"
+          description: "Title of the project"
+        type:
+          pattern: "Project"
+          type: "string"
+          description: "The type of the returned object, always Project"
+        '@context':
+          $ref: "#/components/schemas/Context"
+        startDate:
+          type: "string"
+          description: "Project start date"
+          format: "date-time"
+        status:
+          type: "string"
+          description: "Project status, based on start_date and end_date."
+          enum:
+          - "NOTSTARTED"
+          - "ACTIVE"
+          - "CONCLUDED"
+        alternativeTitles:
+          type: "array"
+          description: "Titles in alternative languages"
+          items:
+            $ref: "#/components/schemas/Languages"
+    PositionCode:
+      type: "object"
+      properties:
+        name:
+          type: "array"
+          description: "Titles in alternative languages"
+          items:
+            $ref: "#/components/schemas/Languages"
+        id:
+          type: "string"
+        enabled:
+          type: "boolean"
+    Affiliation:
+      type: "object"
+      properties:
+        role:
+          type: "object"
+          properties:
+            id:
+              $ref: "#/components/schemas/Id"
+            type:
+              pattern: "Role"
+              type: "string"
+              description: "Always Role"
+            labels:
+              $ref: "#/components/schemas/Languages"
+          description: "Person's role at affiliated organization"
+        organization:
+          $ref: "#/components/schemas/Id"
+        active:
+          type: "boolean"
+          description: "Person has active affiliation"
+        type:
+          pattern: "Affiliation"
+          type: "string"
+          description: "Always Affiliation"
+      description: "Person affiliation"
+    Context:
+      pattern: "https:\\/\\/.*$"
+      type: "string"
+      description: "The JSON-LD context object for the data, which describes the object\
+        \ in the data and allows machine processing of the data at a semantic level"
+    PersonPatch:
+      type: "object"
+      properties:
+        firstName:
+          type: "string"
+        lastName:
+          type: "string"
+        reserved:
+          type: "boolean"
+          description: "If person should be hidden from public view"
+        preferredFirstName:
+          type: "string"
+        orcid:
+          type: "string"
+          description: "Users can update their own orcid when logged in, otherwise\
+            \ user administrator can do the update"
+        preferredLastName:
+          type: "string"
+        employments:
+          type: "array"
+          description: "Employments for this person. Only for authorized users"
+          items:
+            $ref: "#/components/schemas/PersonEmployment"
+    PersonEmployment:
+      type: "object"
+      properties:
+        endDate:
+          type: "string"
+          description: "Optional employment end date"
+          format: "date-time"
+        organization:
+          $ref: "#/components/schemas/Id"
+        id:
+          $ref: "#/components/schemas/Id"
+        type:
+          $ref: "#/components/schemas/Id"
+        fullTimeEquivalentPercentage:
+          type: "number"
+          description: "Optional employment percentage"
+          format: "double"
+        startDate:
+          type: "string"
+          description: "Employment start date"
+          format: "date-time"
+    OrganizationProjects:
+      type: "object"
+      properties:
+        hits:
+          type: "array"
+          description: "The list of persons returned by the query"
+          items:
+            $ref: "#/components/schemas/Project"
+        previousResults:
+          pattern: "https:\\/\\/.*$"
+          type: "string"
+          description: "URI to the previous page in the query results"
+        size:
+          type: "integer"
+          description: "Number of results returned from query"
+          format: "int32"
+        id:
+          $ref: "#/components/schemas/Id"
+        firstRecord:
+          type: "integer"
+          description: "The first record in the current page"
+          format: "int32"
+        nextResults:
+          pattern: "https:\\/\\/.*$"
+          type: "string"
+          description: "URI to the next page in the query results"
+        '@context':
+          $ref: "#/components/schemas/Context"
+        processingTime:
+          type: "integer"
+          description: "Processing time in milliseconds for the query to complete"
+          format: "int32"
+    PersonOrganizationInfo:
+      type: "object"
+      properties:
+        phone:
+          type: "string"
+          description: "Phone at this organization"
+        id:
+          $ref: "#/components/schemas/Id"
+        '@context':
+          $ref: "#/components/schemas/Context"
+        email:
+          type: "string"
+          description: "Email at this organization"
+    Project:
+      type: "object"
+      properties:
+        keywords:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              label:
+                $ref: "#/components/schemas/Languages"
+              type:
+                type: "string"
+                description: "The keyword code"
+        contactInfo:
+          type: "object"
+          properties:
+            phone:
+              type: "string"
+            organization:
+              type: "string"
+            contactPerson:
+              type: "string"
+            type:
+              pattern: "ContactInfo"
+              type: "string"
+              description: "Type of object"
+            email:
+              type: "string"
+        endDate:
+          type: "string"
+          description: "Project end date"
+          format: "date-time"
+        popularScientificSummary:
+          $ref: "#/components/schemas/Languages"
+        projectCategories:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              label:
+                $ref: "#/components/schemas/Languages"
+              type:
+                type: "string"
+                description: "The type of project category"
+        academicSummary:
+          $ref: "#/components/schemas/Languages"
+        publishable:
+          type: "boolean"
+          description: "If the project has all fields mandatory for being published"
+        language:
+          pattern: "^http:\\/\\/lexvo.org\\/id\\/iso639-3\\/[a-z]{3}$"
+          type: "string"
+          description: "The lexvo URI for the language of the Project"
+        title:
+          pattern: ".+"
+          type: "string"
+          description: "Title of the project"
+        type:
+          pattern: "Project"
+          type: "string"
+          description: "The type of the returned object, always Project"
+        id:
+          $ref: "#/components/schemas/Id"
+        fundingAmount:
+          type: "object"
+          properties:
+            currency:
+              type: "string"
+              description: "Currency code. Currently only in NOK (Norwegian Kroner)"
+            type:
+              pattern: "FundingAmount"
+              type: "string"
+              description: "Type of object"
+            value:
+              type: "number"
+        alternativeTitles:
+          type: "array"
+          description: "Titles in alternative languages"
+          items:
+            $ref: "#/components/schemas/Languages"
+        funding:
+          type: "array"
+          description: "Fundings of this project"
+          items:
+            $ref: "#/components/schemas/Funding"
+        method:
+          $ref: "#/components/schemas/Languages"
+        created:
+          type: "object"
+          properties:
+            date:
+              type: "string"
+              description: "Date the project was created"
+              format: "date-time"
+            sourceShortName:
+              type: "string"
+              description: "Short name of the source that created the project"
+        identifiers:
+          type: "array"
+          description: "Identifiers for this project"
+          items:
+            type: "object"
+            properties:
+              type:
+                pattern: "CristinIdentifier"
+                type: "string"
+                description: "Name of identifier, always CristinIdentifier"
+              value:
+                type: "integer"
+                description: "Cristin ID of project"
+                format: "int32"
+        externalSources:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              identifier:
+                type: "string"
+                description: "The source reference identifier as it is in upstream"
+              name:
+                type: "string"
+                description: "The name of the source in short form"
+              type:
+                type: "string"
+                description: "The type of object. Here always ExternalSource"
+        equipment:
+          $ref: "#/components/schemas/Languages"
+        published:
+          type: "boolean"
+          description: "If the project is published in Cristin"
+        '@context':
+          $ref: "#/components/schemas/Context"
+        relatedProjects:
+          type: "array"
+          items:
+            type: "string"
+            description: "Uri to the related project"
+        coordinatingInstitution:
+          $ref: "#/components/schemas/Organization"
+        contributors:
+          type: "array"
+          description: "List of contributors on the project"
+          items:
+            type: "object"
+            properties:
+              affiliation:
+                $ref: "#/components/schemas/Organization"
+              identity:
+                type: "object"
+                properties:
+                  lastName:
+                    pattern: ".+"
+                    type: "string"
+                    description: "Last name"
+                  firstName:
+                    pattern: ".+"
+                    type: "string"
+                    description: "First name"
+                  id:
+                    $ref: "#/components/schemas/Id"
+                  type:
+                    pattern: "Person"
+                    type: "string"
+                    description: "Type of identity. Always Person"
+              type:
+                type: "string"
+                description: "Type of contributor. Can be ProjectManager or ProjectParticipant"
+                enum:
+                - "ProjectManager"
+                - "ProjectParticipant"
+            description: "One contributor"
+        lastModified:
+          type: "object"
+          properties:
+            date:
+              type: "string"
+              description: "Date the project was modified"
+              format: "date-time"
+            sourceShortName:
+              type: "string"
+              description: "Short name of the source that last modified the project"
+        startDate:
+          type: "string"
+          description: "Project start date"
+          format: "date-time"
+        status:
+          type: "string"
+          description: "Project status, based on start_date and end_date."
+          enum:
+          - "NOTSTARTED"
+          - "ACTIVE"
+          - "CONCLUDED"
+    OrganizationPersons:
+      type: "object"
+      properties:
+        hits:
+          type: "array"
+          description: "The list of persons returned by the query"
+          items:
+            $ref: "#/components/schemas/Person"
+        previousResults:
+          pattern: "https:\\/\\/.*$"
+          type: "string"
+          description: "URI to the previous page in the query results"
+        size:
+          type: "integer"
+          description: "Number of results returned from query"
+          format: "int32"
+        id:
+          $ref: "#/components/schemas/Id"
+        firstRecord:
+          type: "integer"
+          description: "The first record in the current page"
+          format: "int32"
+        nextResults:
+          pattern: "https:\\/\\/.*$"
+          type: "string"
+          description: "URI to the next page in the query results"
+        '@context':
+          $ref: "#/components/schemas/Context"
+        processingTime:
+          type: "integer"
+          description: "Processing time in milliseconds for the query to complete"
+          format: "int32"
+    PersonPost:
+      required:
+      - "identifiers"
+      - "names"
+      type: "object"
+      properties:
+        names:
+          type: "array"
+          description: "Names for this person. Required fields are FirstName and LastName"
+          items:
+            type: "object"
+            properties:
+              type:
+                pattern: "PreferredFirstName|PreferredLastName|FirstName|LastName"
+                type: "string"
+                description: "Name of identifier"
+              value:
+                pattern: ".+"
+                type: "string"
+                description: "Value of identifier"
+        identifiers:
+          type: "array"
+          description: "Identifier for this person"
+          items:
+            type: "object"
+            properties:
+              type:
+                pattern: "NationalIdentificationNumber"
+                type: "string"
+                description: "Name of identifier"
+              value:
+                pattern: "[0-9]{11}"
+                type: "string"
+                description: "Value of identifier"
+        employments:
+          type: "array"
+          description: "Employments for this person"
+          items:
+            $ref: "#/components/schemas/PersonEmployment"
+    Organizations:
+      type: "object"
+      properties:
+        hits:
+          type: "array"
+          description: "The list of organizations returned by the query"
+          items:
+            $ref: "#/components/schemas/Organization"
+        searchString:
+          type: "string"
+          description: "The query string used"
+        previousResults:
+          pattern: "https:\\/\\/.*$"
+          type: "string"
+          description: "URI to the previous page in the query results"
+        size:
+          type: "integer"
+          description: "Number of results returned from query"
+          format: "int32"
+        id:
+          $ref: "#/components/schemas/Id"
+        firstRecord:
+          type: "integer"
+          description: "The first record in the current page"
+          format: "int32"
+        nextResults:
+          pattern: "https:\\/\\/.*$"
+          type: "string"
+          description: "URI to the next page in the query results"
+        '@context':
+          $ref: "#/components/schemas/Context"
+        processingTime:
+          type: "integer"
+          description: "Processing time in milliseconds for the query to complete"
+          format: "int32"
+    Problem:
+      type: "object"
+      properties:
+        requestId:
+          type: "string"
+          description: "Unique id for the request"
+        detail:
+          type: "string"
+          description: "A more detailed error message describing the error and potential\
+            \ mitigations"
+        title:
+          type: "string"
+          description: "Human-readable description of the error status"
+        status:
+          type: "integer"
+          description: "The HTTP status code associated with the problem"
+          format: "int32"
+    Id:
+      pattern: "https:\\/\\/.*$"
+      type: "string"
+      description: "The URI of the object ID"
+    FundingSource:
+      type: "object"
+      properties:
+        code:
+          type: "string"
+        names:
+          $ref: "#/components/schemas/Languages"
+        type:
+          pattern: "FundingSource"
+          type: "string"
+          description: "Always FundingSource"
+      description: "Funding source"
+    Person:
+      type: "object"
+      properties:
+        image:
+          $ref: "#/components/schemas/Id"
+        names:
+          type: "array"
+          description: "Names for this person"
+          items:
+            type: "object"
+            properties:
+              type:
+                pattern: "PreferredFirstName|PreferredLastName|FirstName|LastName"
+                type: "string"
+                description: "Name of identifier"
+              value:
+                pattern: ".+"
+                type: "string"
+                description: "Value of identifier"
+        identifiers:
+          type: "array"
+          description: "Identifiers for this person"
+          items:
+            type: "object"
+            properties:
+              type:
+                pattern: "CristinIdentifier|ORCID|NationalIdentificationNumber"
+                type: "string"
+                description: "Name of identifier"
+              value:
+                pattern: "\\d+|\\d{4}-\\d{4}-\\d{4}-\\d{4}"
+                type: "string"
+                description: "Value of identifier"
+        affiliations:
+          type: "array"
+          description: "The list of person affiliations"
+          items:
+            $ref: "#/components/schemas/Affiliation"
+        employments:
+          type: "array"
+          description: "Employments for this person. Visible to authorized users"
+          items:
+            $ref: "#/components/schemas/PersonEmployment"
+        id:
+          $ref: "#/components/schemas/Id"
+        type:
+          pattern: "Person"
+          type: "string"
+          description: "The type of the returned object, always Person"
+        contactDetails:
+          type: "object"
+          properties:
+            telephone:
+              pattern: "\\+?\\d+"
+              type: "string"
+          description: "Contact information"
+        '@context':
+          $ref: "#/components/schemas/Context"
+    ProjectPatch:
+      type: "object"
+      properties:
+        coordinatingInstitution:
+          $ref: "#/components/schemas/Organization"
+        endDate:
+          type: "string"
+          description: "Project end date"
+          format: "date-time"
+        popularScientificSummary:
+          $ref: "#/components/schemas/Languages"
+        academicSummary:
+          $ref: "#/components/schemas/Languages"
+        language:
+          pattern: "^http:\\/\\/lexvo.org\\/id\\/iso639-3\\/[a-z]{3}$"
+          type: "string"
+          description: "The lexvo URI for the language of the Project"
+        contributors:
+          type: "array"
+          description: "List of contributors on the project"
+          items:
+            type: "object"
+            properties:
+              affiliation:
+                $ref: "#/components/schemas/Organization"
+              identity:
+                type: "object"
+                properties:
+                  id:
+                    $ref: "#/components/schemas/Id"
+                  type:
+                    pattern: "Person"
+                    type: "string"
+                    description: "Type of identity. Always Person"
+              type:
+                type: "string"
+                description: "Type of contributor. Can be ProjectManager or ProjectParticipant"
+                enum:
+                - "ProjectManager"
+                - "ProjectParticipant"
+            description: "One contributor"
+        title:
+          pattern: ".+"
+          type: "string"
+          description: "Title of the project"
+        startDate:
+          type: "string"
+          description: "Project start date"
+          format: "date-time"
+        status:
+          type: "string"
+          description: "Project status, based on start_date and end_date."
+          enum:
+          - "NOTSTARTED"
+          - "ACTIVE"
+          - "CONCLUDED"
+        alternativeTitles:
+          type: "array"
+          description: "Titles in alternative languages"
+          items:
+            $ref: "#/components/schemas/Languages"
+  securitySchemes:
+    CognitoUserPool:
+      type: "apiKey"
+      name: "Authorization"
+      in: "header"
+      x-amazon-apigateway-authtype: "cognito_user_pools"

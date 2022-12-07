@@ -1,0 +1,81 @@
+openapi: "3.0.1"
+info:
+  title: "NVA Fetch DOI"
+  version: "1.0"
+servers:
+- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+  variables:
+    basePath:
+      default: "/doi-fetch"
+paths:
+  /:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DoiLookup"
+        required: true
+      responses:
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Summary"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+components:
+  schemas:
+    DoiLookup:
+      required:
+      - "doiUrl"
+      type: "object"
+      properties:
+        doiUrl:
+          type: "string"
+    Summary:
+      required:
+      - "identifier"
+      - "title"
+      type: "object"
+      properties:
+        date:
+          type: "object"
+          properties:
+            month:
+              type: "string"
+            year:
+              type: "string"
+            day:
+              type: "string"
+        identifier:
+          type: "string"
+        creatorName:
+          type: "string"
+        title:
+          type: "string"
+  securitySchemes:
+    CognitoUserPool:
+      type: "apiKey"
+      name: "Authorization"
+      in: "header"
+      x-amazon-apigateway-authtype: "cognito_user_pools"

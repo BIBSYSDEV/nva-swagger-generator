@@ -1,0 +1,408 @@
+openapi: "3.0.1"
+info:
+  title: "NVA S3 Multipart Upload"
+  version: "1.0"
+servers:
+- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+  variables:
+    basePath:
+      default: "/upload"
+paths:
+  /create:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/createUploadRequestBody"
+        required: true
+      responses:
+        "400":
+          description: "400 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MODEL38c92c"
+        "401":
+          description: "401 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MODEL59040a"
+        "201":
+          description: "201 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/createUploadResponseBody"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /prepare:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/prepareUploadPartRequestBody"
+        required: true
+      responses:
+        "400":
+          description: "400 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MODEL705966"
+        "404":
+          description: "404 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MODEL6a9ad1"
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/prepareUploadPartResponseBody"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /abort:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/abortUploadRequestBody"
+        required: true
+      responses:
+        "400":
+          description: "400 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MODELbe91cf"
+        "404":
+          description: "404 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MODEL45f5af"
+        "204":
+          description: "204 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MODELa280c7"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /complete:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/completeUploadRequestBody"
+        required: true
+      responses:
+        "400":
+          description: "400 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MODELdb6f07"
+        "404":
+          description: "404 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MODEL2c10f9"
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MODELfdf315"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /listparts:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/listPartsRequestBody"
+        required: true
+      responses:
+        "400":
+          description: "400 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MODEL39a280"
+        "404":
+          description: "404 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MODEL5cc19d"
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/listPartsResponseBody"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+components:
+  schemas:
+    createUploadRequestBody:
+      title: "create multipart upload"
+      required:
+      - "filename"
+      - "size"
+      type: "object"
+      properties:
+        filename:
+          type: "string"
+          description: "Name of file to upload"
+        size:
+          type: "string"
+          description: "Size of file"
+        lastmodified:
+          type: "string"
+          description: "last modified time of the file, in millisecond since the UNIX\
+            \ epoch"
+        mimetype:
+          type: "string"
+          description: "MIME type of file"
+        md5hash:
+          type: "string"
+          description: "MD5 Hash to verify file after upload"
+    MODEL38c92c:
+      type: "object"
+    MODEL2c10f9:
+      type: "object"
+    MODEL705966:
+      type: "object"
+    listPartsResponseBody:
+      title: "create multipart upload"
+      type: "object"
+      properties:
+        PartNumber:
+          type: "string"
+          description: "The index in the file of the uploaded part."
+        ETag:
+          type: "string"
+          description: "The ETag of the part, used to identify it when completing\
+            \ the multipart upload and combining all parts into a single file."
+        Size:
+          type: "string"
+          description: "The size of the part in bytes."
+    createUploadResponseBody:
+      title: "create multipart upload"
+      type: "object"
+      properties:
+        uploadId:
+          type: "string"
+          description: "UploadID to access upload resource in S3"
+        key:
+          type: "string"
+          description: "Key to reference uploaded resource in S3 (UUID)"
+    MODEL6a9ad1:
+      type: "object"
+    MODELa280c7:
+      type: "object"
+    abortUploadRequestBody:
+      title: "Abort (multipart) upload"
+      required:
+      - "key"
+      - "uploadId"
+      type: "object"
+      properties:
+        uploadId:
+          type: "string"
+          description: "S3 Identifier upload"
+        key:
+          type: "string"
+          description: "Identifier (UUID) of the uploaded file, object key in the\
+            \ S3 bucket"
+    MODEL5cc19d:
+      type: "object"
+    listPartsRequestBody:
+      title: "List parts already uploaded"
+      required:
+      - "key"
+      - "uploadId"
+      type: "object"
+      properties:
+        uploadId:
+          type: "string"
+          description: "S3 Identifier upload"
+        key:
+          type: "string"
+          description: "Identifier (UUID) of the uploaded file, object key in the\
+            \ S3 bucket"
+    MODELdb6f07:
+      type: "object"
+    MODELfdf315:
+      type: "object"
+    MODEL59040a:
+      type: "object"
+    prepareUploadPartResponseBody:
+      title: "Generates a signed URL to upload a single part"
+      type: "object"
+      properties:
+        url:
+          type: "string"
+          description: "The presigned URL to upload a part"
+    MODELbe91cf:
+      type: "object"
+    prepareUploadPartRequestBody:
+      title: "List parts already uploaded"
+      required:
+      - "key"
+      - "uploadId"
+      type: "object"
+      properties:
+        number:
+          type: "string"
+          description: "The index of this part in the file (PartNumber in S3 terminology)"
+        uploadId:
+          type: "string"
+          description: "S3 Identifier upload"
+        body:
+          type: "string"
+          description: "this parts content (empty?)"
+        key:
+          type: "string"
+          description: "Identifier (UUID) of the uploaded file, object key in the\
+            \ S3 bucket"
+    MODEL39a280:
+      type: "object"
+    completeUploadRequestBody:
+      title: "Complete and finalize (multipart) upload"
+      required:
+      - "key"
+      - "parts"
+      - "uploadId"
+      type: "object"
+      properties:
+        uploadId:
+          type: "string"
+          description: "S3 Identifier upload"
+        parts:
+          type: "array"
+          description: "list of part numbers and ETags that identify the individual\
+            \ parts of the upload"
+          items:
+            type: "object"
+            properties:
+              PartNumber:
+                type: "integer"
+                description: "The index of this part in the upload"
+                format: "int32"
+              ETag:
+                type: "string"
+                description: "eTag of the uploaded part"
+        key:
+          type: "string"
+          description: "Identifier (UUID) of the uploaded file, object key in the\
+            \ S3 bucket"
+    MODEL45f5af:
+      type: "object"
+  securitySchemes:
+    CognitoUserPool:
+      type: "apiKey"
+      name: "Authorization"
+      in: "header"
+      x-amazon-apigateway-authtype: "cognito_user_pools"

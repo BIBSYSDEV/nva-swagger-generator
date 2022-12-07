@@ -1,0 +1,634 @@
+openapi: "3.0.1"
+info:
+  title: "NVA Publication API"
+  version: "1.0.0"
+servers:
+- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+  variables:
+    basePath:
+      default: "/publication"
+paths:
+  /{publicationIdentifier}:
+    get:
+      summary: "Fetch Publication by Identifier"
+      parameters:
+      - name: "publicationIdentifier"
+        in: "path"
+        description: "UUID identifier of the Publication to fetch."
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/vnd.schemaorg.ld+json:
+              schema:
+                $ref: "#/components/schemas/PublicationSchemaOrg"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/Publication"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Publication"
+            application/vnd.datacite.datacite+xml:
+              schema:
+                $ref: "#/components/schemas/PublicationDataCiteXml"
+    put:
+      summary: "Update Publication for Identifier"
+      parameters:
+      - name: "publicationIdentifier"
+        in: "path"
+        description: "UUID identifier of the Publication to update."
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Publication"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Publication"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    delete:
+      summary: "Delete Publication for Identifier"
+      parameters:
+      - name: "publicationIdentifier"
+        in: "path"
+        description: "UUID identifier of the Publication to delete."
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "202":
+          description: "Accepted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Publication"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      parameters:
+      - name: "publicationIdentifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /tickets:
+    get:
+      description: "List tickets for user"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketCollection"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /{publicationIdentifier}/ticket:
+    post:
+      description: "Create a new ticket"
+      parameters:
+      - name: "publicationIdentifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewTicketRequest"
+        required: true
+      responses:
+        "201":
+          description: "ACCEPTED"
+          content: {}
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      parameters:
+      - name: "publicationIdentifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /{publicationIdentifier}/ticket/{ticketIdentifier}/viewed:
+    post:
+      description: "Update Ticket viewed status."
+      parameters:
+      - name: "ticketIdentifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "publicationIdentifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateViewStatusRequest"
+        required: true
+      responses:
+        "303":
+          description: "See other"
+          headers:
+            Location:
+              description: "The URI of the updated ticket"
+              schema:
+                type: "string"
+          content: {}
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      parameters:
+      - name: "ticketIdentifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "publicationIdentifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /{publicationIdentifier}/tickets:
+    get:
+      description: "List tickets for publication"
+      parameters:
+      - name: "publicationIdentifier"
+        in: "path"
+        description: "UUID identifier of the Publication to fetch."
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketCollection"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      parameters:
+      - name: "publicationIdentifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /{publicationIdentifier}/ticket/{ticketIdentifier}/message:
+    post:
+      description: "Add message to ticket"
+      parameters:
+      - name: "ticketIdentifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "publicationIdentifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        description: "Message"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Message"
+        required: true
+      responses:
+        "201":
+          description: "Created"
+          headers:
+            Location:
+              description: "The URI of the created message"
+              schema:
+                type: "string"
+          content: {}
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      parameters:
+      - name: "ticketIdentifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "publicationIdentifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /:
+    post:
+      summary: "Create Publication"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Publication"
+        required: true
+      responses:
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "201":
+          description: "Created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Publication"
+        "502":
+          description: "Bad Gateway"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /{publicationIdentifier}/ticket/{ticketIdentifier}:
+    get:
+      description: "Get an existing ticket"
+      parameters:
+      - name: "ticketIdentifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "publicationIdentifier"
+        in: "path"
+        description: "UUID identifier of the Publication to fetch."
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content: {}
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    put:
+      description: "Update the status of an existing ticket"
+      parameters:
+      - name: "ticketIdentifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "publicationIdentifier"
+        in: "path"
+        description: "UUID identifier of the Publication to update."
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        description: "A Ticket Object containing the new ticket status"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Ticket"
+        required: true
+      responses:
+        "404":
+          description: "Not Found"
+          content: {}
+        "202":
+          description: "Accepted"
+          content: {}
+        "400":
+          description: "Bad Request"
+          content: {}
+        "409":
+          description: "Conflict"
+          content: {}
+        "403":
+          description: "Forbidden"
+          content: {}
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      parameters:
+      - name: "ticketIdentifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "publicationIdentifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /by-owner:
+    get:
+      summary: "Get Publications by Owner"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArrayOfPublication"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+components:
+  schemas:
+    Ticket:
+      type: "object"
+      properties:
+        viewedBy:
+          type: "array"
+          items:
+            type: "string"
+        type:
+          type: "string"
+          enum:
+          - "DoiRequest"
+          - "PublishingRequest"
+          - "GeneralSupportCase"
+        status:
+          type: "string"
+          enum:
+          - "Pending"
+          - "Completed"
+          - "Closed"
+    Message:
+      type: "object"
+      properties:
+        owner:
+          type: "string"
+        date:
+          type: "string"
+        sender:
+          type: "string"
+      description: "Message"
+    PublicationSchemaOrg:
+      type: "object"
+    UpdateViewStatusRequest:
+      type: "object"
+      properties:
+        viewedStatus:
+          type: "string"
+          enum:
+          - "Read"
+          - "Unread"
+        type:
+          type: "string"
+          enum:
+          - "UpdateViewStatusRequest"
+    TicketCollection:
+      type: "object"
+      properties:
+        tickets:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Ticket"
+        type:
+          type: "string"
+    Publication:
+      type: "object"
+    NewTicketRequest:
+      type: "object"
+      properties:
+        type:
+          type: "string"
+          enum:
+          - "DoiRequest"
+          - "PublishingRequest"
+          - "GeneralSupportCase"
+    Problem:
+      type: "object"
+      properties:
+        detail:
+          type: "string"
+        title:
+          type: "string"
+        status:
+          type: "integer"
+          format: "int32"
+    ArrayOfPublication:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/Publication"
+    PublicationDataCiteXml:
+      type: "object"
+  securitySchemes:
+    CognitoUserPool:
+      type: "apiKey"
+      name: "Authorization"
+      in: "header"
+      x-amazon-apigateway-authtype: "cognito_user_pools"

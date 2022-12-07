@@ -1,0 +1,64 @@
+openapi: "3.0.1"
+info:
+  title: "DLR LaunchCanvas API"
+  version: "1.0"
+servers:
+- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+  variables:
+    basePath:
+      default: "/lms"
+paths:
+  /lti/canvas/{serviceId}:
+    get:
+      operationId: "ltiLaunch"
+      parameters:
+      - name: "serviceId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "200 response"
+          content:
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/Cartridge"
+            text/html:
+              schema:
+                $ref: "#/components/schemas/HTML"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: "401 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "304":
+          description: "304 response"
+          content: {}
+components:
+  schemas:
+    Cartridge:
+      type: "object"
+    Error:
+      required:
+      - "detail"
+      - "status"
+      - "title"
+      type: "object"
+      properties:
+        detail:
+          type: "string"
+        message:
+          type: "string"
+        status:
+          type: "integer"
+          format: "int32"
+    HTML:
+      type: "object"

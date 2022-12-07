@@ -15,10 +15,12 @@ jsonld          = { strictly = '0.13.3' }
 junit           = { strictly = '5.8.2' }
 log4j           = { strictly = '2.17.2' }
 mockito         = { strictly = '3.12.4' }
-nvaCommons      = { strictly = '1.25.14' }
+nvaCommons      = { strictly = '1.25.21' }
 nebula          = { strictly = '16.23.0' }
 slf4j           = { strictly = '1.8.0-beta4' }
 zalandoProblem  = { strictly = '0.27.1' }
+swagger-parser  = { strictly = '2.1.9' }
+swagger-core    = { strictly = '2.2.7' }
 
 
 [libraries]
@@ -65,6 +67,9 @@ log4j-slf4j18-impl              = { group = 'org.apache.logging.log4j', name = '
 mockito-core                    = { group = 'org.mockito',              name = 'mockito-core',              version.ref = 'mockito' }
 
 nebula-lint                     = { group = 'nebula.lint',              name = 'nebula.lint.gradle.plugin', version.ref = 'nebula' }
+
+swagger-core                    = { group = 'io.swagger.core.v3',     name = 'swagger-core',              version.ref = 'swagger-core' }
+swagger-parser                  = { group = 'io.swagger.parser.v3',     name = 'swagger-parser',            version.ref = 'swagger-parser' }
 
 nva-apigateway                  = { group = 'com.github.bibsysdev',     name = 'apigateway',                version.ref = 'nvaCommons' }
 nva-core                        = { group = 'com.github.bibsysdev',     name = 'core',                      version.ref = 'nvaCommons' }

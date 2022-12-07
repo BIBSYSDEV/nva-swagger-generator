@@ -1,0 +1,65 @@
+openapi: "3.0.1"
+info:
+  title: "NVA Courses API"
+  version: "1.0.0"
+servers:
+- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+  variables:
+    basePath:
+      default: "/courses"
+paths:
+  /:
+    get:
+      responses:
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MODEL132e1d"
+        "502":
+          description: "502 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+      - CognitoUserPool:
+        - "https://api.nva.unit.no/scopes/backend"
+        - "https://api.nva.unit.no/scopes/frontend"
+        - "aws.cognito.signin.user.admin"
+components:
+  schemas:
+    MODEL132e1d:
+      type: "object"
+      properties:
+        courses:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Course"
+    Problem:
+      type: "object"
+      properties:
+        detail:
+          type: "string"
+        title:
+          type: "string"
+        status:
+          type: "integer"
+          format: "int32"
+    Course:
+      type: "object"
+      properties:
+        code:
+          type: "string"
+        year:
+          type: "integer"
+          format: "int32"
+        term:
+          type: "string"
+  securitySchemes:
+    CognitoUserPool:
+      type: "apiKey"
+      name: "Authorization"
+      in: "header"
+      x-amazon-apigateway-authtype: "cognito_user_pools"
