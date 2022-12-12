@@ -75,7 +75,17 @@ Resources:
             Action: 's3:GetObject'
             Resource: !Sub arn:aws:s3:::${SwaggerUiBucket}/*
 
-  CleanupwaggerUiBucketOnDelete:
+  cleanupBucketOnDelete:
+    Type: Custom::cleanupbucket
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - "CleanupSwaggerUiBucketOnDeleteLambda"
+          - "Arn"
+      BucketName: !Ref SwaggerUiBucket
+
+
+  CleanupSwaggerUiBucketOnDeleteLambda:
     Type: AWS::Lambda::Function
     DependsOn: SwaggerUiBucket
     Properties:
