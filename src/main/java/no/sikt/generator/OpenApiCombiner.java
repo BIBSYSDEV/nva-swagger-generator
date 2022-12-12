@@ -1,6 +1,7 @@
 package no.sikt.generator;
 
 import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import io.swagger.v3.oas.models.OpenAPI;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +55,33 @@ public class OpenApiCombiner {
                 new Tag()
                     .name(api.getInfo().getTitle())
                     .description(api.getInfo().getDescription())
+                    .externalDocs(new ExternalDocumentation().url("example.org").description("External doc"))
             );
+
+            if (api.getComponents() != null) {
+                if (this.baseTemplate.getComponents() == null) {
+                    this.baseTemplate.setComponents(new Components());
+                }
+
+                if (api.getComponents().getParameters() != null) {
+                    for (Entry<String, Parameter> parameter : api.getComponents().getParameters().entrySet()) {
+                        this.baseTemplate.getComponents().addParameters(parameter.getKey(), parameter.getValue());
+                    }
+                }
+
+                if (api.getComponents().getSchemas() != null) {
+                    for (Entry<String, Schema> schema : api.getComponents().getSchemas().entrySet()) {
+                        mergeScheme(baseTemplate, schema, api);
+                    }
+                }
+
+                if (api.getComponents().getSecuritySchemes() != null) {
+                    var entrySet = api.getComponents().getSecuritySchemes().entrySet();
+                    for (Entry<String, SecurityScheme> securitySchemeEntry : entrySet) {
+                        mergeSecuritySchemes(baseTemplate, securitySchemeEntry);
+                    }
+                }
+            }
 
 
             //api.getServers().stream().forEach( apiServer -> this.baseTemplate.addServersItem(apiServer));
@@ -99,37 +127,14 @@ public class OpenApiCombiner {
                 }
             }
 
-            if (api.getComponents() != null) {
-                if (this.baseTemplate.getComponents() == null) {
-                    this.baseTemplate.setComponents(new Components());
-                }
 
-                if (api.getComponents().getParameters() != null) {
-                    for (Entry<String, Parameter> parameter : api.getComponents().getParameters().entrySet()) {
-                        this.baseTemplate.getComponents().addParameters(parameter.getKey(), parameter.getValue());
-                    }
-                }
-
-                if (api.getComponents().getSchemas() != null) {
-                    for (Entry<String, Schema> schema : api.getComponents().getSchemas().entrySet()) {
-                        mergeScheme(baseTemplate, schema);
-                    }
-                }
-
-                if (api.getComponents().getSecuritySchemes() != null) {
-                    var entrySet = api.getComponents().getSecuritySchemes().entrySet();
-                    for (Entry<String, SecurityScheme> securitySchemeEntry : entrySet) {
-                        mergeSecuritySchemes(baseTemplate, securitySchemeEntry);
-                    }
-                }
-            }
 
         });
 
         return baseTemplate;
     }
 
-    private void mergeScheme(OpenAPI target, Entry<String, Schema> source) {
+    private void mergeScheme(OpenAPI target, Entry<String, Schema> source, OpenAPI api) {
         var newKey = source.getKey();
         if (this.baseTemplate.getComponents().getSchemas() != null
             && this.baseTemplate.getComponents().getSchemas().get(newKey) != null) {
@@ -137,16 +142,32 @@ public class OpenApiCombiner {
             var targetValue = this.baseTemplate.getComponents().getSchemas().get(newKey);
             var sourceValue = source.getValue();
             if (targetValue.equals(sourceValue)) {
-                logger.info("Ignoring equal schema");
-                return;
+                logger.info("Ignoring equal schema for {}", newKey);
             } else {
-                //throw new IllegalStateException("Schema " + newKey + " already exists and they are not equal");
-                logger.warn("Schema " + newKey + " already exists and they are not equal");
-                return;
-            }
 
+                var replacedKey = newKey + RandomUtils.nextInt();
+
+                api.getPaths().entrySet().forEach(p -> {
+                    OpenApiUtils.getAllOperationsFromPathItem(p.getValue()).forEach(pathOperation -> {
+                        pathOperation.getResponses().entrySet().forEach(response -> {
+                            response.getValue().getContent().entrySet().forEach(content -> {
+                                var oldRef = content.getValue().getSchema().get$ref();
+                                if (oldRef.equals("#/components/schemas/" + newKey)) {
+                                    logger.info("Replacing {} with {}","/" + newKey, "/" + replacedKey);
+                                    content.getValue().getSchema().set$ref("#/components/schemas/" + replacedKey);
+                                }
+                            });
+                        });
+                    });
+
+
+                    //throw new IllegalStateException("Schema " + newKey + " already exists and they are not equal");
+                });
+                target.getComponents().addSchemas(replacedKey, source.getValue());
+            }
+        } else {
+            target.getComponents().addSchemas(newKey, source.getValue());
         }
-        target.getComponents().addSchemas(newKey, source.getValue());
 
     }
 

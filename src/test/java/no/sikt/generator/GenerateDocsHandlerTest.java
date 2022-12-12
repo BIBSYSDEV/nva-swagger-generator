@@ -112,6 +112,8 @@ class GenerateDocsHandlerTest {
 
         var combinedFile = s3Driver.getFile(UnixPath.of("docs/combined.yaml"));
         assertThat(combinedFile, notNullValue());
+
+
     }
 
     @Test
