@@ -30,6 +30,7 @@ java {
 
 dependencies {
     api 'org.apache.commons:commons-math3:3.6.1'
+    api 'org.apache.commons:commons-text:1.9'
 
     implementation libs.aws.java.sdk.core
 

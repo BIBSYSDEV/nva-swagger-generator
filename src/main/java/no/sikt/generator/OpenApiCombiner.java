@@ -10,11 +10,15 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import io.swagger.v3.oas.models.OpenAPI;
+import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.text.CaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +51,8 @@ public class OpenApiCombiner {
 
         this.baseTemplate.setServers(List.of(findMainServer()));
 
+        renameDuplicateSchemas();
+
         this.others.stream().forEach(api -> {
 
             var resource = api.getServers().get(0).getVariables().get("basePath").getDefault().replace("/","");
@@ -71,7 +77,7 @@ public class OpenApiCombiner {
 
                 if (api.getComponents().getSchemas() != null) {
                     for (Entry<String, Schema> schema : api.getComponents().getSchemas().entrySet()) {
-                        mergeScheme(baseTemplate, schema, api);
+                        mergeScheme(baseTemplate, schema);
                     }
                 }
 
@@ -134,7 +140,69 @@ public class OpenApiCombiner {
         return baseTemplate;
     }
 
-    private void mergeScheme(OpenAPI target, Entry<String, Schema> source, OpenAPI api) {
+    private Set<String> findDuplicateSchemaNames() {
+        Map<String, Schema> schemas = new HashMap<>();
+        Set<String> collidingSchemaNames = new HashSet<>();
+
+        this.others.stream().forEach(api -> {
+            if (api.getComponents().getSchemas() != null) {
+                for (Entry<String, Schema> schema : api.getComponents().getSchemas().entrySet()) {
+                    if (schemas.get(schema.getKey()) == null) {
+                        schemas.put(schema.getKey(), schema.getValue());
+                    } else if (!schemas.get(schema.getKey()).equals(schema.getValue())) {
+                        collidingSchemaNames.add(schema.getKey());
+                    }
+                }
+            }
+        });
+
+        return collidingSchemaNames;
+    }
+
+    private void renameDuplicateSchemas() {
+        var duplicateNames = findDuplicateSchemaNames();
+
+        this.others.stream().forEach(api -> {
+            if (api.getComponents().getSchemas() != null) {
+                Map<String, Schema> newSchemas = new HashMap<>();
+
+                for (var schemaEntry : api.getComponents().getSchemas().entrySet()) {
+
+                    var newName = CaseUtils.toCamelCase(api.getInfo().getTitle(), true)
+                                  + schemaEntry.getKey();
+
+                    if (duplicateNames.contains(schemaEntry.getKey())) {
+                        renameSchemaRef(api, schemaEntry.getKey(), newName);
+                        newSchemas.put(newName, schemaEntry.getValue());
+                    } else {
+                        newSchemas.put(schemaEntry.getKey(), schemaEntry.getValue());
+                    }
+                    api.getComponents().setSchemas(newSchemas);
+                }
+            }
+        });
+    }
+
+    private void renameSchemaRef(OpenAPI target, String oldName, String newName) {
+        target.getPaths().forEach((key, value) -> {
+            OpenApiUtils.getAllOperationsFromPathItem(value).forEach(pathOperation -> {
+                pathOperation.getResponses().entrySet().forEach(response -> {
+                    response.getValue().getContent().entrySet().forEach(content -> {
+                        var oldRef = content.getValue().getSchema().get$ref();
+                        if (oldRef.equals("#/components/schemas/" + oldName)) {
+                            logger.info("Replacing {} with {}", "/" + oldName, "/" + newName);
+                            content.getValue().getSchema().set$ref("#/components/schemas/" + newName);
+                        }
+                    });
+                });
+            });
+
+            //throw new IllegalStateException("Schema " + newKey + " already exists and they are not equal");
+        });
+
+    }
+
+    private void mergeScheme(OpenAPI target, Entry<String, Schema> source) {
         var newKey = source.getKey();
         if (this.baseTemplate.getComponents().getSchemas() != null
             && this.baseTemplate.getComponents().getSchemas().get(newKey) != null) {
@@ -144,26 +212,7 @@ public class OpenApiCombiner {
             if (targetValue.equals(sourceValue)) {
                 logger.info("Ignoring equal schema for {}", newKey);
             } else {
-
-                var replacedKey = newKey + RandomUtils.nextInt();
-
-                api.getPaths().entrySet().forEach(p -> {
-                    OpenApiUtils.getAllOperationsFromPathItem(p.getValue()).forEach(pathOperation -> {
-                        pathOperation.getResponses().entrySet().forEach(response -> {
-                            response.getValue().getContent().entrySet().forEach(content -> {
-                                var oldRef = content.getValue().getSchema().get$ref();
-                                if (oldRef.equals("#/components/schemas/" + newKey)) {
-                                    logger.info("Replacing {} with {}","/" + newKey, "/" + replacedKey);
-                                    content.getValue().getSchema().set$ref("#/components/schemas/" + replacedKey);
-                                }
-                            });
-                        });
-                    });
-
-
-                    //throw new IllegalStateException("Schema " + newKey + " already exists and they are not equal");
-                });
-                target.getComponents().addSchemas(replacedKey, source.getValue());
+                throw new IllegalStateException("Schema " + newKey + " already exists and they are not equal");
             }
         } else {
             target.getComponents().addSchemas(newKey, source.getValue());

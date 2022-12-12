@@ -1,0 +1,43 @@
+openapi: "3.0.1"
+info:
+  title: "Api B"
+  version: "1.0"
+servers:
+- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+  variables:
+    basePath:
+      default: "/pathB"
+paths:
+  /path:
+    get:
+      responses:
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    Response:
+      type: "object"
+      properties:
+        fieldOnlyInB:
+          type: "string"
+    Error:
+      type: "object"
+      properties:
+        sameField:
+          type: "string"
+  securitySchemes:
+    SharedUserPool:
+      type: "apiKey"
+      name: "Authorization"
+      in: "header"
+      x-amazon-apigateway-authtype: "cognito_user_pools"

@@ -75,7 +75,7 @@ Resources:
             Action: 's3:GetObject'
             Resource: !Sub arn:aws:s3:::${SwaggerUiBucket}/*
 
-  cleanupBucketOnDelete:
+  CleanupBucketOnDelete:
     Type: Custom::cleanupbucket
     Properties:
       ServiceToken:
