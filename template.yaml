@@ -11,27 +11,6 @@ Globals:
         OUTPUT_BUCKET_NAME: !Ref SwaggerUiBucket
 
 Resources:
-  SwaggerUiBucket:
-    Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
-    Properties:
-      BucketName: !Sub 'nva-swagger-ui-${AWS::AccountId}'
-
-
-  SwaggerUiBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref SwaggerUiBucket
-      PolicyDocument:
-        Id: PublicReadPolicy
-        Version: 2012-10-17
-        Statement:
-          - Sid: PublicReadForGetBucketObjects
-            Effect: Allow
-            Principal: '*'
-            Action: 's3:GetObject'
-            Resource: !Sub arn:aws:s3:::${SwaggerUiBucket}/*
-
   SwaggerGeneratorRole:
     Type: AWS::IAM::Role
     Properties:
@@ -72,9 +51,68 @@ Resources:
                   - s3:GetObject
                   - s3:ListBucket
                   - s3:PutObject
+                  - s3:DeleteObject
                 Resource:
                   - !Sub 'arn:aws:s3:::${SwaggerUiBucket}'
                   - !Sub 'arn:aws:s3:::${SwaggerUiBucket}/*'
+
+  SwaggerUiBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'nva-swagger-ui-${AWS::AccountId}'
+
+  SwaggerUiBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SwaggerUiBucket
+      PolicyDocument:
+        Id: PublicReadPolicy
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Sub arn:aws:s3:::${SwaggerUiBucket}/*
+
+  CleanupwaggerUiBucketOnDelete:
+    Type: AWS::Lambda::Function
+    DependsOn: SwaggerUiBucket
+    Properties:
+      Code:
+        ZipFile:
+          !Sub |
+          import json, boto3, logging
+          import cfnresponse
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+          
+          def lambda_handler(event, context):
+              logger.info("event: {}".format(event))
+              try:
+                  bucket = event['ResourceProperties']['BucketName']
+                  logger.info("bucket: {}, event['RequestType']: {}".format(bucket,event['RequestType']))
+                  if event['RequestType'] == 'Delete':
+                      s3 = boto3.resource('s3')
+                      bucket = s3.Bucket(bucket)
+                      for obj in bucket.objects.filter():
+                          logger.info("delete obj: {}".format(obj))
+                          s3.Object(bucket.name, obj.key).delete()
+          
+                  sendResponseCfn(event, context, cfnresponse.SUCCESS)
+              except Exception as e:
+                  logger.info("Exception: {}".format(e))
+                  sendResponseCfn(event, context, cfnresponse.FAILED)
+          
+          def sendResponseCfn(event, context, responseStatus):
+              responseData = {}
+              responseData['Data'] = {}
+              cfnresponse.send(event, context, responseStatus, responseData, "CustomResourcePhysicalID")
+      Handler: "index.lambda_handler"
+      Runtime: python3.7
+      MemorySize: 128
+      Timeout: 60
+      Role: !GetAtt SwaggerGeneratorRole.Arn
 
   GenerateDocsHandler:
     Type: AWS::Serverless::Function
