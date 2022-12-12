@@ -8,14 +8,30 @@ Globals:
     MemorySize: 1800
     Environment:
       Variables:
-        OUTPUT_BUCKET_NAME: !Ref OutputBucketName
-
-Parameters:
-  OutputBucketName:
-    Type: String
-    Description: The name of the bucket where the documentation should be stored
+        OUTPUT_BUCKET_NAME: !Ref SwaggerUiBucket
 
 Resources:
+  SwaggerUiBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Sub 'nva-swagger-ui-${AWS::AccountId}'
+
+
+  SwaggerUiBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SwaggerUiBucket
+      PolicyDocument:
+        Id: PublicReadPolicy
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Sub arn:aws:s3:::${SwaggerUiBucket}/*
+
   SwaggerGeneratorRole:
     Type: AWS::IAM::Role
     Properties:
@@ -57,7 +73,8 @@ Resources:
                   - s3:ListBucket
                   - s3:PutObject
                 Resource:
-                  - !Sub 'arn:aws:s3:::${OutputBucketName}/*'
+                  - !Sub 'arn:aws:s3:::${SwaggerUiBucket}'
+                  - !Sub 'arn:aws:s3:::${SwaggerUiBucket}/*'
 
   GenerateDocsHandler:
     Type: AWS::Serverless::Function
