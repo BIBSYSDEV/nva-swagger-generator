@@ -37,6 +37,7 @@ public class InstallSwaggerUiHandler implements RequestStreamHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(InstallSwaggerUiHandler.class);
     public static final String CONTENT_TYPE = "Content-Type";
+    public static final String SWAGGER_INITIALIZER_JS = "swagger-initializer.js";
     private final S3Client s3Client;
     ObjectMapper mapper = new ObjectMapper();
     HttpClient httpClient;
@@ -57,28 +58,7 @@ public class InstallSwaggerUiHandler implements RequestStreamHandler {
     }
 
     private void writeToS3(String filename, String content) {
-        Map<String, String> metadata = Map.of();
-
-        if (filename.endsWith(".html")) {
-            metadata = Map.of(
-                CONTENT_TYPE, "text/html"
-            );
-        }
-        if (filename.endsWith(".css")) {
-            metadata = Map.of(
-                CONTENT_TYPE,"text/css"
-            );
-        }
-        if (filename.endsWith(".png")) {
-            metadata = Map.of(
-                CONTENT_TYPE, "image/png"
-            );
-        }
-        if (filename.endsWith(".js")) {
-            metadata = Map.of(
-                CONTENT_TYPE,"application/javascript"
-            );
-        }
+        var metadata = getMetadataFromFilename(filename);
 
         var fullPath = UnixPath.of(filename);
         var putObjectRequest = PutObjectRequest.builder()
@@ -92,30 +72,52 @@ public class InstallSwaggerUiHandler implements RequestStreamHandler {
         }).orElseThrow();
     }
 
+    private static Map<String, String> getMetadataFromFilename(String filename) {
+        if (filename.endsWith(".html")) {
+            return Map.of(
+                CONTENT_TYPE, "text/html"
+            );
+        }
+        if (filename.endsWith(".css")) {
+            return Map.of(
+                CONTENT_TYPE,"text/css"
+            );
+        }
+        if (filename.endsWith(".png")) {
+            return Map.of(
+                CONTENT_TYPE, "image/png"
+            );
+        }
+        if (filename.endsWith(".js")) {
+            return Map.of(
+                CONTENT_TYPE,"application/javascript"
+            );
+        }
+        return Map.of();
+    }
+
     @Override
     public void handleRequest(InputStream input, OutputStream output, Context context) {
         attempt(() -> {
-
             var downloadUri = fetchDownloadUri();
             logger.info("Downloading from {}", downloadUri);
 
             var downloadRequest = HttpRequest.newBuilder().uri(downloadUri).GET().build();
 
-            InputStream is = httpClient.sendAsync(downloadRequest, BodyHandlers.ofInputStream())
-                                 .thenApply(HttpResponse::body).join();
+            ZipInputStream zis = httpClient.sendAsync(downloadRequest, BodyHandlers.ofInputStream())
+                                     .thenApply(HttpResponse::body)
+                                     .thenApply(ZipInputStream::new).join();
 
-            ZipInputStream zis = new ZipInputStream(is);
             ZipEntry zipEntry = zis.getNextEntry();
             while (zipEntry != null) {
                 var fileName = zipEntry.getName();
-                if (fileName.contains("/dist/") && !zipEntry.isDirectory() && !fileName.contains("swagger-initializer"
-                                                                                                 + ".js")) {
+                if (fileName.contains("/dist/")
+                    && !zipEntry.isDirectory()
+                    && !fileName.contains(SWAGGER_INITIALIZER_JS)
+                ) {
                     logger.info("Copying file {}", fileName);
 
-                    ByteArrayOutputStream fos = new ByteArrayOutputStream();
-                    IOUtils.copy(zis, fos);
-                    fos.close();
-                    var content = fos.toString(StandardCharsets.UTF_8);
+                    String content = readFromZipInputStream(zis);
                     var cleanFileName =  fileName.substring(fileName.lastIndexOf('/') + 1);
 
                     writeToS3(cleanFileName, content);
@@ -128,7 +130,14 @@ public class InstallSwaggerUiHandler implements RequestStreamHandler {
             return null;
         }).orElseThrow();
 
-        writeToS3("swagger-initializer.js", Utils.readResource("swagger-initializer.js"));
+        writeToS3(SWAGGER_INITIALIZER_JS, Utils.readResource(SWAGGER_INITIALIZER_JS));
+    }
+
+    private static String readFromZipInputStream(ZipInputStream zis) throws IOException {
+        ByteArrayOutputStream fos = new ByteArrayOutputStream();
+        IOUtils.copy(zis, fos);
+        fos.close();
+        return fos.toString(StandardCharsets.UTF_8);
     }
 
     private URI fetchDownloadUri() throws IOException, InterruptedException {
