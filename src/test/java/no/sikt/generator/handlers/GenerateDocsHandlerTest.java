@@ -1,4 +1,4 @@
-package no.sikt.generator;
+package no.sikt.generator.handlers;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static no.sikt.generator.Utils.readResource;
@@ -17,6 +17,8 @@ import static org.mockito.Mockito.when;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import no.sikt.generator.ApplicationConstants;
+import no.sikt.generator.handlers.GenerateDocsHandler;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeS3Client;
 import nva.commons.core.paths.UnixPath;
@@ -38,9 +40,7 @@ import software.amazon.awssdk.services.apigateway.model.Stage;
 
 class GenerateDocsHandlerTest {
 
-    public static final String OPEN_API_DATA = "no-body";
     private final ApiGatewayAsyncClient apiGatewayAsyncClient = Mockito.mock(ApiGatewayAsyncClient.class);
-
     private GenerateDocsHandler handler;
     private S3Driver s3Driver;
 

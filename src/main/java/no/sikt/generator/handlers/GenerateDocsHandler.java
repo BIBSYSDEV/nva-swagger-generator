@@ -1,4 +1,4 @@
-package no.sikt.generator;
+package no.sikt.generator.handlers;
 
 import static java.util.Locale.ENGLISH;
 import static no.sikt.generator.ApplicationConstants.OUTPUT_BUCKET_NAME;
@@ -10,6 +10,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import no.sikt.generator.OpenApiCombiner;
+import no.sikt.generator.Utils;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UnixPath;
