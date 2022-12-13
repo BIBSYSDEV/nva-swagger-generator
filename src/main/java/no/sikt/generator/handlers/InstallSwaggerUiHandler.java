@@ -17,7 +17,6 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import no.sikt.generator.GithubApiResponse;
 import no.sikt.generator.Utils;
@@ -98,39 +97,42 @@ public class InstallSwaggerUiHandler implements RequestStreamHandler {
 
     @Override
     public void handleRequest(InputStream input, OutputStream output, Context context) {
-        attempt(() -> {
-            var downloadUri = fetchDownloadUri();
-            logger.info("Downloading from {}", downloadUri);
+        var downloadUri = fetchDownloadUri();
+        logger.info("Downloading from {}", downloadUri);
 
-            var downloadRequest = HttpRequest.newBuilder().uri(downloadUri).GET().build();
+        var downloadRequest = HttpRequest.newBuilder().uri(downloadUri).GET().build();
 
-            ZipInputStream zis = httpClient.sendAsync(downloadRequest, BodyHandlers.ofInputStream())
-                                     .thenApply(HttpResponse::body)
-                                     .thenApply(ZipInputStream::new).join();
-
-            ZipEntry zipEntry = zis.getNextEntry();
-            while (zipEntry != null) {
-                var fileName = zipEntry.getName();
-                if (fileName.contains("/dist/")
-                    && !zipEntry.isDirectory()
-                    && !fileName.contains(SWAGGER_INITIALIZER_JS)
-                ) {
-                    logger.info("Copying file {}", fileName);
-
-                    String content = readFromZipInputStream(zis);
-                    var cleanFileName =  fileName.substring(fileName.lastIndexOf('/') + 1);
-
-                    writeToS3(cleanFileName, content);
-                }
-                zipEntry = zis.getNextEntry();
-            }
-
-            zis.close();
-
-            return null;
-        }).orElseThrow();
+        httpClient.sendAsync(downloadRequest, BodyHandlers.ofInputStream())
+                                 .thenApply(HttpResponse::body)
+                                 .thenApply(ZipInputStream::new)
+                                 .thenAccept(this::writeZipFilesToS3)
+                                 .join();
 
         writeToS3(SWAGGER_INITIALIZER_JS, Utils.readResource(SWAGGER_INITIALIZER_JS));
+    }
+
+    private void writeZipFilesToS3(ZipInputStream zipStream) {
+        try {
+            for (var zip = zipStream.getNextEntry(); zip != null; zip = zipStream.getNextEntry()) {
+
+                var filePath = zip.getName();
+                if (filePath.contains("/dist/")
+                    && !zip.isDirectory()
+                    && !filePath.endsWith(SWAGGER_INITIALIZER_JS)
+                ) {
+                    logger.info("Copying file {}", filePath);
+
+                    var content = readFromZipInputStream(zipStream);
+                    var fileName =  filePath.substring(filePath.lastIndexOf('/') + 1);
+
+                    writeToS3(fileName, content);
+                }
+            }
+
+            zipStream.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static String readFromZipInputStream(ZipInputStream zis) throws IOException {
@@ -140,11 +142,13 @@ public class InstallSwaggerUiHandler implements RequestStreamHandler {
         return fos.toString(StandardCharsets.UTF_8);
     }
 
-    private URI fetchDownloadUri() throws IOException, InterruptedException {
-        var listRequest = HttpRequest.newBuilder().uri(buildUri()).GET().build();
-        var response = httpClient.send(listRequest, BodyHandlers.ofString()).body();
-        var githubResponse = mapper.readValue(response, GithubApiResponse.class);
-        return URI.create(githubResponse.zipUrl);
+    private URI fetchDownloadUri() {
+        return attempt(() -> {
+            var listRequest = HttpRequest.newBuilder().uri(buildUri()).GET().build();
+            var response = httpClient.send(listRequest, BodyHandlers.ofString()).body();
+            var githubResponse = mapper.readValue(response, GithubApiResponse.class);
+            return URI.create(githubResponse.zipUrl);
+        }).orElseThrow();
     }
 
     private URI buildUri() {
