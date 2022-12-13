@@ -132,6 +132,23 @@ Resources:
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSLambda_ReadOnlyAccess
-      Handler: no.sikt.generator.GenerateDocsHandler::handleRequest
+      Handler: no.sikt.generator.handlers.GenerateDocsHandler::handleRequest
+      Runtime: java11
+      Role: !GetAtt SwaggerGeneratorRole.Arn
+      Events:
+        GenerateDocsScheduleEvent:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 hour)
+
+  InstallSwaggerUiHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Description: Handler for installing newest swagger-ui to swagger s3 bucket
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambda_ReadOnlyAccess
+      Handler: no.sikt.generator.handlers.InstallSwaggerUiHandler::handleRequest
       Runtime: java11
       Role: !GetAtt SwaggerGeneratorRole.Arn
