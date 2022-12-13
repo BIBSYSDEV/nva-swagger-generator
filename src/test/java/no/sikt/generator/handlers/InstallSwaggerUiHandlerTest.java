@@ -57,7 +57,8 @@ class InstallSwaggerUiHandlerTest {
 
         assertThat(s3Driver.getFile(UnixPath.of("file1.txt")), notNullValue());
         assertThat(s3Driver.getFile(UnixPath.of("file2.txt")), notNullValue());
-        assertThat(s3Driver.getFiles(UnixPath.of("/")), hasSize(2));
+        assertThat(s3Driver.getFile(UnixPath.of("swagger-initializer.js")), notNullValue());
+        assertThat(s3Driver.getFiles(UnixPath.of("/")), hasSize(3));
     }
 
 }

@@ -16,21 +16,27 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import no.sikt.generator.GithubApiResponse;
+import no.sikt.generator.Utils;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UnixPath;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @JacocoGenerated
 public class InstallSwaggerUiHandler implements RequestStreamHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(InstallSwaggerUiHandler.class);
+    public static final String CONTENT_TYPE = "Content-Type";
     private final S3Client s3Client;
     ObjectMapper mapper = new ObjectMapper();
     HttpClient httpClient;
@@ -45,9 +51,45 @@ public class InstallSwaggerUiHandler implements RequestStreamHandler {
         this.s3Client = s3Client;
     }
 
+    private RequestBody createRequestBody(InputStream input) throws IOException {
+        var bytes = IoUtils.inputStreamToBytes(input);
+        return RequestBody.fromBytes(bytes);
+    }
+
     private void writeToS3(String filename, String content) {
-        var s3Driver = new S3Driver(s3Client, OUTPUT_BUCKET_NAME);
-        attempt(() -> s3Driver.insertFile(UnixPath.of(filename), content)).orElseThrow();
+        Map<String, String> metadata = Map.of();
+
+        if (filename.endsWith(".html")) {
+            metadata = Map.of(
+                CONTENT_TYPE, "text/html"
+            );
+        }
+        if (filename.endsWith(".css")) {
+            metadata = Map.of(
+                CONTENT_TYPE,"text/css"
+            );
+        }
+        if (filename.endsWith(".png")) {
+            metadata = Map.of(
+                CONTENT_TYPE, "image/png"
+            );
+        }
+        if (filename.endsWith(".js")) {
+            metadata = Map.of(
+                CONTENT_TYPE,"application/javascript"
+            );
+        }
+
+        var fullPath = UnixPath.of(filename);
+        var putObjectRequest = PutObjectRequest.builder()
+                                   .bucket(OUTPUT_BUCKET_NAME)
+                                   .key(fullPath.toString())
+                                   .metadata(metadata)
+                                   .build();
+        attempt(() -> {
+            var inputStream = IoUtils.stringToStream(content);
+            return s3Client.putObject(putObjectRequest, createRequestBody(inputStream));
+        }).orElseThrow();
     }
 
     @Override
@@ -66,7 +108,8 @@ public class InstallSwaggerUiHandler implements RequestStreamHandler {
             ZipEntry zipEntry = zis.getNextEntry();
             while (zipEntry != null) {
                 var fileName = zipEntry.getName();
-                if (fileName.contains("/dist/") && !zipEntry.isDirectory()) {
+                if (fileName.contains("/dist/") && !zipEntry.isDirectory() && !fileName.contains("swagger-initializer"
+                                                                                                 + ".js")) {
                     logger.info("Copying file {}", fileName);
 
                     ByteArrayOutputStream fos = new ByteArrayOutputStream();
@@ -84,6 +127,8 @@ public class InstallSwaggerUiHandler implements RequestStreamHandler {
 
             return null;
         }).orElseThrow();
+
+        writeToS3("swagger-initializer.js", Utils.readResource("swagger-initializer.js"));
     }
 
     private URI fetchDownloadUri() throws IOException, InterruptedException {
