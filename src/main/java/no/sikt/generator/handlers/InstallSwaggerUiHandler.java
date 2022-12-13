@@ -16,8 +16,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import no.sikt.generator.GithubApiResponse;
@@ -33,7 +31,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 public class InstallSwaggerUiHandler implements RequestStreamHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(InstallSwaggerUiHandler.class);
-    public static final String OUTPUT_ZIP = "output.zip";
     private final S3Client s3Client;
     ObjectMapper mapper = new ObjectMapper();
     HttpClient httpClient;
@@ -65,10 +62,7 @@ public class InstallSwaggerUiHandler implements RequestStreamHandler {
             InputStream is = httpClient.sendAsync(downloadRequest, BodyHandlers.ofInputStream())
                                  .thenApply(HttpResponse::body).join();
 
-            OutputStream out = Files.newOutputStream(Paths.get(OUTPUT_ZIP));
-            is.transferTo(out);
-
-            ZipInputStream zis = new ZipInputStream(Files.newInputStream(Paths.get(OUTPUT_ZIP)));
+            ZipInputStream zis = new ZipInputStream(is);
             ZipEntry zipEntry = zis.getNextEntry();
             while (zipEntry != null) {
                 var fileName = zipEntry.getName();
