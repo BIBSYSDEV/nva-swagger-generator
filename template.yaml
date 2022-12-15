@@ -66,6 +66,8 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub 'nva-swagger-ui-${AWS::AccountId}'
+      WebsiteConfiguration:
+        IndexDocument: "index.html"
 
   SwaggerUiBucketPolicy:
     Type: AWS::S3::BucketPolicy
