@@ -6,6 +6,7 @@ import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -14,16 +15,33 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.media.Content;
+import io.swagger.v3.oas.models.media.MediaType;
+import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.responses.ApiResponse;
+import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.parser.OpenAPIV3Parser;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import no.sikt.generator.ApplicationConstants;
+import no.sikt.generator.OpenApiUtils;
 import no.sikt.generator.handlers.GenerateDocsHandler;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeS3Client;
 import nva.commons.core.paths.UnixPath;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.function.Executable;
@@ -43,6 +61,7 @@ class GenerateDocsHandlerTest {
     private final ApiGatewayAsyncClient apiGatewayAsyncClient = Mockito.mock(ApiGatewayAsyncClient.class);
     private GenerateDocsHandler handler;
     private S3Driver s3Driver;
+    private OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
 
     @BeforeEach
     public void setup() {
@@ -154,8 +173,6 @@ class GenerateDocsHandlerTest {
 
         var yaml = s3Driver.getFile(UnixPath.of("docs/combined.yaml"));
 
-        var openApiParser = new OpenAPIV3Parser();
-
         var openApi = openApiParser
                            .readContents(yaml)
                            .getOpenAPI();
@@ -178,9 +195,34 @@ class GenerateDocsHandlerTest {
         setupNvaMocks();
         handler.handleRequest(null, null, null);
 
-        var combinedFile = s3Driver.getFile(UnixPath.of("docs/combined.yaml"));
-        assertThat(combinedFile, notNullValue());
+        var yaml = s3Driver.getFile(UnixPath.of("docs/combined.yaml"));
+        assertThat(yaml, notNullValue());
 
+        var openApi = openApiParser
+                          .readContents(yaml)
+                          .getOpenAPI();
+        
+        
+        assertThatOpenApiIsValid(openApi);
+    }
+
+    private void assertThatOpenApiIsValid(OpenAPI openApi) {
+
+        var allRefs = OpenApiUtils.getAllRefs(openApi);
+        var schemas = openApi
+                          .getComponents()
+                          .getSchemas()
+                          .keySet();
+
+        for (String ref : allRefs) {
+            var expected = StringUtils.removeStart(ref, "#/components/schemas/");
+            assertThat(schemas, hasItem(expected));
+        }
+
+//        for (String schema : schemas) {
+//            var expected = "#/components/schemas/" + schema;
+//            assertThat(allRefs, hasItem(expected));
+//        }
 
     }
 
