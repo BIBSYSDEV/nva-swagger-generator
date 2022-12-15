@@ -186,9 +186,10 @@ Resources:
         Origins:
           - Id: 'swagger-ui-bucket'
             DomainName: !Sub "${SwaggerUiBucket}.s3.${AWS::Region}.amazonaws.com"
-            S3OriginConfig:
-              OriginAccessIdentity: !Sub >-
-                origin-access-identity/cloudfront/${OriginAccessIdentity}
+            CustomOriginConfig:
+              HTTPPort: 80
+              HTTPSPort: 443
+              OriginProtocolPolicy: match-viewer
         ViewerCertificate:
           AcmCertificateArn: !Ref BackendDomainCertificateArn
           SslSupportMethod: 'sni-only'
