@@ -178,7 +178,7 @@ Resources:
         DefaultCacheBehavior:
           ForwardedValues:
             QueryString: true
-          TargetOriginId: 'dev-portal-site-s3-bucket'
+          TargetOriginId: 'swagger-ui-bucket'
           ViewerProtocolPolicy: redirect-to-https
         DefaultRootObject: index.html
         Enabled: true
