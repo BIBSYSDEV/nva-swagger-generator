@@ -2,6 +2,12 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
   Swagger Documentation Generator
+
+Parameters:
+  BackendDomainCertificateArn:
+    Type: String
+    Description: ARN for the certificate covering the API host/domain/API Gateway Custom Domain.
+
 Globals:
   Function:
     Timeout: 60
@@ -152,3 +158,37 @@ Resources:
       Handler: no.sikt.generator.handlers.InstallSwaggerUiHandler::handleRequest
       Runtime: java11
       Role: !GetAtt SwaggerGeneratorRole.Arn
+
+
+  OriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Ref AWS::StackName
+
+  CustomDomainCloudfrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    DependsOn: SwaggerUiBucket
+    Properties:
+      DistributionConfig:
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 403
+            ResponsePagePath: '/index.html'
+        DefaultCacheBehavior:
+          ForwardedValues:
+            QueryString: true
+          TargetOriginId: 'dev-portal-site-s3-bucket'
+          ViewerProtocolPolicy: redirect-to-https
+        DefaultRootObject: index.html
+        Enabled: true
+        Comment: !Sub '${AWS::StackName} swagger s3 files'
+        Origins:
+          - Id: 'swagger-ui-bucket'
+            DomainName: !Sub "${SwaggerUiBucket}.s3.${AWS::Region}.amazonaws.com"
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub >-
+                origin-access-identity/cloudfront/${OriginAccessIdentity}
+        ViewerCertificate:
+          AcmCertificateArn: !Ref BackendDomainCertificateArn
+          SslSupportMethod: 'sni-only'
