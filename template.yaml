@@ -4,6 +4,9 @@ Description: >
   Swagger Documentation Generator
 
 Parameters:
+  CustomDomain:
+    Type: String
+    Description: The custom domain for the enviorment
   BackendDomainCertificateArn:
     Type: String
     Description: ARN for the certificate covering the API host/domain/API Gateway Custom Domain.
@@ -184,7 +187,9 @@ Resources:
           ViewerProtocolPolicy: redirect-to-https
         DefaultRootObject: index.html
         Enabled: true
-        Comment: !Sub 'Swagger-ui ${AWS::StackName} '
+        Comment: !Sub 'Swagger-ui ${AWS::StackName}'
+        Aliases:
+          - !Sub 'Swagger-ui.${CustomDomain}'
         Origins:
           - Id: 'swagger-ui-bucket'
             DomainName: !Sub "${SwaggerUiBucket}.s3.${AWS::Region}.amazonaws.com"
