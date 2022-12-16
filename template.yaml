@@ -189,7 +189,7 @@ Resources:
         Enabled: true
         Comment: !Sub 'Swagger-ui ${AWS::StackName}'
         Aliases:
-          - !Sub 'Swagger-ui.${CustomDomain}'
+          - !Sub 'swagger-ui.${CustomDomain}'
         Origins:
           - Id: 'swagger-ui-bucket'
             DomainName: !Sub "${SwaggerUiBucket}.s3.${AWS::Region}.amazonaws.com"
