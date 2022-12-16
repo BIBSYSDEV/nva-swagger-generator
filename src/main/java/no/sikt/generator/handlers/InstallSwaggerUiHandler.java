@@ -16,7 +16,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.util.zip.ZipInputStream;
 import no.sikt.generator.GithubApiResponse;
 import no.sikt.generator.Utils;
@@ -57,13 +56,11 @@ public class InstallSwaggerUiHandler implements RequestStreamHandler {
     }
 
     private void writeToS3(String filename, String content) {
-        var metadata = getMetadataFromFilename(filename);
-
         var fullPath = UnixPath.of(filename);
         var putObjectRequest = PutObjectRequest.builder()
                                    .bucket(OUTPUT_BUCKET_NAME)
                                    .key(fullPath.toString())
-                                   .metadata(metadata)
+                                   .contentType(getContentTypeFromFilename(filename))
                                    .build();
         attempt(() -> {
             var inputStream = IoUtils.stringToStream(content);
@@ -71,28 +68,20 @@ public class InstallSwaggerUiHandler implements RequestStreamHandler {
         }).orElseThrow();
     }
 
-    private static Map<String, String> getMetadataFromFilename(String filename) {
+    private static String getContentTypeFromFilename(String filename) {
         if (filename.endsWith(".html")) {
-            return Map.of(
-                CONTENT_TYPE, "text/html"
-            );
+            return "text/html";
         }
         if (filename.endsWith(".css")) {
-            return Map.of(
-                CONTENT_TYPE,"text/css"
-            );
+            return "text/css";
         }
         if (filename.endsWith(".png")) {
-            return Map.of(
-                CONTENT_TYPE, "image/png"
-            );
+            return "image/png";
         }
         if (filename.endsWith(".js")) {
-            return Map.of(
-                CONTENT_TYPE,"application/javascript"
-            );
+            return "application/javascript";
         }
-        return Map.of();
+        return null;
     }
 
     @Override
