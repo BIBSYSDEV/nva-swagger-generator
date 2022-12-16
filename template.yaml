@@ -184,7 +184,7 @@ Resources:
           ViewerProtocolPolicy: redirect-to-https
         DefaultRootObject: index.html
         Enabled: true
-        Comment: !Sub '${AWS::StackName} swagger s3 files'
+        Comment: !Sub 'Swagger-ui ${AWS::StackName} '
         Origins:
           - Id: 'swagger-ui-bucket'
             DomainName: !Sub "${SwaggerUiBucket}.s3.${AWS::Region}.amazonaws.com"
