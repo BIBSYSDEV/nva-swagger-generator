@@ -165,38 +165,38 @@ Resources:
       Role: !GetAtt SwaggerGeneratorRole.Arn
 
 
-#  OriginAccessIdentity:
-#    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
-#    Properties:
-#      CloudFrontOriginAccessIdentityConfig:
-#        Comment: !Ref AWS::StackName
-#
-#  CustomDomainCloudfrontDistribution:
-#    Type: AWS::CloudFront::Distribution
-#    DependsOn: SwaggerUiBucket
-#    Properties:
-#      DistributionConfig:
-#        CustomErrorResponses:
-#          - ErrorCode: 403
-#            ResponseCode: 403
-#            ResponsePagePath: '/index.html'
-#        DefaultCacheBehavior:
-#          ForwardedValues:
-#            QueryString: true
-#          TargetOriginId: 'swagger-ui-bucket'
-#          ViewerProtocolPolicy: redirect-to-https
-#        DefaultRootObject: index.html
-#        Enabled: true
-#        Comment: !Sub 'Swagger-ui ${AWS::StackName}'
-#        Aliases:
-#          - !Sub 'swagger-ui.${CustomDomain}'
-#        Origins:
-#          - Id: 'swagger-ui-bucket'
-#            DomainName: !Sub "${SwaggerUiBucket}.s3.${AWS::Region}.amazonaws.com"
-#            CustomOriginConfig:
-#              HTTPPort: 80
-#              HTTPSPort: 443
-#              OriginProtocolPolicy: match-viewer
-#        ViewerCertificate:
-#          AcmCertificateArn: !Ref BackendDomainCertificateArn
-#          SslSupportMethod: 'sni-only'
+  OriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Ref AWS::StackName
+
+  CustomDomainCloudfrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    DependsOn: SwaggerUiBucket
+    Properties:
+      DistributionConfig:
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 403
+            ResponsePagePath: '/index.html'
+        DefaultCacheBehavior:
+          ForwardedValues:
+            QueryString: true
+          TargetOriginId: 'swagger-ui-bucket'
+          ViewerProtocolPolicy: redirect-to-https
+        DefaultRootObject: index.html
+        Enabled: true
+        Comment: !Sub 'Swagger-ui ${AWS::StackName}'
+        Aliases:
+          - !Sub 'swagger-ui.${CustomDomain}'
+        Origins:
+          - Id: 'swagger-ui-bucket'
+            DomainName: !Sub "${SwaggerUiBucket}.s3.${AWS::Region}.amazonaws.com"
+            CustomOriginConfig:
+              HTTPPort: 80
+              HTTPSPort: 443
+              OriginProtocolPolicy: match-viewer
+        ViewerCertificate:
+          AcmCertificateArn: !Ref BackendDomainCertificateArn
+          SslSupportMethod: 'sni-only'
