@@ -193,7 +193,6 @@ public class OpenApiCombiner {
                     response.getValue().getContent().entrySet().forEach(content -> {
                         var oldRef = content.getValue().getSchema().get$ref();
                         if (oldRef.equals(COMPONENTS_SCHEMAS + oldName)) {
-                            logger.info("Replacing respons {} with {}", "/" + oldName, "/" + newName);
                             content.getValue().getSchema().set$ref(COMPONENTS_SCHEMAS + newName);
                         }
                     });
@@ -203,7 +202,6 @@ public class OpenApiCombiner {
                     requestBody.getContent().entrySet().forEach(content -> {
                         var oldRef = content.getValue().getSchema().get$ref();
                         if (oldRef.equals(COMPONENTS_SCHEMAS + oldName)) {
-                            logger.info("Replacing requestBody {} with {}", "/" + oldName, "/" + newName);
                             content.getValue().getSchema().set$ref(COMPONENTS_SCHEMAS + newName);
                         }
                     });
