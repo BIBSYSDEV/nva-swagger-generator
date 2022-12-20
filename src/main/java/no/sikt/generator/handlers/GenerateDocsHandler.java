@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import no.sikt.generator.OpenApiCombiner;
+import no.sikt.generator.OpenApiValidator;
 import no.sikt.generator.Utils;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.JacocoGenerated;
@@ -36,6 +37,7 @@ public class GenerateDocsHandler implements RequestStreamHandler {
     public static final String APPLICATION_JSON = "application/json";
     private final ApiGatewayAsyncClient apiGatewayClient;
     private final S3Client s3Client;
+    private final OpenApiValidator openApiValidator = new OpenApiValidator();
 
     @JacocoGenerated
     public GenerateDocsHandler() {
@@ -49,7 +51,6 @@ public class GenerateDocsHandler implements RequestStreamHandler {
     }
 
     private void writeToS3(String filename, String content) {
-        logger.info("Writing to file " + filename);
         var s3Driver = new S3Driver(s3Client, OUTPUT_BUCKET_NAME);
         attempt(() -> s3Driver.insertFile(UnixPath.of(filename), content)).orElseThrow();
     }
@@ -101,6 +102,8 @@ public class GenerateDocsHandler implements RequestStreamHandler {
 
                 var parseResult = openApiParser.readContents(yaml);
                 var openApi = parseResult.getOpenAPI();
+
+                openApiValidator.validateOpenApi(openApi);
 
                 swaggers.add(openApi);
             } else {

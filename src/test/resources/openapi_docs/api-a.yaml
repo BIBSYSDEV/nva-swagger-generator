@@ -35,6 +35,11 @@ components:
       properties:
         sameField:
           type: "string"
+    UniqueSchemaWithNumber1:
+      type: "object"
+      properties:
+        field:
+          type: "string"
   securitySchemes:
     SharedUserPool:
       type: "apiKey"

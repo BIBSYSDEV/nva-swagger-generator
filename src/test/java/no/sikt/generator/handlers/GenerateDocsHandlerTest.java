@@ -154,6 +154,14 @@ class GenerateDocsHandlerTest {
     }
 
     @Test
+    public void shouldLogSchemasWithNumbersInName() {
+        setupSimpleMocks();
+        TestAppender logger = LogUtils.getTestingAppenderForRootLogger();
+        handler.handleRequest(null, null, null);
+        assertThat(logger.getMessages(), containsString("schema 'UniqueSchemaWithNumber1' contains numbers"));
+    }
+
+    @Test
     public void shouldWriteFilesToS3() {
         setupSimpleMocks();
         handler.handleRequest(null, null, null);
@@ -182,7 +190,7 @@ class GenerateDocsHandlerTest {
         assertThat(openApi.getInfo().getTitle(), is(not(emptyString())));
         assertThat(openApi.getInfo().getDescription(), is(not(emptyString())));
         assertThat(openApi.getComponents().getSecuritySchemes().entrySet(), hasSize(1));
-        assertThat(openApi.getComponents().getSchemas().entrySet(), hasSize(3));
+        assertThat(openApi.getComponents().getSchemas().entrySet(), hasSize(4));
         assertThat(openApi.getComponents().getSchemas().get("Error"), notNullValue());
         assertThat(openApi.getComponents().getSchemas().get("ApiAResponse"), notNullValue());
         assertThat(openApi.getComponents().getSchemas().get("ApiBResponse"), notNullValue());

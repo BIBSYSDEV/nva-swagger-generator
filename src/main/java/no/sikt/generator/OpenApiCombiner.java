@@ -63,7 +63,7 @@ public class OpenApiCombiner {
             mergePaths(api);
             mergeSecurity(api);
         });
-        
+
         return baseTemplate;
     }
 
@@ -166,16 +166,19 @@ public class OpenApiCombiner {
         this.others.stream().forEach(api -> {
             if (api.getComponents().getSchemas() != null) {
                 Map<String, Schema> newSchemas = new HashMap<>();
+
                 for (var schemaEntry : api.getComponents().getSchemas().entrySet()) {
 
-                    var newName = CaseUtils.toCamelCase(api.getInfo().getTitle(), true)
-                                  + schemaEntry.getKey();
+                    var oldName = schemaEntry.getKey();
+                    var newName = CaseUtils.toCamelCase(api.getInfo().getTitle(), true) + oldName;
 
-                    if (duplicateNames.contains(schemaEntry.getKey())) {
-                        renameSchemaRef(api, schemaEntry.getKey(), newName);
+                    if (duplicateNames.contains(oldName)) {
+                        logger.info("API {}: Replacing {} with {}", api.getInfo().getTitle(), "/" + oldName,
+                                    "/" + newName);
+                        renameSchemaRef(api, oldName, newName);
                         newSchemas.put(newName, schemaEntry.getValue());
                     } else {
-                        newSchemas.put(schemaEntry.getKey(), schemaEntry.getValue());
+                        newSchemas.put(oldName, schemaEntry.getValue());
                     }
                     api.getComponents().setSchemas(newSchemas);
                 }
