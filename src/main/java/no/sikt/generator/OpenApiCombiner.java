@@ -154,7 +154,6 @@ public class OpenApiCombiner {
                                       + refName;
                         if (duplicateNames.contains(refName)) {
                             items.set$ref(COMPONENTS_SCHEMAS + newName);
-                            logger.info("found");
                         }
                     }
 
