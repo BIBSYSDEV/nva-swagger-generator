@@ -64,13 +64,7 @@ public class OpenApiCombiner {
             mergeSecurity(api);
         });
         
-        detectIssues();
-
         return baseTemplate;
-    }
-
-    private void detectIssues() {
-
     }
 
     private void mergeSecurity(OpenAPI api) {
