@@ -218,12 +218,6 @@ class GenerateDocsHandlerTest {
             var expected = StringUtils.removeStart(ref, "#/components/schemas/");
             assertThat(schemas, hasItem(expected));
         }
-
-//        for (String schema : schemas) {
-//            var expected = "#/components/schemas/" + schema;
-//            assertThat(allRefs, hasItem(expected));
-//        }
-
     }
 
     @Test
