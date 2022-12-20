@@ -20,12 +20,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.CaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class OpenApiCombiner {
 
+    public static final String COMPONENTS_SCHEMAS = "#/components/schemas/";
     private final OpenAPI baseTemplate;
     private final List<OpenAPI> others;
 
@@ -61,7 +63,7 @@ public class OpenApiCombiner {
             mergePaths(api);
             mergeSecurity(api);
         });
-
+        
         return baseTemplate;
     }
 
@@ -137,11 +139,33 @@ public class OpenApiCombiner {
 
     private void renameDuplicateSchemas() {
         var duplicateNames = findDuplicateSchemaNames();
+        renameSchemas(duplicateNames);
+        renameNestedSchemaRefs(duplicateNames);
+    }
 
+    private void renameNestedSchemaRefs(Set<String> duplicateNames) {
+        this.others.stream().forEach(api -> {
+            if (api.getComponents().getSchemas() != null) {
+                for (var schemaEntry : api.getComponents().getSchemas().entrySet()) {
+                    var items = schemaEntry.getValue().getItems();
+                    if (items != null) {
+                        var refName = StringUtils.stripStart(items.get$ref(), COMPONENTS_SCHEMAS);
+                        var newName = CaseUtils.toCamelCase(api.getInfo().getTitle(), true)
+                                      + refName;
+                        if (duplicateNames.contains(refName)) {
+                            items.set$ref(COMPONENTS_SCHEMAS + newName);
+                        }
+                    }
+
+                }
+            }
+        });
+    }
+
+    private void renameSchemas(Set<String> duplicateNames) {
         this.others.stream().forEach(api -> {
             if (api.getComponents().getSchemas() != null) {
                 Map<String, Schema> newSchemas = new HashMap<>();
-
                 for (var schemaEntry : api.getComponents().getSchemas().entrySet()) {
 
                     var newName = CaseUtils.toCamelCase(api.getInfo().getTitle(), true)
@@ -165,17 +189,24 @@ public class OpenApiCombiner {
                 pathOperation.getResponses().entrySet().forEach(response -> {
                     response.getValue().getContent().entrySet().forEach(content -> {
                         var oldRef = content.getValue().getSchema().get$ref();
-                        if (oldRef.equals("#/components/schemas/" + oldName)) {
-                            logger.info("Replacing {} with {}", "/" + oldName, "/" + newName);
-                            content.getValue().getSchema().set$ref("#/components/schemas/" + newName);
+                        if (oldRef.equals(COMPONENTS_SCHEMAS + oldName)) {
+                            logger.info("Replacing respons {} with {}", "/" + oldName, "/" + newName);
+                            content.getValue().getSchema().set$ref(COMPONENTS_SCHEMAS + newName);
                         }
                     });
                 });
+                var requestBody = pathOperation.getRequestBody();
+                if (requestBody != null) {
+                    requestBody.getContent().entrySet().forEach(content -> {
+                        var oldRef = content.getValue().getSchema().get$ref();
+                        if (oldRef.equals(COMPONENTS_SCHEMAS + oldName)) {
+                            logger.info("Replacing requestBody {} with {}", "/" + oldName, "/" + newName);
+                            content.getValue().getSchema().set$ref(COMPONENTS_SCHEMAS + newName);
+                        }
+                    });
+                }
             });
-
-            //throw new IllegalStateException("Schema " + newKey + " already exists and they are not equal");
         });
-
     }
 
     private void mergeScheme(OpenAPI target, Entry<String, Schema> source) {
