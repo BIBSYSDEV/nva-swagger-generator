@@ -18,6 +18,7 @@ Globals:
     Environment:
       Variables:
         OUTPUT_BUCKET_NAME: !Ref SwaggerUiBucket
+        DOMAIN: !Ref CustomDomain
 
 Resources:
   SwaggerGeneratorRole:
@@ -43,13 +44,16 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
-        - PolicyName: readApigateway
+        - PolicyName: readWriteApigateway
           PolicyDocument:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
                 Action:
                   - apigateway:GET
+                  - apigateway:POST
+                  - apigateway:PATCH
+                  - apigateway:DELETE
                 Resource: '*'
         - PolicyName: readWriteS3
           PolicyDocument:

@@ -1,5 +1,6 @@
 package no.sikt.generator;
 
+import static no.sikt.generator.ApplicationConstants.DOMAIN;
 import static no.sikt.generator.OpenApiUtils.addTag;
 import static no.sikt.generator.OpenApiUtils.getAllOperationsFromPathItem;
 import static no.sikt.generator.OpenApiUtils.getResourcePath;
@@ -43,7 +44,8 @@ public class OpenApiCombiner {
                              .map(OpenAPI::getServers)
                              .flatMap(Collection::stream)
                              .collect(Collectors.toList());
-        var mainServer = allServers.stream().filter(it -> it.getUrl().contains("unit.no")).findFirst().get();
+        var mainServer =
+            allServers.stream().filter(server -> server.getUrl().contains(DOMAIN)).findFirst().get();
         return new Server().url(mainServer.getUrl().replace("/{basePath}",""));
     }
 
