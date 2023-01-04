@@ -150,11 +150,12 @@ Resources:
       Handler: no.sikt.generator.handlers.GenerateDocsHandler::handleRequest
       Runtime: java11
       Role: !GetAtt SwaggerGeneratorRole.Arn
+      Timeout: 300
       Events:
         GenerateDocsScheduleEvent:
           Type: Schedule
           Properties:
-            Schedule: rate(1 hour)
+            Schedule: rate(12 hour)
 
   InstallSwaggerUiHandler:
     Type: AWS::Serverless::Function
