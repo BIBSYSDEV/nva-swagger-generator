@@ -101,7 +101,10 @@ public class GenerateDocsHandler implements RequestStreamHandler {
     }
 
     private void publishDocumentation(ApiData apiData) {
+        var name = apiData.getOpenApi().getInfo().getTitle();
         var id = apiData.getAwsRestApi().id();
+        logger.info("publishing {}", name);
+
         var listRequest = GetDocumentationVersionsRequest.builder().restApiId(id).build();
 
         var existingVersions
@@ -109,7 +112,7 @@ public class GenerateDocsHandler implements RequestStreamHandler {
 
 
         if (existingVersions.items().stream().anyMatch(item -> VERSION_NAME.equals(item.version()))) {
-
+            logger.info("{} has existing documentation - updating", name);
             var updateRequest = UpdateDocumentationVersionRequest.builder()
                                     .restApiId(id)
                                     .documentationVersion(VERSION_NAME)
@@ -119,6 +122,7 @@ public class GenerateDocsHandler implements RequestStreamHandler {
 
             attempt(() -> apiGatewayClient.updateDocumentationVersion(updateRequest).get()).orElseThrow();
         } else {
+            logger.info("{} has no existing documentation - creating", name);
             var createRequest = CreateDocumentationVersionRequest.builder()
                                     .restApiId(id)
                                     .stageName(EXPORT_STAGE_PROD)
