@@ -57,6 +57,8 @@ public class OpenApiCombiner {
             this.baseTemplate.setComponents(new Components());
         }
 
+
+        removeOptions();
         renameDuplicateSchemas();
 
         this.others.stream().forEach(api -> {
@@ -137,6 +139,17 @@ public class OpenApiCombiner {
         });
 
         return collidingSchemaNames;
+    }
+
+    private void removeOptions() {
+        this.others.stream().forEach(api -> {
+            api.getPaths().entrySet().forEach(path -> {
+                if (path.getValue().getOptions() != null) {
+                    logger.info("Removing options for {} {}", api.getInfo().getTitle(), path.getKey());
+                    path.getValue().setOptions(null);
+                }
+            });
+        });
     }
 
     private void renameDuplicateSchemas() {

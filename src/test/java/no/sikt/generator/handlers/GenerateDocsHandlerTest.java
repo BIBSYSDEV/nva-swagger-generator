@@ -1,8 +1,7 @@
 package no.sikt.generator.handlers;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static no.sikt.generator.Utils.readResource;
-import static nva.commons.core.attempt.Try.attempt;
+import static no.sikt.generator.handlers.GenerateDocsHandler.VERSION_NAME;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
@@ -11,59 +10,39 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.mockito.ArgumentMatchers.any;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.StringContains.containsString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.Operation;
-import io.swagger.v3.oas.models.media.Content;
-import io.swagger.v3.oas.models.media.MediaType;
-import io.swagger.v3.oas.models.media.Schema;
-import io.swagger.v3.oas.models.parameters.Parameter;
-import io.swagger.v3.oas.models.responses.ApiResponse;
-import io.swagger.v3.oas.models.responses.ApiResponses;
+import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import no.sikt.generator.ApplicationConstants;
 import no.sikt.generator.OpenApiUtils;
-import no.sikt.generator.handlers.GenerateDocsHandler;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeS3Client;
 import nva.commons.core.paths.UnixPath;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mockito;
-import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.apigateway.model.CreateDocumentationVersionRequest;
 import software.amazon.awssdk.services.apigateway.model.CreateDocumentationVersionResponse;
 import software.amazon.awssdk.services.apigateway.model.DeleteDocumentationVersionRequest;
 import software.amazon.awssdk.services.apigateway.model.DeleteDocumentationVersionResponse;
 import software.amazon.awssdk.services.apigateway.model.DocumentationVersion;
-import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionResponse;
 import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionsRequest;
 import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionsResponse;
-import software.amazon.awssdk.services.apigateway.model.GetExportRequest;
-import software.amazon.awssdk.services.apigateway.model.GetExportResponse;
-import software.amazon.awssdk.services.apigateway.model.GetRestApisResponse;
 import software.amazon.awssdk.services.apigateway.model.GetStagesRequest;
-import software.amazon.awssdk.services.apigateway.model.GetStagesResponse;
-import software.amazon.awssdk.services.apigateway.model.RestApi;
-import software.amazon.awssdk.services.apigateway.model.Stage;
-import software.amazon.awssdk.services.apigateway.model.TooManyRequestsException;
 import software.amazon.awssdk.services.apigateway.model.UpdateDocumentationVersionRequest;
 import software.amazon.awssdk.services.apigateway.model.UpdateDocumentationVersionResponse;
 
@@ -83,100 +62,37 @@ class GenerateDocsHandlerTest {
         handler = new GenerateDocsHandler(apiGatewayAsyncClient, fakeS3Client);
     }
 
+    private void setupSingleFile() {
+        var fileNames = List.of(
+            "api-a.yaml"
+        );
+        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, null, fileNames);
+    }
+
     private void setupSimpleMocks() {
-        var getRestApisResponse = GetRestApisResponse.builder().items(
-            RestApi.builder().name("API A").id("api-a").build(),
-            RestApi.builder().name("API B").id("api-b").build()
-        ).build();
-
-        var getStagesResponse = GetStagesResponse.builder().item(
-            List.of(
-                Stage.builder().stageName("Prod").build(),
-                Stage.builder().stageName("Stage").build()
-            )
-        ).build();
-
-        var listDocumentationVersionsResponse = GetDocumentationVersionsResponse.builder().items(
-            DocumentationVersion.builder().version("swagger-generator").build()
-        ).build();
-        var createDocumentationVersionResponse = CreateDocumentationVersionResponse.builder().build();
-        var deleteDocumentationVersionResponse = DeleteDocumentationVersionResponse.builder().build();
-        var updateDocumentationVersionResponse = UpdateDocumentationVersionResponse.builder().build();
-
-        when(apiGatewayAsyncClient.getRestApis()).thenReturn(CompletableFuture.completedFuture(getRestApisResponse));
-        when(apiGatewayAsyncClient.getStages(any(GetStagesRequest.class)))
-            .thenReturn(CompletableFuture.completedFuture(getStagesResponse));
-        when(apiGatewayAsyncClient.getDocumentationVersions(any(GetDocumentationVersionsRequest.class)))
-            .thenReturn(CompletableFuture.completedFuture(listDocumentationVersionsResponse));
-        when(apiGatewayAsyncClient.createDocumentationVersion(any(CreateDocumentationVersionRequest.class)))
-            .thenReturn(CompletableFuture.completedFuture(createDocumentationVersionResponse));
-        when(apiGatewayAsyncClient.deleteDocumentationVersion(any(DeleteDocumentationVersionRequest.class)))
-            .thenReturn(CompletableFuture.completedFuture(deleteDocumentationVersionResponse));
-        when(apiGatewayAsyncClient.updateDocumentationVersion(any(UpdateDocumentationVersionRequest.class)))
-            .thenReturn(CompletableFuture.completedFuture(updateDocumentationVersionResponse));
-
-        when(apiGatewayAsyncClient.getExport(any(GetExportRequest.class)))
-            .thenAnswer(invocation -> {
-                var requestedId = invocation.getArgument(0, GetExportRequest.class).restApiId();
-                var fileContent = readResource("openapi_docs/" + requestedId + ".yaml");
-                var sdkBody = SdkBytes.fromString(fileContent, UTF_8);
-                var response =  GetExportResponse.builder()
-                                    .body(sdkBody)
-                                    .build();
-                return CompletableFuture.completedFuture(response);
-            });
+        var fileNames = List.of(
+            "api-a.yaml",
+            "api-b.yaml"
+        );
+        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, null, fileNames);
     }
 
     private void setupNvaMocks() {
-        var getRestApisResponse = GetRestApisResponse.builder().items(
-            RestApi.builder().name("DLR LaunchCanvas API").id("dlr-launchcanvas-api").build(),
-            RestApi.builder().name("NVA Courses API").id("nva-courses-api").build(),
-            RestApi.builder().name("NVA Cristin Proxy API").id("nva-cristin-proxy-api").build(),
-            RestApi.builder().name("NVA Customer API").id("nva-customer-api").build(),
-            RestApi.builder().name("NVA Download Publication File API").id("nva-download-publication-file-api").build(),
-            RestApi.builder().name("NVA Fetch DOI").id("nva-fetch-doi").build(),
-            RestApi.builder().name("NVA Ontology Service").id("nva-ontology-service").build(),
-            RestApi.builder().name("NVA Public Search API").id("nva-public-search-api").build(),
-            RestApi.builder().name("NVA Publication API").id("nva-publication-api").build(),
-            RestApi.builder().name("NVA Publication Channels").id("nva-publication-channels").build(),
-            RestApi.builder().name("NVA Roles and Users catalogue").id("nva-roles-and-users-catalogue").build(),
-            RestApi.builder().name("NVA S3 Multipart Upload").id("nva-s3-multipart-upload").build()
-        ).build();
-
-        var getStagesResponse = GetStagesResponse.builder().item(
-            List.of(
-                Stage.builder().stageName("Prod").build(),
-                Stage.builder().stageName("Stage").build()
-            )
-        ).build();
-
-        var listDocumentationVersionsResponse = GetDocumentationVersionsResponse.builder().build();
-        var createDocumentationVersionResponse = CreateDocumentationVersionResponse.builder().build();
-        var deleteDocumentationVersionResponse = DeleteDocumentationVersionResponse.builder().build();
-        var updateDocumentationVersionResponse = UpdateDocumentationVersionResponse.builder().build();
-
-        when(apiGatewayAsyncClient.getRestApis()).thenReturn(CompletableFuture.completedFuture(getRestApisResponse));
-        when(apiGatewayAsyncClient.getStages(any(GetStagesRequest.class)))
-            .thenReturn(CompletableFuture.completedFuture(getStagesResponse));
-        when(apiGatewayAsyncClient.getDocumentationVersions(any(GetDocumentationVersionsRequest.class)))
-            .thenReturn(CompletableFuture.completedFuture(listDocumentationVersionsResponse));
-        when(apiGatewayAsyncClient.createDocumentationVersion(any(CreateDocumentationVersionRequest.class)))
-            .thenReturn(CompletableFuture.completedFuture(createDocumentationVersionResponse));
-        when(apiGatewayAsyncClient.deleteDocumentationVersion(any(DeleteDocumentationVersionRequest.class)))
-            .thenReturn(CompletableFuture.completedFuture(deleteDocumentationVersionResponse));
-        when(apiGatewayAsyncClient.updateDocumentationVersion(any(UpdateDocumentationVersionRequest.class)))
-            .thenReturn(CompletableFuture.completedFuture(updateDocumentationVersionResponse));
-
-        when(apiGatewayAsyncClient.getExport(any(GetExportRequest.class)))
-            .thenAnswer(invocation -> {
-                var requestedId = invocation.getArgument(0, GetExportRequest.class).restApiId();
-                var fileContent = readResource("openapi_docs/nva/" + requestedId + ".yaml");
-                var sdkBody = SdkBytes.fromString(fileContent, UTF_8);
-                var response =  GetExportResponse.builder()
-                                    .body(sdkBody)
-                                    .build();
-                return CompletableFuture.completedFuture(response);
-            });
+        var fileNames = List.of(
+            "dlr-launchcanvas-api.yaml",
+            "nva-courses-api.yaml",
+            "nva-cristin-proxy-api.yaml",
+            "nva-customer-api.yaml",
+            "nva-download-publication-file-api.yaml",
+            "nva-fetch-doi.yaml",
+            "nva-ontology-service.yaml",
+            "nva-public-search-api.yaml",
+            "nva-publication-api.yaml",
+            "nva-publication-channels.yaml",
+            "nva-roles-and-users-catalogue.yaml",
+            "nva-s3-multipart-upload.yaml"
+        );
+        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, "nva", fileNames);
     }
 
     @Test
@@ -211,6 +127,57 @@ class GenerateDocsHandlerTest {
 
         var combinedFile = s3Driver.getFile(UnixPath.of("docs/combined.yaml"));
         assertThat(combinedFile, notNullValue());
+    }
+
+    @Test
+    public void shouldRemoveOptionOperations() {
+        var fileNames = List.of(
+            "api-with-options.yaml"
+        );
+        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, null, fileNames);
+
+        handler.handleRequest(null, null, null);
+
+        var yaml = s3Driver.getFile(UnixPath.of("docs/combined.yaml"));
+
+        var openApi = openApiParser
+                          .readContents(yaml)
+                          .getOpenAPI();
+
+        for (Entry<String, PathItem> path : openApi.getPaths().entrySet()) {
+            assertThat(path.getValue().getOptions(), nullValue());
+        }
+    }
+
+    @Test
+    public void shouldPerformUpdateWhenDocVersionExists() {
+        setupSingleFile();
+
+        var listDocumentationVersionsResponse = GetDocumentationVersionsResponse.builder().items(
+            DocumentationVersion.builder().version(VERSION_NAME).build()
+        ).build();
+
+        when(apiGatewayAsyncClient.getDocumentationVersions(any(GetDocumentationVersionsRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(listDocumentationVersionsResponse));
+
+        handler.handleRequest(null, null, null);
+
+        verify(apiGatewayAsyncClient).updateDocumentationVersion(any(UpdateDocumentationVersionRequest.class));
+
+    }
+
+    @Test
+    public void shouldPerformCreateWhenDocVersionDoesNotExists() {
+        setupSingleFile();
+
+        var listDocumentationVersionsResponse = GetDocumentationVersionsResponse.builder().build();
+
+        when(apiGatewayAsyncClient.getDocumentationVersions(any(GetDocumentationVersionsRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(listDocumentationVersionsResponse));
+
+        handler.handleRequest(null, null, null);
+
+        verify(apiGatewayAsyncClient).createDocumentationVersion(any(CreateDocumentationVersionRequest.class));
     }
 
     @Test
