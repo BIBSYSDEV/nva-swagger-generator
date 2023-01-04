@@ -63,12 +63,24 @@ public class OpenApiCombiner {
 
         this.others.stream().forEach(api -> {
             this.baseTemplate.addTagsItem(OpenApiUtils.convertInfoToTag(api.getInfo()));
+            removeTags(api);
             mergeComponents(api);
             mergePaths(api);
             mergeSecurity(api);
         });
 
         return baseTemplate;
+    }
+
+    private void removeTags(OpenAPI api) {
+        api.getPaths().entrySet().forEach(path -> {
+            getAllOperationsFromPathItem(path.getValue()).forEach(op -> {
+                if (op.getTags() != null) {
+                    logger.info("Removing tags for {} {}", api.getInfo().getTitle(), path.getKey());
+                    op.setTags(null);
+                }
+            });
+        });
     }
 
     private void mergeSecurity(OpenAPI api) {
