@@ -13,7 +13,7 @@ Parameters:
 
 Globals:
   Function:
-    Timeout: 310
+    Timeout: 60
     MemorySize: 1800
     Environment:
       Variables:
@@ -155,7 +155,7 @@ Resources:
         GenerateDocsScheduleEvent:
           Type: Schedule
           Properties:
-            Schedule: rate(12 hour)
+            Schedule: rate(12 hours)
 
   InstallSwaggerUiHandler:
     Type: AWS::Serverless::Function
@@ -167,7 +167,7 @@ Resources:
         - AWSLambda_ReadOnlyAccess
       Handler: no.sikt.generator.handlers.InstallSwaggerUiHandler::handleRequest
       Runtime: java11
-      Timeout: 200
+      Timeout: 300
       Role: !GetAtt SwaggerGeneratorRole.Arn
 
 
