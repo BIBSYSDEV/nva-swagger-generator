@@ -48,6 +48,14 @@ import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mockito;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
+import software.amazon.awssdk.services.apigateway.model.CreateDocumentationVersionRequest;
+import software.amazon.awssdk.services.apigateway.model.CreateDocumentationVersionResponse;
+import software.amazon.awssdk.services.apigateway.model.DeleteDocumentationVersionRequest;
+import software.amazon.awssdk.services.apigateway.model.DeleteDocumentationVersionResponse;
+import software.amazon.awssdk.services.apigateway.model.DocumentationVersion;
+import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionResponse;
+import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionsRequest;
+import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionsResponse;
 import software.amazon.awssdk.services.apigateway.model.GetExportRequest;
 import software.amazon.awssdk.services.apigateway.model.GetExportResponse;
 import software.amazon.awssdk.services.apigateway.model.GetRestApisResponse;
@@ -55,6 +63,9 @@ import software.amazon.awssdk.services.apigateway.model.GetStagesRequest;
 import software.amazon.awssdk.services.apigateway.model.GetStagesResponse;
 import software.amazon.awssdk.services.apigateway.model.RestApi;
 import software.amazon.awssdk.services.apigateway.model.Stage;
+import software.amazon.awssdk.services.apigateway.model.TooManyRequestsException;
+import software.amazon.awssdk.services.apigateway.model.UpdateDocumentationVersionRequest;
+import software.amazon.awssdk.services.apigateway.model.UpdateDocumentationVersionResponse;
 
 class GenerateDocsHandlerTest {
 
@@ -85,9 +96,24 @@ class GenerateDocsHandlerTest {
             )
         ).build();
 
+        var listDocumentationVersionsResponse = GetDocumentationVersionsResponse.builder().items(
+            DocumentationVersion.builder().version("swagger-generator").build()
+        ).build();
+        var createDocumentationVersionResponse = CreateDocumentationVersionResponse.builder().build();
+        var deleteDocumentationVersionResponse = DeleteDocumentationVersionResponse.builder().build();
+        var updateDocumentationVersionResponse = UpdateDocumentationVersionResponse.builder().build();
+
         when(apiGatewayAsyncClient.getRestApis()).thenReturn(CompletableFuture.completedFuture(getRestApisResponse));
         when(apiGatewayAsyncClient.getStages(any(GetStagesRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(getStagesResponse));
+        when(apiGatewayAsyncClient.getDocumentationVersions(any(GetDocumentationVersionsRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(listDocumentationVersionsResponse));
+        when(apiGatewayAsyncClient.createDocumentationVersion(any(CreateDocumentationVersionRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(createDocumentationVersionResponse));
+        when(apiGatewayAsyncClient.deleteDocumentationVersion(any(DeleteDocumentationVersionRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(deleteDocumentationVersionResponse));
+        when(apiGatewayAsyncClient.updateDocumentationVersion(any(UpdateDocumentationVersionRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(updateDocumentationVersionResponse));
 
         when(apiGatewayAsyncClient.getExport(any(GetExportRequest.class)))
             .thenAnswer(invocation -> {
@@ -124,9 +150,22 @@ class GenerateDocsHandlerTest {
             )
         ).build();
 
+        var listDocumentationVersionsResponse = GetDocumentationVersionsResponse.builder().build();
+        var createDocumentationVersionResponse = CreateDocumentationVersionResponse.builder().build();
+        var deleteDocumentationVersionResponse = DeleteDocumentationVersionResponse.builder().build();
+        var updateDocumentationVersionResponse = UpdateDocumentationVersionResponse.builder().build();
+
         when(apiGatewayAsyncClient.getRestApis()).thenReturn(CompletableFuture.completedFuture(getRestApisResponse));
         when(apiGatewayAsyncClient.getStages(any(GetStagesRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(getStagesResponse));
+        when(apiGatewayAsyncClient.getDocumentationVersions(any(GetDocumentationVersionsRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(listDocumentationVersionsResponse));
+        when(apiGatewayAsyncClient.createDocumentationVersion(any(CreateDocumentationVersionRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(createDocumentationVersionResponse));
+        when(apiGatewayAsyncClient.deleteDocumentationVersion(any(DeleteDocumentationVersionRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(deleteDocumentationVersionResponse));
+        when(apiGatewayAsyncClient.updateDocumentationVersion(any(UpdateDocumentationVersionRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(updateDocumentationVersionResponse));
 
         when(apiGatewayAsyncClient.getExport(any(GetExportRequest.class)))
             .thenAnswer(invocation -> {

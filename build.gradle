@@ -92,7 +92,7 @@ checkstyle {
 
 test {
     environment "OUTPUT_BUCKET_NAME", "notimportant"
-    environment "API_HOST", "localhost"
+    environment "DOMAIN", "sandbox.nva.aws.unit.no"
 
     useJUnitPlatform {}
     failFast = false
