@@ -12,7 +12,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import no.sikt.generator.ApiData;
 import no.sikt.generator.OpenApiCombiner;
@@ -149,7 +153,9 @@ public class GenerateDocsHandler implements RequestStreamHandler {
                            .map(this::fetchApiData)
                            .filter(Objects::nonNull)
                            .peek(apiData -> openApiValidator.validateOpenApi(apiData.getOpenApi()))
+                           .sorted(this::sortApisByDate)
                            .filter(this::apiShouldBeIncluded)
+                           .filter(distinctByKey(ApiData::getName))
                            .peek(this::publishDocumentation)
                            .map(ApiData::getAwsRestApi)
                            .map(this::fetchApiData)
@@ -162,6 +168,15 @@ public class GenerateDocsHandler implements RequestStreamHandler {
 
         String combinedYaml = attempt(() -> Yaml.pretty().writeValueAsString(combined)).orElseThrow();
         writeToS3("docs/combined.yaml", combinedYaml);
+    }
+
+    public static <T> Predicate<T> distinctByKey(Function<? super T,Object> keyExtractor) {
+        Map<Object,Boolean> seen = new ConcurrentHashMap<>();
+        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
+    }
+
+    private int sortApisByDate(ApiData apiData, ApiData otherApiData) {
+        return otherApiData.getAwsRestApi().createdDate().compareTo(apiData.getAwsRestApi().createdDate());
     }
 
     private void writeApiDataToS3(ApiData apiData) {

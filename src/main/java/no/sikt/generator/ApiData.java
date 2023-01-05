@@ -24,6 +24,10 @@ public class ApiData implements Comparable<ApiData> {
         return openApi;
     }
 
+    public String getName() {
+        return awsRestApi.name();
+    }
+
     public String getRawYaml() {
         return rawYaml;
     }

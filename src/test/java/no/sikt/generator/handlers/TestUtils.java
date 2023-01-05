@@ -5,6 +5,7 @@ import static no.sikt.generator.Utils.readResource;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import io.swagger.v3.parser.OpenAPIV3Parser;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -41,7 +42,8 @@ public class TestUtils {
 
     private static RestApi buildRestApiFromTestCase(TestCase testCase) {
         var id = testCase.getId();
-        return RestApi.builder().name(testCase.getName()).id(id).build();
+        var created = Instant.now();
+        return RestApi.builder().name(testCase.getName()).id(id).createdDate(created).build();
     }
 
     public static void setupTestcasesFromFiles(ApiGatewayAsyncClient apiGatewayAsyncClient, String folder,
