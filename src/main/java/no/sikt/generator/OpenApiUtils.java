@@ -67,6 +67,18 @@ public final class OpenApiUtils {
         return mediaType.getSchema().get$ref();
     }
 
+    public static Stream<Schema> getNestedSchemas(Schema schema) {
+        var nestedSchemas = Stream.of(
+            Stream.of(schema.getItems()),
+            OpenApiUtils.getNestedPropertiesSchemas(schema).map(Schema::getItems)
+        ).flatMap(stream -> stream).filter(Objects::nonNull).collect(Collectors.toList());
+
+        return Stream.of(
+            nestedSchemas.stream(),
+            nestedSchemas.stream().flatMap(OpenApiUtils::getNestedSchemas)
+        ).flatMap(stream -> stream);
+    }
+
     public static Stream<String> getRefsFromPaths(OpenAPI openAPI) {
         return openAPI
                     .getPaths()
