@@ -1,0 +1,220 @@
+openapi: "3.0.1"
+info:
+  title: "NVA verified funding sources API"
+  description: "The NVA verified funding sources API. It provides transformed data\
+    \ from third party funding sources.\n"
+  termsOfService: "https://nva.unit.no/terms/"
+  contact:
+    email: "nva@unit.no"
+  license:
+    name: "MIT/NLOD 2.0"
+    url: "https://link.to.license"
+  version: "1.0.0"
+externalDocs:
+  description: "Find out more about NVA"
+  url: "https://nva.unit.no"
+servers:
+- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+  variables:
+    basePath:
+      default: "/verified-funding"
+paths:
+  /nfr:
+    get:
+      tags:
+      - "NfrVerifiedFundingSources"
+      summary: "Query NFR funding by identifier"
+      description: "Returns a funding by identifier"
+      operationId: "NfrQueryFundings"
+      parameters:
+      - name: "term"
+        in: "query"
+        description: "The search term. Required if name is not supplied."
+        schema:
+          type: "string"
+      - name: "name"
+        in: "query"
+        description: "Name of a person. Required if term is not supplied."
+        schema:
+          type: "string"
+      - name: "offset"
+        in: "query"
+        description: "The search offset. At what position in the search result to\
+          \ start. Default is 0 (at the beginning)."
+        schema:
+          type: "string"
+      - name: "size"
+        in: "query"
+        description: "The size of the result set to return. Default is 10."
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResult"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/SearchResult"
+        "400":
+          description: "Bad Request"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "Bad Gateway from upstream"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    options:
+      summary: "CORS support"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /nfr/{identifier}:
+    get:
+      tags:
+      - "NfrVerifiedFundingSources"
+      summary: "Get NFR funding by identifier"
+      description: "Returns a funding  by identifier"
+      operationId: "NfrGetFunding"
+      parameters:
+      - name: "identifier"
+        in: "path"
+        description: "The funding identifier"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "404":
+          description: "Bad Request"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Funding"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/Funding"
+        "400":
+          description: "Bad Request"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "Bad Gateway from upstream"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    options:
+      summary: "CORS support"
+      parameters:
+      - name: "identifier"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+components:
+  schemas:
+    Funding:
+      type: "object"
+      properties:
+        identifier:
+          type: "string"
+        name:
+          $ref: "#/components/schemas/Languages"
+        id:
+          $ref: "#/components/schemas/Id"
+    Languages:
+      pattern: "^[a-z]{2}$"
+      type: "object"
+      additionalProperties:
+        pattern: ".+"
+        type: "string"
+    Problem:
+      type: "object"
+      properties:
+        requestId:
+          type: "string"
+          description: "Unique id for the request"
+        detail:
+          type: "string"
+          description: "A more detailed error message describing the error and potential\
+            \ mitigations"
+        title:
+          type: "string"
+          description: "Human-readable description of the error status"
+        status:
+          type: "integer"
+          description: "The HTTP status code associated with the problem"
+          format: "int32"
+    SearchResult:
+      type: "object"
+      properties:
+        hits:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Funding"
+        previousResults:
+          $ref: "#/components/schemas/Id"
+        size:
+          type: "integer"
+          format: "int32"
+        id:
+          $ref: "#/components/schemas/Id"
+        nextResults:
+          $ref: "#/components/schemas/Id"
+        '@context':
+          $ref: "#/components/schemas/Id"
+    Id:
+      pattern: "https:\\/\\/.*$"
+      type: "string"
+      description: "The URI of the object ID"

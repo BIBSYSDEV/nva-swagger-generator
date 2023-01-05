@@ -9,87 +9,105 @@ info:
     \n  To understand the semantic layer, take a look at the @context URI returned\
     \ by the API, the data is marked up according to this and may be interpreted directly\
     \ to RDF using this.\n"
+  termsOfService: "https://nva.unit.no/terms/"
+  contact:
+    email: "nva@unit.no"
+  license:
+    name: "MIT/NLOD 2.0"
+    url: "https://link.to.license"
   version: "1.0.0"
+externalDocs:
+  description: "Find out more about NVA"
+  url: "https://nva.unit.no"
 servers:
-- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
-  variables:
-    basePath:
-      default: "/cristin"
+  - url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+    variables:
+      basePath:
+        default: "/cristin"
 paths:
   /person/{id}/employment/{employmentId}:
     delete:
+      tags:
+        - "Person"
+      summary: "Delete person employment by identifier"
+      description: "Delete person employment by identifier"
       operationId: "DeletePersonEmploymentsByIdentifier"
       parameters:
-      - name: "employmentId"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "employmentId"
+          in: "path"
+          description: "Identifier of employment"
+          required: true
+          schema:
+            type: "string"
+        - name: "id"
+          in: "path"
+          description: "Identifier of Person"
+          required: true
+          schema:
+            type: "string"
       responses:
         "400":
-          description: "400 response"
+          description: "Bad Request"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "401":
-          description: "401 response"
+          description: "Unauthorized"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "500":
-          description: "500 response"
+          description: "Internal Server Error"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "204":
-          description: "204 response"
+          description: "successful operation"
           content: {}
         "403":
-          description: "403 response"
+          description: "Forbidden"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "502":
-          description: "502 response"
+          description: "Bad Gateway from upstream"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
-          description: "404 response"
+          description: "Not found"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       security:
-      - CognitoUserPool:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
     options:
+      summary: "CORS support"
       parameters:
-      - name: "employmentId"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "employmentId"
+          in: "path"
+          description: "Identifier of employment"
+          required: true
+          schema:
+            type: "string"
+        - name: "id"
+          in: "path"
+          description: "Identifier of Person"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
-          description: "200 response"
+          description: "Default response for CORS method"
           headers:
             Access-Control-Allow-Origin:
               schema:
@@ -102,19 +120,26 @@ paths:
                 type: "string"
           content: {}
     patch:
+      tags:
+        - "Person"
+      summary: "Update person employment by identifiers"
+      description: "Updates person employment data"
       operationId: "UpdatePersonEmployment"
       parameters:
-      - name: "employmentId"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "employmentId"
+          in: "path"
+          description: "Identifier of employment"
+          required: true
+          schema:
+            type: "string"
+        - name: "id"
+          in: "path"
+          description: "Identifier of Person"
+          required: true
+          schema:
+            type: "string"
       requestBody:
+        description: "Payload containing modifiable data for person employment"
         content:
           application/json:
             schema:
@@ -125,175 +150,77 @@ paths:
         required: true
       responses:
         "400":
-          description: "400 response"
+          description: "Bad Request"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "401":
-          description: "401 response"
+          description: "Unauthorized"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "500":
-          description: "500 response"
+          description: "Internal Server Error"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "204":
-          description: "204 response"
+          description: "Successful update of resource"
           content: {}
         "403":
-          description: "403 response"
+          description: "Forbidden"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "502":
-          description: "502 response"
+          description: "Bad Gateway from upstream"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       security:
-      - CognitoUserPool:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
-  /person/{id}/employment:
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+  /funding-sources:
     get:
-      operationId: "GetPersonEmploymentsByIdentifier"
-      parameters:
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+      tags:
+        - "FundingSources"
+      summary: "List funding sources"
+      description: "Returns all support funding sources"
+      operationId: "ListFundingSources"
       responses:
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "200":
-          description: "200 response"
+          description: "successful operation"
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PersonEmploymentQuery"
+                $ref: "#/components/schemas/FundingSources"
             application/ld+json:
               schema:
-                $ref: "#/components/schemas/PersonEmploymentQuery"
-        "400":
-          description: "400 response"
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "401":
-          description: "401 response"
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "500":
-          description: "500 response"
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          description: "403 response"
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/FundingSources"
         "502":
-          description: "502 response"
+          description: "Bad Gateway from upstream"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "404":
-          description: "404 response"
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-      security:
-      - CognitoUserPool:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
-    post:
-      operationId: "PostPersonEmployment"
-      parameters:
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PersonEmployment"
-          application/ld+json:
-            schema:
-              $ref: "#/components/schemas/PersonEmployment"
-        required: true
-      responses:
-        "201":
-          description: "201 response"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PersonEmployment"
-            application/ld+json:
-              schema:
-                $ref: "#/components/schemas/PersonEmployment"
-        "400":
-          description: "400 response"
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "401":
-          description: "401 response"
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "500":
-          description: "500 response"
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          description: "403 response"
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "502":
-          description: "502 response"
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-      security:
-      - CognitoUserPool:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
     options:
-      parameters:
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+      summary: "CORS support"
       responses:
         "200":
-          description: "200 response"
+          description: "Default response for CORS method"
           headers:
             Access-Control-Allow-Origin:
               schema:
@@ -307,38 +234,47 @@ paths:
           content: {}
   /organization/{identifier}/persons:
     get:
+      tags:
+        - "Organization"
+      summary: "Fetch Persons associated with an given organization"
+      description: "Returns a list of persons belonging to specified organization"
       operationId: "GetPersonsByOrganization"
       parameters:
-      - name: "identifier"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      - name: "sort"
-        in: "query"
-        schema:
-          type: "string"
-      - name: "page"
-        in: "query"
-        schema:
-          type: "string"
-      - name: "results"
-        in: "query"
-        schema:
-          type: "string"
-      - name: "name"
-        in: "query"
-        schema:
-          type: "string"
+        - name: "identifier"
+          in: "path"
+          description: "Identifier of Organization to return"
+          required: true
+          schema:
+            type: "string"
+        - name: "sort"
+          in: "query"
+          description: "Sort results based on parameters"
+          schema:
+            type: "string"
+        - name: "page"
+          in: "query"
+          description: "Current page requested"
+          schema:
+            type: "string"
+        - name: "results"
+          in: "query"
+          description: "Results per page"
+          schema:
+            type: "string"
+        - name: "name"
+          in: "query"
+          description: "filter on given name"
+          schema:
+            type: "string"
       responses:
         "404":
-          description: "404 response"
+          description: "Not found"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "200":
-          description: "200 response"
+          description: "successful operation"
           content:
             application/json:
               schema:
@@ -347,33 +283,190 @@ paths:
               schema:
                 $ref: "#/components/schemas/OrganizationPersons"
         "400":
-          description: "400 response"
+          description: "Bad Request"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "500":
-          description: "500 response"
+          description: "Internal Server Error"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "502":
-          description: "502 response"
+          description: "Bad Gateway from upstream"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     options:
+      summary: "CORS support"
       parameters:
-      - name: "identifier"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "identifier"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
-          description: "200 response"
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /person/{id}/employment:
+    get:
+      tags:
+        - "Person"
+      summary: "Query person employments by identifier"
+      description: "Returns all person employments"
+      operationId: "GetPersonEmploymentsByIdentifier"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Identifier of Person"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonEmploymentQuery"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/PersonEmploymentQuery"
+        "400":
+          description: "Bad Request"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: "Forbidden"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "Bad Gateway from upstream"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: "Not found"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+    post:
+      tags:
+        - "Person"
+      summary: "Create one person employment"
+      description: "Creates one person employment matching supplied payload"
+      operationId: "PostPersonEmployment"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Identifier of Person"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        description: "Payload containing employment information"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonEmployment"
+          application/ld+json:
+            schema:
+              $ref: "#/components/schemas/PersonEmployment"
+        required: true
+      responses:
+        "201":
+          description: "Successful creation of resource"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonEmployment"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/PersonEmployment"
+        "400":
+          description: "Bad Request"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: "Forbidden"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "Bad Gateway from upstream"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Identifier of Person"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Default response for CORS method"
           headers:
             Access-Control-Allow-Origin:
               schema:
@@ -387,26 +480,32 @@ paths:
           content: {}
   /organization/{identifier}:
     get:
+      tags:
+        - "Organization"
+      summary: "Fetch Organization by identifier"
+      description: "Returns a single Organization matching identifier parameter"
       operationId: "GetOrganizationByIdentifier"
       parameters:
-      - name: "identifier"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      - name: "depth"
-        in: "query"
-        schema:
-          type: "string"
+        - name: "identifier"
+          in: "path"
+          description: "Identifier of Organization to return"
+          required: true
+          schema:
+            type: "string"
+        - name: "depth"
+          in: "query"
+          description: "Depth of sub-organizations included in response"
+          schema:
+            type: "string"
       responses:
         "404":
-          description: "404 response"
+          description: "Not found"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "200":
-          description: "200 response"
+          description: "successful operation"
           content:
             application/json:
               schema:
@@ -415,33 +514,34 @@ paths:
               schema:
                 $ref: "#/components/schemas/Organization"
         "400":
-          description: "400 response"
+          description: "Bad Request"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "500":
-          description: "500 response"
+          description: "Internal Server Error"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "502":
-          description: "502 response"
+          description: "Bad Gateway from upstream"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     options:
+      summary: "CORS support"
       parameters:
-      - name: "identifier"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "identifier"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
-          description: "200 response"
+          description: "Default response for CORS method"
           headers:
             Access-Control-Allow-Origin:
               schema:
@@ -455,26 +555,32 @@ paths:
           content: {}
   /project/{identifier}:
     get:
+      tags:
+        - "Project"
+      summary: "Find project by Identifier"
+      description: "Returns a single project matching identifier parameter"
       operationId: "GetProjectByidentifier"
       parameters:
-      - name: "identifier"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      - name: "language"
-        in: "query"
-        schema:
-          type: "string"
+        - name: "identifier"
+          in: "path"
+          description: "Identifier of project to return"
+          required: true
+          schema:
+            type: "string"
+        - name: "language"
+          in: "query"
+          description: "Preferred language for some fields"
+          schema:
+            type: "string"
       responses:
         "404":
-          description: "404 response"
+          description: "Not found"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "200":
-          description: "200 response"
+          description: "successful operation"
           content:
             application/json:
               schema:
@@ -483,33 +589,34 @@ paths:
               schema:
                 $ref: "#/components/schemas/Project"
         "400":
-          description: "400 response"
+          description: "Bad Request"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "500":
-          description: "500 response"
+          description: "Internal Server Error"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "502":
-          description: "502 response"
+          description: "Bad Gateway from upstream"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     options:
+      summary: "CORS support"
       parameters:
-      - name: "identifier"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "identifier"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
-          description: "200 response"
+          description: "Default response for CORS method"
           headers:
             Access-Control-Allow-Origin:
               schema:
@@ -522,14 +629,20 @@ paths:
                 type: "string"
           content: {}
     patch:
+      tags:
+        - "Project"
+      summary: "Update project matching identifier"
+      description: "Updates project data"
       operationId: "UpdateProject"
       parameters:
-      - name: "identifier"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "identifier"
+          in: "path"
+          description: "Identifier of project to return"
+          required: true
+          schema:
+            type: "string"
       requestBody:
+        description: "Payload containing modifiable data for project"
         content:
           application/json:
             schema:
@@ -540,61 +653,200 @@ paths:
         required: true
       responses:
         "400":
-          description: "400 response"
+          description: "Bad Request"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "401":
-          description: "401 response"
+          description: "Unauthorized"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "500":
-          description: "500 response"
+          description: "Internal Server Error"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "204":
-          description: "204 response"
+          description: "Successful update of resource"
           content: {}
         "403":
-          description: "403 response"
+          description: "Forbidden"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "502":
-          description: "502 response"
+          description: "Bad Gateway from upstream"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       security:
-      - CognitoUserPool:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+  /person:
+    get:
+      tags:
+        - "Person"
+      summary: "List persons matching query parameters"
+      description: "Returns a list of persons based on query parameters"
+      operationId: "ListPersons"
+      parameters:
+        - name: "organization"
+          in: "query"
+          description: "Search string. Parts of organization name or identifier"
+          schema:
+            type: "string"
+        - name: "page"
+          in: "query"
+          description: "Current page requested"
+          schema:
+            type: "string"
+        - name: "results"
+          in: "query"
+          description: "Results per page"
+          schema:
+            type: "string"
+        - name: "name"
+          in: "query"
+          description: "Search string. First name and/or last name"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Persons"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/Persons"
+        "400":
+          description: "Bad Request"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "Bad Gateway from upstream"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    post:
+      tags:
+        - "Person"
+      summary: "Create one person"
+      description: "Creates one person matching supplied payload"
+      operationId: "PostPerson"
+      requestBody:
+        description: "Payload containing names and identifier"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonPost"
+          application/ld+json:
+            schema:
+              $ref: "#/components/schemas/PersonPost"
+        required: true
+      responses:
+        "201":
+          description: "Successful creation of resource"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonPostResponse"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/PersonPostResponse"
+        "400":
+          description: "Bad Request"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: "Forbidden"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "Bad Gateway from upstream"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
   /person/{id}:
     get:
+      tags:
+        - "Person"
+      summary: "Find person by identifier"
+      description: "Returns a single person matching id parameter without NIN"
       operationId: "GetPersonById"
       parameters:
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "id"
+          in: "path"
+          description: "Identifier of person. Can either be Cristin identifier or Orcid"
+          required: true
+          schema:
+            type: "string"
       responses:
         "404":
-          description: "404 response"
+          description: "Not found"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "200":
-          description: "200 response"
+          description: "successful operation"
           content:
             application/json:
               schema:
@@ -603,39 +855,41 @@ paths:
               schema:
                 $ref: "#/components/schemas/Person"
         "400":
-          description: "400 response"
+          description: "Bad Request"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "401":
-          description: "401 response"
+          description: "Unauthorized"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "500":
-          description: "500 response"
+          description: "Internal Server Error"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "502":
-          description: "502 response"
+          description: "Bad Gateway from upstream"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     options:
+      summary: "CORS support"
       parameters:
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "id"
+          in: "path"
+          description: "Identifier of person. Can either be Cristin identifier or Orcid"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
-          description: "200 response"
+          description: "Default response for CORS method"
           headers:
             Access-Control-Allow-Origin:
               schema:
@@ -648,14 +902,20 @@ paths:
                 type: "string"
           content: {}
     patch:
+      tags:
+        - "Person"
+      summary: "Update person matching identifier"
+      description: "Updates person data"
       operationId: "UpdatePerson"
       parameters:
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "id"
+          in: "path"
+          description: "Identifier of person. Can either be Cristin identifier or Orcid"
+          required: true
+          schema:
+            type: "string"
       requestBody:
+        description: "Payload containing modifiable data for person"
         content:
           application/json:
             schema:
@@ -666,195 +926,166 @@ paths:
         required: true
       responses:
         "400":
-          description: "400 response"
+          description: "Bad Request"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "401":
-          description: "401 response"
+          description: "Unauthorized"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "500":
-          description: "500 response"
+          description: "Internal Server Error"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "204":
-          description: "204 response"
+          description: "Successful update of resource"
           content: {}
         "403":
-          description: "403 response"
+          description: "Forbidden"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "502":
-          description: "502 response"
+          description: "Bad Gateway from upstream"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       security:
-      - CognitoUserPool:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
-  /person:
-    get:
-      operationId: "ListPersons"
-      parameters:
-      - name: "organization"
-        in: "query"
-        schema:
-          type: "string"
-      - name: "page"
-        in: "query"
-        schema:
-          type: "string"
-      - name: "results"
-        in: "query"
-        schema:
-          type: "string"
-      - name: "name"
-        in: "query"
-        required: true
-        schema:
-          type: "string"
-      responses:
-        "200":
-          description: "200 response"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Persons"
-            application/ld+json:
-              schema:
-                $ref: "#/components/schemas/Persons"
-        "400":
-          description: "400 response"
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "500":
-          description: "500 response"
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "502":
-          description: "502 response"
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-    post:
-      operationId: "PostPerson"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PersonPost"
-          application/ld+json:
-            schema:
-              $ref: "#/components/schemas/PersonPost"
-        required: true
-      responses:
-        "201":
-          description: "201 response"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PersonPostResponse"
-            application/ld+json:
-              schema:
-                $ref: "#/components/schemas/PersonPostResponse"
-        "400":
-          description: "400 response"
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "401":
-          description: "401 response"
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "500":
-          description: "500 response"
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          description: "403 response"
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "502":
-          description: "502 response"
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-      security:
-      - CognitoUserPool:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
-    options:
-      responses:
-        "200":
-          description: "200 response"
-          headers:
-            Access-Control-Allow-Origin:
-              schema:
-                type: "string"
-            Access-Control-Allow-Methods:
-              schema:
-                type: "string"
-            Access-Control-Allow-Headers:
-              schema:
-                type: "string"
-          content: {}
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
   /project:
     get:
+      tags:
+        - "Project"
+      summary: "List projects matching query"
+      description: "Returns a list of projects based on query parameters"
       operationId: "ListProjects"
       parameters:
-      - name: "query"
-        in: "query"
-        required: true
-        schema:
-          type: "string"
-      - name: "organization"
-        in: "query"
-        schema:
-          type: "string"
-      - name: "status"
-        in: "query"
-        schema:
-          type: "string"
-      - name: "page"
-        in: "query"
-        schema:
-          type: "string"
-      - name: "results"
-        in: "query"
-        schema:
-          type: "string"
-      - name: "language"
-        in: "query"
-        schema:
-          type: "string"
+        - name: "user"
+          in: "query"
+          description: "A person's username in Cristin together with the institution\
+          \ id separated by ':'"
+          schema:
+            type: "string"
+        - name: "funding_source"
+          in: "query"
+          description: "Funding source code."
+          schema:
+            type: "string"
+        - name: "language"
+          in: "query"
+          description: "Preferred language for some fields"
+          schema:
+            type: "string"
+        - name: "unit"
+          in: "query"
+          description: "Unit id"
+          schema:
+            type: "string"
+        - name: "status"
+          in: "query"
+          description: "Search for project with status"
+          schema:
+            type: "string"
+        - name: "levels"
+          in: "query"
+          description: "How many levels down from 'parent_unit_id' will be included\
+          \ in the search.'levels=1' will return projects registered to 'parent_unit_id'.\
+          \ 'levels' can also be used by itself to search for all projects registered\
+          \ to a known cristin unit down to the given level."
+          schema:
+            type: "string"
+        - name: "approved_by"
+          in: "query"
+          description: "Code for the authority that evaluated a project approval."
+          schema:
+            type: "string"
+        - name: "keyword"
+          in: "query"
+          description: "Keyword search. '?keyword=wind energy' makes a search for projects\
+          \ with keywords equal to or a substring of 'wind energy'. keyword can be\
+          \ used more than once"
+          schema:
+            type: "string"
+        - name: "project_manager"
+          in: "query"
+          description: "Cristin id, name or part of the name of the project manager."
+          schema:
+            type: "string"
+        - name: "approval_reference_id"
+          in: "query"
+          description: "Reference id of a project approval."
+          schema:
+            type: "string"
+        - name: "query"
+          in: "query"
+          description: "Search string. Either title search or grant id search"
+          required: true
+          schema:
+            type: "string"
+        - name: "organization"
+          in: "query"
+          description: "Search projects by organization id."
+          schema:
+            type: "string"
+        - name: "participant"
+          in: "query"
+          description: "Cristin id, name or part of the name of a participant of the\
+          \ project. 'participant' can be used more than once."
+          schema:
+            type: "string"
+        - name: "sort"
+          in: "query"
+          description: "Sorts on 'start_date' and/or 'end_date'. See Search and sort.\
+          \ Default sort order is on 'cristin_project_id' in ascending order."
+          schema:
+            type: "string"
+        - name: "page"
+          in: "query"
+          description: "Current page requested"
+          schema:
+            type: "string"
+        - name: "results"
+          in: "query"
+          description: "Results per page"
+          schema:
+            type: "string"
+        - name: "institution"
+          in: "query"
+          description: "Cristin id, acronym, name, or part of the name of the coordinating\
+          \ institution"
+          schema:
+            type: "string"
+        - name: "modified_since"
+          in: "query"
+          description: "Only projects that have been modified since this date will be\
+          \ returned. Format YYYY-MM-DD"
+          schema:
+            type: "string"
+        - name: "biobank"
+          in: "query"
+          description: "Biobank id. 'biobank' can be used more than once."
+          schema:
+            type: "string"
+        - name: "funding"
+          in: "query"
+          description: "Funding source code e.g. NFR, and project_code together separated\
+          \ by ':'"
+          schema:
+            type: "string"
       responses:
         "200":
-          description: "200 response"
+          description: "successful operation"
           content:
             application/json:
               schema:
@@ -863,26 +1094,31 @@ paths:
               schema:
                 $ref: "#/components/schemas/Projects"
         "400":
-          description: "400 response"
+          description: "Bad Request"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "500":
-          description: "500 response"
+          description: "Internal Server Error"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "502":
-          description: "502 response"
+          description: "Bad Gateway from upstream"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     post:
+      tags:
+        - "Project"
+      summary: "Create and persist project"
+      description: "Create and persist project in Cristin"
       operationId: "CreateProject"
       requestBody:
+        description: "Payload containing valid project data"
         content:
           application/json:
             schema:
@@ -893,7 +1129,7 @@ paths:
         required: true
       responses:
         "201":
-          description: "201 response"
+          description: "Successful creation of project"
           content:
             application/json:
               schema:
@@ -902,44 +1138,45 @@ paths:
               schema:
                 $ref: "#/components/schemas/Projects"
         "400":
-          description: "400 response"
+          description: "Bad Request"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "401":
-          description: "401 response"
+          description: "Unauthorized"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "500":
-          description: "500 response"
+          description: "Internal Server Error"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
-          description: "403 response"
+          description: "Forbidden"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "502":
-          description: "502 response"
+          description: "Bad Gateway from upstream"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       security:
-      - CognitoUserPool:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
     options:
+      summary: "CORS support"
       responses:
         "200":
-          description: "200 response"
+          description: "Default response for CORS method"
           headers:
             Access-Control-Allow-Origin:
               schema:
@@ -953,33 +1190,41 @@ paths:
           content: {}
   /organization:
     get:
+      tags:
+        - "Organization"
+      summary: "List organizations matching query"
+      description: "Returns a list of organizations based on query parameters"
       operationId: "ListOrganizations"
       parameters:
-      - name: "query"
-        in: "query"
-        schema:
-          type: "string"
-      - name: "page"
-        in: "query"
-        schema:
-          type: "string"
-      - name: "results"
-        in: "query"
-        schema:
-          type: "string"
-      - name: "depth"
-        in: "query"
-        schema:
-          type: "string"
+        - name: "query"
+          in: "query"
+          description: "Search for organization by name"
+          schema:
+            type: "string"
+        - name: "page"
+          in: "query"
+          description: "Current page requested"
+          schema:
+            type: "string"
+        - name: "results"
+          in: "query"
+          description: "Results per page"
+          schema:
+            type: "string"
+        - name: "depth"
+          in: "query"
+          description: "Depth of sub-organizations included in response"
+          schema:
+            type: "string"
       responses:
         "404":
-          description: "404 response"
+          description: "Not found"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "200":
-          description: "200 response"
+          description: "successful operation"
           content:
             application/json:
               schema:
@@ -988,27 +1233,91 @@ paths:
               schema:
                 $ref: "#/components/schemas/Organizations"
         "400":
-          description: "400 response"
+          description: "Bad Request"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "500":
-          description: "500 response"
+          description: "Internal Server Error"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "502":
-          description: "502 response"
+          description: "Bad Gateway from upstream"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     options:
+      summary: "CORS support"
       responses:
         "200":
-          description: "200 response"
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /funding-sources/{identifier}:
+    get:
+      tags:
+        - "FundingSource"
+      summary: "Fetch a funding source by identifier"
+      description: "Returns the funding source with the given identifier"
+      operationId: "FetchFundingSource"
+      parameters:
+        - name: "identifier"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "404":
+          description: "Not found"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FundingSourceNew"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/FundingSourceNew"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "Bad Gateway from upstream"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    options:
+      summary: "CORS support"
+      parameters:
+        - name: "identifier"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Default response for CORS method"
           headers:
             Access-Control-Allow-Origin:
               schema:
@@ -1022,21 +1331,29 @@ paths:
           content: {}
   /person/{id}/organization/{orgId}:
     get:
+      tags:
+        - "Person"
+      summary: "Fetch person organization info by identifiers"
+      description: "Returns person information at organization matching identifier\
+        \ parameters"
       operationId: "GetPersonOrganizationInfoByIdentifiers"
       parameters:
-      - name: "orgId"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "orgId"
+          in: "path"
+          description: "Identifier of Organization. Sub unit will be converted to parent\
+          \ institution"
+          required: true
+          schema:
+            type: "string"
+        - name: "id"
+          in: "path"
+          description: "Identifier of Person"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
-          description: "200 response"
+          description: "successful operation"
           content:
             application/json:
               schema:
@@ -1045,61 +1362,65 @@ paths:
               schema:
                 $ref: "#/components/schemas/PersonOrganizationInfo"
         "400":
-          description: "400 response"
+          description: "Bad Request"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "401":
-          description: "401 response"
+          description: "Unauthorized"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "500":
-          description: "500 response"
+          description: "Internal Server Error"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
-          description: "403 response"
+          description: "Forbidden"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "502":
-          description: "502 response"
+          description: "Bad Gateway from upstream"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
-          description: "404 response"
+          description: "Not found"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       security:
-      - CognitoUserPool:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
     options:
+      summary: "CORS support"
       parameters:
-      - name: "orgId"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "orgId"
+          in: "path"
+          description: "Identifier of Organization. Sub unit will be converted to parent\
+          \ institution"
+          required: true
+          schema:
+            type: "string"
+        - name: "id"
+          in: "path"
+          description: "Identifier of Person"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
-          description: "200 response"
+          description: "Default response for CORS method"
           headers:
             Access-Control-Allow-Origin:
               schema:
@@ -1112,19 +1433,28 @@ paths:
                 type: "string"
           content: {}
     patch:
+      tags:
+        - "Person"
+      summary: "Update person organization info by identifiers"
+      description: "Updates person email and phone information at given organization"
       operationId: "UpdatePersonInstitutionInfo"
       parameters:
-      - name: "orgId"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "orgId"
+          in: "path"
+          description: "Identifier of Organization. Sub unit will be converted to parent\
+          \ institution"
+          required: true
+          schema:
+            type: "string"
+        - name: "id"
+          in: "path"
+          description: "Identifier of Person"
+          required: true
+          schema:
+            type: "string"
       requestBody:
+        description: "Payload containing one or more optional fields email and phone.\
+          \ Fields can be set to null to erase content"
         content:
           application/json:
             schema:
@@ -1135,54 +1465,59 @@ paths:
         required: true
       responses:
         "400":
-          description: "400 response"
+          description: "Bad Request"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "401":
-          description: "401 response"
+          description: "Unauthorized"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "500":
-          description: "500 response"
+          description: "Internal Server Error"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "204":
-          description: "204 response"
+          description: "Successful update of resource"
           content: {}
         "403":
-          description: "403 response"
+          description: "Forbidden"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "502":
-          description: "502 response"
+          description: "Bad Gateway from upstream"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       security:
-      - CognitoUserPool:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
   /position:
     get:
+      tags:
+        - "Position"
+      summary: "Fetch position codes"
+      description: "Returns postion codes for affiliations"
       operationId: "GetPositionCodes"
       parameters:
-      - name: "active"
-        in: "query"
-        schema:
-          type: "string"
+        - name: "active"
+          in: "query"
+          description: "Fetch only active position codes"
+          schema:
+            type: "string"
       responses:
         "200":
-          description: "200 response"
+          description: "successful operation"
           content:
             application/json:
               schema:
@@ -1191,45 +1526,46 @@ paths:
               schema:
                 $ref: "#/components/schemas/PositionCodes"
         "400":
-          description: "400 response"
+          description: "Bad Request"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "401":
-          description: "401 response"
+          description: "Unauthorized"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "500":
-          description: "500 response"
+          description: "Internal Server Error"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
-          description: "403 response"
+          description: "Forbidden"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "502":
-          description: "502 response"
+          description: "Bad Gateway from upstream"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
-          description: "404 response"
+          description: "Not found"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     options:
+      summary: "CORS support"
       responses:
         "200":
-          description: "200 response"
+          description: "Default response for CORS method"
           headers:
             Access-Control-Allow-Origin:
               schema:
@@ -1243,6 +1579,10 @@ paths:
           content: {}
   /person/identityNumber:
     post:
+      tags:
+        - "Person"
+      summary: "Query person by national identity number"
+      description: "Returns a single person matching nin query parameter"
       operationId: "GetPersonByNIN"
       requestBody:
         content:
@@ -1252,7 +1592,7 @@ paths:
         required: true
       responses:
         "200":
-          description: "200 response"
+          description: "successful operation"
           content:
             application/json:
               schema:
@@ -1261,50 +1601,51 @@ paths:
               schema:
                 $ref: "#/components/schemas/Person"
         "400":
-          description: "400 response"
+          description: "Bad Request"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "401":
-          description: "401 response"
+          description: "Unauthorized"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "500":
-          description: "500 response"
+          description: "Internal Server Error"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
-          description: "403 response"
+          description: "Forbidden"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "502":
-          description: "502 response"
+          description: "Bad Gateway from upstream"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
-          description: "404 response"
+          description: "Not found"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       security:
-      - CognitoUserPool:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
     options:
+      summary: "CORS support"
       responses:
         "200":
-          description: "200 response"
+          description: "Default response for CORS method"
           headers:
             Access-Control-Allow-Origin:
               schema:
@@ -1318,30 +1659,118 @@ paths:
           content: {}
   /organization/{identifier}/projects:
     get:
+      tags:
+        - "Organization"
+      summary: "Fetch Projects associated with an given organization"
+      description: "Returns a list of projects belonging to specified organization"
       operationId: "GetProjectsByOrganization"
       parameters:
-      - name: "identifier"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      - name: "page"
-        in: "query"
-        schema:
-          type: "string"
-      - name: "results"
-        in: "query"
-        schema:
-          type: "string"
+        - name: "identifier"
+          in: "path"
+          description: "Identifier of Organization to return"
+          required: true
+          schema:
+            type: "string"
+        - name: "user"
+          in: "query"
+          description: "A person's username in Cristin together with the institution\
+          \ id separated by ':'"
+          schema:
+            type: "string"
+        - name: "funding_source"
+          in: "query"
+          description: "Funding source code."
+          schema:
+            type: "string"
+        - name: "unit"
+          in: "query"
+          description: "Unit id"
+          schema:
+            type: "string"
+        - name: "levels"
+          in: "query"
+          description: "How many levels down from 'parent_unit_id' will be included\
+          \ in the search.'levels=1' will return projects registered to 'parent_unit_id'.\
+          \ 'levels' can also be used by itself to search for all projects registered\
+          \ to a known cristin unit down to the given level."
+          schema:
+            type: "string"
+        - name: "approved_by"
+          in: "query"
+          description: "Code for the authority that evaluated a project approval."
+          schema:
+            type: "string"
+        - name: "keyword"
+          in: "query"
+          description: "Keyword search. '?keyword=wind energy' makes a search for projects\
+          \ with keywords equal to or a substring of 'wind energy'. keyword can be\
+          \ used more than once"
+          schema:
+            type: "string"
+        - name: "project_manager"
+          in: "query"
+          description: "Cristin id, name or part of the name of the project manager."
+          schema:
+            type: "string"
+        - name: "approval_reference_id"
+          in: "query"
+          description: "Reference id of a project approval."
+          schema:
+            type: "string"
+        - name: "participant"
+          in: "query"
+          description: "Cristin id, name or part of the name of a participant of the\
+          \ project. 'participant' can be used more than once."
+          schema:
+            type: "string"
+        - name: "sort"
+          in: "query"
+          description: "Sorts on 'start_date' and/or 'end_date'. See Search and sort.\
+          \ Default sort order is on 'cristin_project_id' in ascending order."
+          schema:
+            type: "string"
+        - name: "page"
+          in: "query"
+          description: "Current page requested"
+          schema:
+            type: "string"
+        - name: "results"
+          in: "query"
+          description: "Results per page"
+          schema:
+            type: "string"
+        - name: "institution"
+          in: "query"
+          description: "Cristin id, acronym, name, or part of the name of the coordinating\
+          \ institution"
+          schema:
+            type: "string"
+        - name: "modified_since"
+          in: "query"
+          description: "Only projects that have been modified since this date will be\
+          \ returned. Format YYYY-MM-DD"
+          schema:
+            type: "string"
+        - name: "biobank"
+          in: "query"
+          description: "Biobank id. 'biobank' can be used more than once."
+          schema:
+            type: "string"
+        - name: "funding"
+          in: "query"
+          description: "Funding source code e.g. NFR, and project_code together separated\
+          \ by ':'"
+          schema:
+            type: "string"
       responses:
         "404":
-          description: "404 response"
+          description: "Not found"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "200":
-          description: "200 response"
+          description: "successful operation"
           content:
             application/json:
               schema:
@@ -1350,33 +1779,34 @@ paths:
               schema:
                 $ref: "#/components/schemas/OrganizationProjects"
         "400":
-          description: "400 response"
+          description: "Bad Request"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "500":
-          description: "500 response"
+          description: "Internal Server Error"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "502":
-          description: "502 response"
+          description: "Bad Gateway from upstream"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     options:
+      summary: "CORS support"
       parameters:
-      - name: "identifier"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "identifier"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
-          description: "200 response"
+          description: "Default response for CORS method"
           headers:
             Access-Control-Allow-Origin:
               schema:
@@ -1646,8 +2076,8 @@ components:
                 type: "string"
                 description: "Type of contributor. Can be ProjectManager or ProjectParticipant"
                 enum:
-                - "ProjectManager"
-                - "ProjectParticipant"
+                  - "ProjectManager"
+                  - "ProjectParticipant"
             description: "One contributor"
         title:
           pattern: ".+"
@@ -1667,14 +2097,35 @@ components:
           type: "string"
           description: "Project status, based on start_date and end_date."
           enum:
-          - "NOTSTARTED"
-          - "ACTIVE"
-          - "CONCLUDED"
+            - "NOTSTARTED"
+            - "ACTIVE"
+            - "CONCLUDED"
         alternativeTitles:
           type: "array"
           description: "Titles in alternative languages"
           items:
             $ref: "#/components/schemas/Languages"
+    FundingSources:
+      required:
+        - "@Context"
+        - "id"
+        - "sources"
+        - "type"
+      type: "object"
+      properties:
+        sources:
+          type: "array"
+          description: "The list of funding sources"
+          items:
+            $ref: "#/components/schemas/FundingSourceNew"
+        id:
+          type: "string"
+          description: "URI to the query"
+        type:
+          type: "string"
+          description: "Always FundingSources"
+        '@context':
+          $ref: "#/components/schemas/Context"
     PositionCode:
       type: "object"
       properties:
@@ -1717,6 +2168,25 @@ components:
       type: "string"
       description: "The JSON-LD context object for the data, which describes the object\
         \ in the data and allows machine processing of the data at a semantic level"
+    FundingSourceNew:
+      required:
+        - "id"
+        - "identifier"
+        - "name"
+        - "type"
+      type: "object"
+      properties:
+        identifier:
+          type: "string"
+          description: "the identifier (code) for the funding source"
+        name:
+          $ref: "#/components/schemas/Languages"
+        id:
+          type: "string"
+          description: "URI to the resource itself"
+        type:
+          type: "string"
+          description: "Always FundingSources"
     PersonPatch:
       type: "object"
       properties:
@@ -1974,8 +2444,8 @@ components:
                 type: "string"
                 description: "Type of contributor. Can be ProjectManager or ProjectParticipant"
                 enum:
-                - "ProjectManager"
-                - "ProjectParticipant"
+                  - "ProjectManager"
+                  - "ProjectParticipant"
             description: "One contributor"
         lastModified:
           type: "object"
@@ -1995,9 +2465,9 @@ components:
           type: "string"
           description: "Project status, based on start_date and end_date."
           enum:
-          - "NOTSTARTED"
-          - "ACTIVE"
-          - "CONCLUDED"
+            - "NOTSTARTED"
+            - "ACTIVE"
+            - "CONCLUDED"
     OrganizationPersons:
       type: "object"
       properties:
@@ -2032,8 +2502,8 @@ components:
           format: "int32"
     PersonPost:
       required:
-      - "identifiers"
-      - "names"
+        - "identifiers"
+        - "names"
       type: "object"
       properties:
         names:
@@ -2233,8 +2703,8 @@ components:
                 type: "string"
                 description: "Type of contributor. Can be ProjectManager or ProjectParticipant"
                 enum:
-                - "ProjectManager"
-                - "ProjectParticipant"
+                  - "ProjectManager"
+                  - "ProjectParticipant"
             description: "One contributor"
         title:
           pattern: ".+"
@@ -2248,9 +2718,9 @@ components:
           type: "string"
           description: "Project status, based on start_date and end_date."
           enum:
-          - "NOTSTARTED"
-          - "ACTIVE"
-          - "CONCLUDED"
+            - "NOTSTARTED"
+            - "ACTIVE"
+            - "CONCLUDED"
         alternativeTitles:
           type: "array"
           description: "Titles in alternative languages"

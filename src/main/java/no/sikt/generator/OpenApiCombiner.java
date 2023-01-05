@@ -19,8 +19,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.CaseUtils;
 import org.slf4j.Logger;
@@ -175,15 +177,18 @@ public class OpenApiCombiner {
             if (api.getComponents().getSchemas() != null) {
                 for (var schemaEntry : api.getComponents().getSchemas().entrySet()) {
                     var items = schemaEntry.getValue().getItems();
-                    if (items != null) {
-                        var refName = StringUtils.stripStart(items.get$ref(), COMPONENTS_SCHEMAS);
+                    var nestedSchemas = Stream.of(
+                            Stream.of(items),
+                            OpenApiUtils.getNestedPropertiesSchemas(schemaEntry.getValue()).map(Schema::getItems)
+                        ).flatMap(stream -> stream).filter(Objects::nonNull);
+                    nestedSchemas.forEach(s -> {
+                        var refName = StringUtils.stripStart(s.get$ref(), COMPONENTS_SCHEMAS);
                         var newName = CaseUtils.toCamelCase(api.getInfo().getTitle(), true)
                                       + refName;
                         if (duplicateNames.contains(refName)) {
-                            items.set$ref(COMPONENTS_SCHEMAS + newName);
+                            s.set$ref(COMPONENTS_SCHEMAS + newName);
                         }
-                    }
-
+                    });
                 }
             }
         });

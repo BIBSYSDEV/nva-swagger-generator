@@ -90,6 +90,7 @@ class GenerateDocsHandlerTest {
             "nva-publication-api.yaml",
             "nva-publication-channels.yaml",
             "nva-roles-and-users-catalogue.yaml",
+            "nva-verified-funding-sources-api.yaml",
             "nva-s3-multipart-upload.yaml"
         );
         TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, "nva", fileNames);

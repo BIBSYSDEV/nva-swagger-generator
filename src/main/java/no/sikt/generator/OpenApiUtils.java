@@ -50,7 +50,7 @@ public final class OpenApiUtils {
            .filter(Objects::nonNull);
     }
 
-    public static Stream<Schema> getChildSchema(Schema schema) {
+    public static Stream<Schema> getNestedPropertiesSchemas(Schema schema) {
         Map<String, Schema> properties = schema.getProperties();
         return properties != null ? properties.values().stream() : Stream.of();
     }
@@ -97,7 +97,21 @@ public final class OpenApiUtils {
                    .getSchemas()
                    .values()
                    .stream()
-                   .flatMap(OpenApiUtils::getChildSchema)
+                   .flatMap(OpenApiUtils::getNestedPropertiesSchemas)
+                   .map(Schema::get$ref)
+                   .filter(Objects::nonNull)
+                   .distinct();
+    }
+
+    public static Stream<String> getSchemaPropertyItemRefs(OpenAPI openAPI) {
+        return openAPI
+                   .getComponents()
+                   .getSchemas()
+                   .values()
+                   .stream()
+                   .flatMap(OpenApiUtils::getNestedPropertiesSchemas)
+                   .map(Schema::getItems)
+                   .filter(Objects::nonNull)
                    .map(Schema::get$ref)
                    .filter(Objects::nonNull)
                    .distinct();
@@ -107,7 +121,8 @@ public final class OpenApiUtils {
         return Stream.of(
                 getRefsFromPaths(openAPI),
                 getSchemaItemsRefs(openAPI),
-                getSchemaPropertyRefs(openAPI)
+                getSchemaPropertyRefs(openAPI),
+                getSchemaPropertyItemRefs(openAPI)
             ).flatMap(stream -> stream)
                .collect(Collectors.toSet());
     }
