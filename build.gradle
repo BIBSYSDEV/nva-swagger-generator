@@ -93,6 +93,7 @@ checkstyle {
 test {
     environment "OUTPUT_BUCKET_NAME", "notimportant"
     environment "DOMAIN", "sandbox.nva.aws.unit.no"
+    environment "EXCLUDED_APIS", "Api Exclude,Api Exclude"
 
     useJUnitPlatform {}
     failFast = false

@@ -19,6 +19,7 @@ Globals:
       Variables:
         OUTPUT_BUCKET_NAME: !Ref SwaggerUiBucket
         DOMAIN: !Ref CustomDomain
+        EXCLUDED_APIS: "NVA Courses API,DLR LaunchCanvas API"
 
 Resources:
   SwaggerGeneratorRole:

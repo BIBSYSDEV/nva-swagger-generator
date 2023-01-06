@@ -1,5 +1,7 @@
 package no.sikt.generator;
 
+import static no.sikt.generator.ApplicationConstants.DOMAIN;
+import static no.sikt.generator.ApplicationConstants.EXCLUDED_APIS;
 import io.swagger.v3.oas.models.OpenAPI;
 import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.services.apigateway.model.RestApi;
@@ -30,6 +32,14 @@ public class ApiData implements Comparable<ApiData> {
 
     public String getRawYaml() {
         return rawYaml;
+    }
+
+    public boolean hasCorrectDomain() {
+        return openApi.getServers().stream().anyMatch(server -> server.getUrl().contains(DOMAIN));
+    }
+
+    public boolean isOnExcludeList() {
+        return EXCLUDED_APIS.stream().anyMatch(e -> e.equals(awsRestApi.name()));
     }
 
     @Override

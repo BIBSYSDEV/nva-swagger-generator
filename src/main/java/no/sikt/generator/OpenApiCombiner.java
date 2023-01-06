@@ -45,6 +45,11 @@ public class OpenApiCombiner {
                              .map(OpenAPI::getServers)
                              .flatMap(Collection::stream)
                              .collect(Collectors.toList());
+
+        if (allServers.isEmpty()) {
+            return null;
+        }
+
         var mainServer =
             allServers.stream().filter(server -> server.getUrl().contains(DOMAIN)).findFirst().get();
         return new Server().url(mainServer.getUrl().replace("/{basePath}",""));
@@ -52,7 +57,12 @@ public class OpenApiCombiner {
 
     public OpenAPI combine() {
 
-        this.baseTemplate.setServers(List.of(findMainServer()));
+        var mainServer = findMainServer();
+
+        if (mainServer != null) {
+            this.baseTemplate.setServers(List.of(mainServer));
+        }
+
 
         if (this.baseTemplate.getComponents() == null) {
             this.baseTemplate.setComponents(new Components());

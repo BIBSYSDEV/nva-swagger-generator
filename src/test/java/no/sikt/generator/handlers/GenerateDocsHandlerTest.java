@@ -30,6 +30,7 @@ import nva.commons.core.paths.UnixPath;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
 import org.apache.commons.lang3.StringUtils;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -62,23 +63,20 @@ class GenerateDocsHandlerTest {
         handler = new GenerateDocsHandler(apiGatewayAsyncClient, fakeS3Client);
     }
 
+    private void setupTestCasesFromFiles(String folder, List<String> filenames) {
+        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, folder, filenames);
+    }
+
     private void setupSingleFile() {
-        var fileNames = List.of(
-            "api-a.yaml"
-        );
-        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, null, fileNames);
+        setupTestCasesFromFiles(null, List.of("api-a.yaml"));
     }
 
     private void setupSimpleMocks() {
-        var fileNames = List.of(
-            "api-a.yaml",
-            "api-b.yaml"
-        );
-        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, null, fileNames);
+        setupTestCasesFromFiles(null, List.of("api-a.yaml", "api-b.yaml"));
     }
 
     private void setupNvaMocks() {
-        var fileNames = List.of(
+        setupTestCasesFromFiles("nva", List.of(
             "dlr-launchcanvas-api.yaml",
             "nva-courses-api.yaml",
             "nva-cristin-proxy-api.yaml",
@@ -92,8 +90,7 @@ class GenerateDocsHandlerTest {
             "nva-roles-and-users-catalogue.yaml",
             "nva-verified-funding-sources-api.yaml",
             "nva-s3-multipart-upload.yaml"
-        );
-        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, "nva", fileNames);
+        ));
     }
 
     @Test
@@ -236,6 +233,18 @@ class GenerateDocsHandlerTest {
     }
 
     @Test
+    public void shouldExcludeFilesWhenEnviormentVariableIsSet() {
+        setupTestCasesFromFiles(null, List.of("api-exluded.yaml"));
+
+        handler.handleRequest(null, null, null);
+
+        var openApi = readGeneratedOpenApi();
+
+        assertThat(openApi.getPaths(), nullValue());
+        assertThat(openApi.getComponents().getSchemas(), nullValue());
+    }
+
+    @Test
     public void shouldParseFile() {
         setupNvaMocks();
 
@@ -244,6 +253,15 @@ class GenerateDocsHandlerTest {
         var s3FileContent = s3Driver.getFile(UnixPath.of("docs/nva-publication-api.yaml"));
         assertThat(s3FileContent, notNullValue());
 
+    }
+
+    private OpenAPI readGeneratedOpenApi() {
+        var yaml = s3Driver.getFile(UnixPath.of("docs/combined.yaml"));
+        assertThat(yaml, notNullValue());
+
+        return openApiParser
+                          .readContents(yaml)
+                          .getOpenAPI();
     }
 
 

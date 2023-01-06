@@ -1,7 +1,6 @@
 package no.sikt.generator.handlers;
 
 import static java.util.Locale.ENGLISH;
-import static no.sikt.generator.ApplicationConstants.DOMAIN;
 import static no.sikt.generator.ApplicationConstants.OUTPUT_BUCKET_NAME;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -199,6 +198,6 @@ public class GenerateDocsHandler implements RequestStreamHandler {
     }
 
     private boolean apiShouldBeIncluded(ApiData apiData) {
-        return apiData.getOpenApi().getServers().stream().anyMatch(server -> server.getUrl().contains(DOMAIN));
+        return apiData.hasCorrectDomain() && !apiData.isOnExcludeList();
     }
 }
