@@ -7,9 +7,9 @@ Parameters:
   CustomDomain:
     Type: String
     Description: The custom domain for the enviorment
-  BackendDomainCertificateArn:
+  SwaggerDomainCertificateArn:
     Type: String
-    Description: ARN for the certificate covering the API host/domain/API Gateway Custom Domain.
+    Description: ARN for the certificate covering the swagger documentation.
 
 Globals:
   Function:
@@ -171,7 +171,6 @@ Resources:
       Timeout: 300
       Role: !GetAtt SwaggerGeneratorRole.Arn
 
-
   OriginAccessIdentity:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
@@ -205,5 +204,5 @@ Resources:
               HTTPSPort: 443
               OriginProtocolPolicy: match-viewer
         ViewerCertificate:
-          AcmCertificateArn: !Ref BackendDomainCertificateArn
+          AcmCertificateArn: !Ref SwaggerDomainCertificateArn
           SslSupportMethod: 'sni-only'
