@@ -276,9 +276,8 @@ public class OpenApiCombiner {
                 logger.info("Ignoring equal securityScheme");
                 return;
             } else {
-                throw new IllegalStateException("Security schema " + newKey + " already exists and they are not equal");
+                logger.warn("Security schema " + newKey + " already exists and they are not equal");
             }
-
         }
         target.getComponents().addSecuritySchemes(newKey, source.getValue());
     }
