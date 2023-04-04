@@ -6,14 +6,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.apigateway.model.CreateDocumentationVersionRequest;
+import software.amazon.awssdk.services.apigateway.model.GetDocumentationPartsRequest;
 import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionsRequest;
 import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionsResponse;
 import software.amazon.awssdk.services.apigateway.model.GetExportRequest;
 import software.amazon.awssdk.services.apigateway.model.GetRestApisResponse;
 import software.amazon.awssdk.services.apigateway.model.GetStagesRequest;
-import software.amazon.awssdk.services.apigateway.model.PatchOperation;
 import software.amazon.awssdk.services.apigateway.model.Stage;
-import software.amazon.awssdk.services.apigateway.model.UpdateDocumentationVersionRequest;
 
 public class ApiGatewayHighLevelClient {
 
@@ -49,22 +48,19 @@ public class ApiGatewayHighLevelClient {
     }
 
     public GetDocumentationVersionsResponse fetchVersions(String id) {
-        var listRequest = GetDocumentationVersionsRequest.builder().restApiId(id).build();
+        var listRequest = GetDocumentationVersionsRequest.builder().restApiId(id).limit(500).build();
 
         var existingVersions
             = attempt(() -> apiGatewayClient.getDocumentationVersions(listRequest).get()).orElseThrow();
         return existingVersions;
     }
 
-    public void updateDocumentation(String id, String version) {
-        var updateRequest = UpdateDocumentationVersionRequest.builder()
-                                .restApiId(id)
-                                .documentationVersion(version)
-                                .patchOperations(
-                                    PatchOperation.builder().op("replace").path("/description").build()
-                                ).build();
+    public int fetchDocumentationPartsHash(String apiId) {
+        var getDocumentationVersionRequest = GetDocumentationPartsRequest.builder().restApiId(apiId).limit(500).build();
+        var documentParts =
+            attempt(() -> apiGatewayClient.getDocumentationParts(getDocumentationVersionRequest).get()).orElseThrow();
 
-        attempt(() -> apiGatewayClient.updateDocumentationVersion(updateRequest).get()).orElseThrow();
+        return documentParts.items().hashCode();
     }
 
     public void createDocumentation(String id, String version, String stage) {

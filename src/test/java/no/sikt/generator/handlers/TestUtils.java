@@ -15,6 +15,10 @@ import software.amazon.awssdk.services.apigateway.model.CreateDocumentationVersi
 import software.amazon.awssdk.services.apigateway.model.CreateDocumentationVersionResponse;
 import software.amazon.awssdk.services.apigateway.model.DeleteDocumentationVersionRequest;
 import software.amazon.awssdk.services.apigateway.model.DeleteDocumentationVersionResponse;
+import software.amazon.awssdk.services.apigateway.model.DocumentationPart;
+import software.amazon.awssdk.services.apigateway.model.DocumentationPartLocation;
+import software.amazon.awssdk.services.apigateway.model.GetDocumentationPartsRequest;
+import software.amazon.awssdk.services.apigateway.model.GetDocumentationPartsResponse;
 import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionsRequest;
 import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionsResponse;
 import software.amazon.awssdk.services.apigateway.model.GetExportRequest;
@@ -62,12 +66,22 @@ public class TestUtils {
             )
         ).build();
 
+        var docPartLoc1 = DocumentationPartLocation.builder().name("loc1").path("/1").build();
+        var docPartLoc2 = DocumentationPartLocation.builder().name("loc2").path("/2").build();
+        var getDocPartsResponse = GetDocumentationPartsResponse.builder().items(
+            DocumentationPart.builder().id("1").location(docPartLoc1).properties("prop1").build(),
+            DocumentationPart.builder().id("2").location(docPartLoc1).properties("prop2").build(),
+            DocumentationPart.builder().id("3").location(docPartLoc2).properties("prop3").build()
+        ).build();
+
         var listDocumentationVersionsResponse = GetDocumentationVersionsResponse.builder().build();
         var createDocumentationVersionResponse = CreateDocumentationVersionResponse.builder().build();
         var deleteDocumentationVersionResponse = DeleteDocumentationVersionResponse.builder().build();
         var updateDocumentationVersionResponse = UpdateDocumentationVersionResponse.builder().build();
 
         when(apiGatewayAsyncClient.getRestApis()).thenReturn(CompletableFuture.completedFuture(getRestApisResponse));
+        when(apiGatewayAsyncClient.getDocumentationParts(any(GetDocumentationPartsRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(getDocPartsResponse));
         when(apiGatewayAsyncClient.getStages(any(GetStagesRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(getStagesResponse));
         when(apiGatewayAsyncClient.getDocumentationVersions(any(GetDocumentationVersionsRequest.class)))

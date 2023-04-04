@@ -13,6 +13,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -39,7 +40,6 @@ import software.amazon.awssdk.services.apigateway.model.CreateDocumentationVersi
 import software.amazon.awssdk.services.apigateway.model.DocumentationVersion;
 import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionsRequest;
 import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionsResponse;
-import software.amazon.awssdk.services.apigateway.model.UpdateDocumentationVersionRequest;
 
 class GenerateDocsHandlerTest {
 
@@ -142,11 +142,13 @@ class GenerateDocsHandlerTest {
     }
 
     @Test
-    public void shouldPerformUpdateWhenDocVersionExists() {
+    public void shouldNotPerformCreateWhenDocVersionExists() {
         setupSingleFile();
 
+        var expectedHash = apiGatewayHighLevelClient.fetchDocumentationPartsHash("");
+
         var listDocumentationVersionsResponse = GetDocumentationVersionsResponse.builder().items(
-            DocumentationVersion.builder().version(VERSION_NAME).build()
+            DocumentationVersion.builder().version(VERSION_NAME + "-" + expectedHash).build()
         ).build();
 
         when(apiGatewayAsyncClient.getDocumentationVersions(any(GetDocumentationVersionsRequest.class)))
@@ -154,7 +156,7 @@ class GenerateDocsHandlerTest {
 
         handler.handleRequest(null, null, null);
 
-        verify(apiGatewayAsyncClient).updateDocumentationVersion(any(UpdateDocumentationVersionRequest.class));
+        verify(apiGatewayAsyncClient, never()).createDocumentationVersion(any(CreateDocumentationVersionRequest.class));
 
     }
 

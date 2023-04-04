@@ -80,13 +80,15 @@ public class GenerateDocsHandler implements RequestStreamHandler {
         logger.info("publishing {}", name);
 
         var existingVersions = apiGatewayHighLevelClient.fetchVersions(id);
+        var partsHash = apiGatewayHighLevelClient.fetchDocumentationPartsHash(id);
+        var versionName = VERSION_NAME + "-" + partsHash;
+        logger.info("{} has parts-hash {}", id, partsHash);
 
-        if (existingVersions.items().stream().anyMatch(item -> VERSION_NAME.equals(item.version()))) {
-            logger.info("{} has existing documentation - updating", name);
-            apiGatewayHighLevelClient.updateDocumentation(id, VERSION_NAME);
+        if (existingVersions.items().stream().anyMatch(item -> versionName.equals(item.version()))) {
+            logger.info("{} has existing documentation - ignoring", name);
         } else {
             logger.info("{} has no existing documentation - creating", name);
-            apiGatewayHighLevelClient.createDocumentation(id, VERSION_NAME, EXPORT_STAGE_PROD);
+            apiGatewayHighLevelClient.createDocumentation(id, versionName, EXPORT_STAGE_PROD);
         }
     }
 
