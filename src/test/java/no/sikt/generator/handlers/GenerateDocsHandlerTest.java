@@ -40,6 +40,10 @@ import software.amazon.awssdk.services.apigateway.model.CreateDocumentationVersi
 import software.amazon.awssdk.services.apigateway.model.DocumentationVersion;
 import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionsRequest;
 import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionsResponse;
+import software.amazon.awssdk.services.apigateway.model.GetStagesRequest;
+import software.amazon.awssdk.services.apigateway.model.GetStagesResponse;
+import software.amazon.awssdk.services.apigateway.model.Stage;
+import software.amazon.awssdk.services.apigateway.model.UpdateStageRequest;
 
 class GenerateDocsHandlerTest {
 
@@ -142,22 +146,32 @@ class GenerateDocsHandlerTest {
     }
 
     @Test
-    public void shouldNotPerformCreateWhenDocVersionExists() {
+    public void shouldNotPerformCreateOrUpdateStageWhenDocVersionExistsAndItsAssociatedWithProdStage() {
         setupSingleFile();
 
         var expectedHash = apiGatewayHighLevelClient.fetchDocumentationPartsHash("");
+        var expectedVersion = VERSION_NAME + "-" + expectedHash;
 
         var listDocumentationVersionsResponse = GetDocumentationVersionsResponse.builder().items(
-            DocumentationVersion.builder().version(VERSION_NAME + "-" + expectedHash).build()
+            DocumentationVersion.builder().version(expectedVersion).build()
         ).build();
 
         when(apiGatewayAsyncClient.getDocumentationVersions(any(GetDocumentationVersionsRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(listDocumentationVersionsResponse));
 
+        var getStagesResponse = GetStagesResponse.builder().item(
+            List.of(
+                Stage.builder().stageName("Prod").documentationVersion(expectedVersion).build()
+            )
+        ).build();
+
+        when(apiGatewayAsyncClient.getStages(any(GetStagesRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(getStagesResponse));
+
         handler.handleRequest(null, null, null);
 
         verify(apiGatewayAsyncClient, never()).createDocumentationVersion(any(CreateDocumentationVersionRequest.class));
-
+        verify(apiGatewayAsyncClient, never()).updateStage(any(UpdateStageRequest.class));
     }
 
     @Test
@@ -172,6 +186,23 @@ class GenerateDocsHandlerTest {
         handler.handleRequest(null, null, null);
 
         verify(apiGatewayAsyncClient).createDocumentationVersion(any(CreateDocumentationVersionRequest.class));
+    }
+
+    @Test
+    public void shouldPerformUpdateStageWhenDocVersionExistsButItsNotAssociated() {
+        setupSingleFile();
+
+        var expectedHash = apiGatewayHighLevelClient.fetchDocumentationPartsHash("");
+        var listDocumentationVersionsResponse = GetDocumentationVersionsResponse.builder().items(
+            DocumentationVersion.builder().version(VERSION_NAME + "-" + expectedHash).build()
+        ).build();
+
+        when(apiGatewayAsyncClient.getDocumentationVersions(any(GetDocumentationVersionsRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(listDocumentationVersionsResponse));
+
+        handler.handleRequest(null, null, null);
+
+        verify(apiGatewayAsyncClient).updateStage(any(UpdateStageRequest.class));
     }
 
     @Test

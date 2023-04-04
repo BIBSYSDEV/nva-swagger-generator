@@ -30,6 +30,8 @@ import software.amazon.awssdk.services.apigateway.model.RestApi;
 import software.amazon.awssdk.services.apigateway.model.Stage;
 import software.amazon.awssdk.services.apigateway.model.UpdateDocumentationVersionRequest;
 import software.amazon.awssdk.services.apigateway.model.UpdateDocumentationVersionResponse;
+import software.amazon.awssdk.services.apigateway.model.UpdateStageRequest;
+import software.amazon.awssdk.services.apigateway.model.UpdateStageResponse;
 
 public class TestUtils {
 
@@ -61,8 +63,8 @@ public class TestUtils {
 
         var getStagesResponse = GetStagesResponse.builder().item(
             List.of(
-                Stage.builder().stageName("Prod").build(),
-                Stage.builder().stageName("Stage").build()
+                Stage.builder().stageName("Prod").documentationVersion("doc1").build(),
+                Stage.builder().stageName("Stage").documentationVersion("doc1").build()
             )
         ).build();
 
@@ -78,12 +80,15 @@ public class TestUtils {
         var createDocumentationVersionResponse = CreateDocumentationVersionResponse.builder().build();
         var deleteDocumentationVersionResponse = DeleteDocumentationVersionResponse.builder().build();
         var updateDocumentationVersionResponse = UpdateDocumentationVersionResponse.builder().build();
+        var updateStageResponse = UpdateStageResponse.builder().build();
 
         when(apiGatewayAsyncClient.getRestApis()).thenReturn(CompletableFuture.completedFuture(getRestApisResponse));
         when(apiGatewayAsyncClient.getDocumentationParts(any(GetDocumentationPartsRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(getDocPartsResponse));
         when(apiGatewayAsyncClient.getStages(any(GetStagesRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(getStagesResponse));
+        when(apiGatewayAsyncClient.updateStage(any(UpdateStageRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(updateStageResponse));
         when(apiGatewayAsyncClient.getDocumentationVersions(any(GetDocumentationVersionsRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(listDocumentationVersionsResponse));
         when(apiGatewayAsyncClient.createDocumentationVersion(any(CreateDocumentationVersionRequest.class)))

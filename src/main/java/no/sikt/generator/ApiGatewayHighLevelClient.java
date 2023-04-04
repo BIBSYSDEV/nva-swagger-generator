@@ -3,7 +3,6 @@ package no.sikt.generator;
 import static nva.commons.core.attempt.Try.attempt;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.apigateway.model.CreateDocumentationVersionRequest;
 import software.amazon.awssdk.services.apigateway.model.GetDocumentationPartsRequest;
@@ -12,10 +11,14 @@ import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersions
 import software.amazon.awssdk.services.apigateway.model.GetExportRequest;
 import software.amazon.awssdk.services.apigateway.model.GetRestApisResponse;
 import software.amazon.awssdk.services.apigateway.model.GetStagesRequest;
+import software.amazon.awssdk.services.apigateway.model.Op;
+import software.amazon.awssdk.services.apigateway.model.PatchOperation;
 import software.amazon.awssdk.services.apigateway.model.Stage;
+import software.amazon.awssdk.services.apigateway.model.UpdateStageRequest;
 
 public class ApiGatewayHighLevelClient {
 
+    public static final String DOCUMENTATION_VERSION_PATH = "/documentationVersion";
     private final ApiGatewayAsyncClient apiGatewayClient;
 
     public ApiGatewayHighLevelClient(ApiGatewayAsyncClient apiGatewayClient) {
@@ -36,11 +39,17 @@ public class ApiGatewayHighLevelClient {
         return export.body().asString(StandardCharsets.UTF_8);
     }
 
-    public List<String> fetchStages(String apiId) {
+    public List<Stage> fetchStages(String apiId) {
         var request = GetStagesRequest.builder().restApiId(apiId).build();
         var stages = attempt(() -> apiGatewayClient.getStages(request).get()).orElseThrow();
+        return stages.item();
+    }
 
-        return stages.item().stream().map(Stage::stageName).collect(Collectors.toList());
+    public void setStageDocVersion(String apiId, String stage, String docVersion) {
+        var request = UpdateStageRequest.builder().restApiId(apiId).stageName(stage).patchOperations(
+            PatchOperation.builder().op(Op.REPLACE).path(DOCUMENTATION_VERSION_PATH).value(docVersion).build()
+        ).build();
+        attempt(() -> apiGatewayClient.updateStage(request).get()).orElseThrow();
     }
 
     public GetRestApisResponse getRestApis() {
@@ -56,6 +65,7 @@ public class ApiGatewayHighLevelClient {
     }
 
     public int fetchDocumentationPartsHash(String apiId) {
+
         var getDocumentationVersionRequest = GetDocumentationPartsRequest.builder().restApiId(apiId).limit(500).build();
         var documentParts =
             attempt(() -> apiGatewayClient.getDocumentationParts(getDocumentationVersionRequest).get()).orElseThrow();

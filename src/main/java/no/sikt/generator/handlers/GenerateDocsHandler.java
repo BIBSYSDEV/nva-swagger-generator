@@ -73,22 +73,29 @@ public class GenerateDocsHandler implements RequestStreamHandler {
         attempt(() -> s3Driver.insertFile(UnixPath.of(filename), content)).orElseThrow();
     }
 
-
     private void publishDocumentation(ApiData apiData) {
         var name = apiData.getOpenApi().getInfo().getTitle();
-        var id = apiData.getAwsRestApi().id();
+        var apiId = apiData.getAwsRestApi().id();
         logger.info("publishing {}", name);
 
-        var existingVersions = apiGatewayHighLevelClient.fetchVersions(id);
-        var partsHash = apiGatewayHighLevelClient.fetchDocumentationPartsHash(id);
-        var versionName = VERSION_NAME + "-" + partsHash;
-        logger.info("{} has parts-hash {}", id, partsHash);
+        var existingVersions = apiGatewayHighLevelClient.fetchVersions(apiId);
+        var partsHash = apiGatewayHighLevelClient.fetchDocumentationPartsHash(apiId);
+        var wantedDocVersion = VERSION_NAME + "-" + partsHash;
+        var docVersionExists
+            = existingVersions.items().stream().anyMatch(item -> wantedDocVersion.equals(item.version()));
+        logger.info("{} has parts-hash {}", apiId, partsHash);
 
-        if (existingVersions.items().stream().anyMatch(item -> versionName.equals(item.version()))) {
-            logger.info("{} has existing documentation - ignoring", name);
+        if (docVersionExists && apiData.getCurrentDocVersion().equals(wantedDocVersion)) {
+            logger.info("{} has existing documentation and its set - ignoring", name);
+        } else if (docVersionExists) {
+            logger.info("{} has existing documentation but its currently associated with {} - patching",
+                        name,
+                        apiData.getCurrentDocVersion()
+            );
+            apiGatewayHighLevelClient.setStageDocVersion(apiId, EXPORT_STAGE_PROD, wantedDocVersion);
         } else {
             logger.info("{} has no existing documentation - creating", name);
-            apiGatewayHighLevelClient.createDocumentation(id, versionName, EXPORT_STAGE_PROD);
+            apiGatewayHighLevelClient.createDocumentation(apiId, wantedDocVersion, EXPORT_STAGE_PROD);
         }
     }
 
@@ -102,7 +109,7 @@ public class GenerateDocsHandler implements RequestStreamHandler {
         logger.info(apis.toString());
 
         var template = openApiParser
-                           .readContents(Utils.readResource("template.yaml"))
+                           .readContents(Utils.readResource("openapi.yaml"))
                            .getOpenAPI();
 
         var swaggers = apis.items().stream()
@@ -142,8 +149,10 @@ public class GenerateDocsHandler implements RequestStreamHandler {
 
     private ApiData fetchApiData(RestApi api) {
         var stages = apiGatewayHighLevelClient.fetchStages(api.id());
-        var hasProdStage = stages.stream().anyMatch(stage -> EXPORT_STAGE_PROD.equals(stage));
-        if (hasProdStage) {
+        var productionStage =
+            stages.stream().filter(s -> EXPORT_STAGE_PROD.equals(s.stageName())).findFirst().orElse(null);
+
+        if (productionStage != null) {
             var yaml = apiGatewayHighLevelClient.fetchApiExport(
                 api.id(),
                 EXPORT_STAGE_PROD,
@@ -151,7 +160,7 @@ public class GenerateDocsHandler implements RequestStreamHandler {
                 EXPORT_TYPE_OA_3
             );
             var parseResult = openApiParser.readContents(yaml);
-            return new ApiData(api, parseResult.getOpenAPI(), yaml);
+            return new ApiData(api, parseResult.getOpenAPI(), yaml, productionStage);
         } else {
             logger.warn("API {} ({}) does not have stage {}. Stages found: {}", api.name(), api.id(),
                         EXPORT_STAGE_PROD, stages);
