@@ -9,8 +9,6 @@ import io.swagger.v3.core.util.Yaml;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,6 +16,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import no.sikt.generator.ApiData;
+import no.sikt.generator.ApiGatewayHighLevelClient;
 import no.sikt.generator.OpenApiCombiner;
 import no.sikt.generator.OpenApiValidator;
 import no.sikt.generator.Utils;
@@ -30,14 +29,7 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
-import software.amazon.awssdk.services.apigateway.model.CreateDocumentationVersionRequest;
-import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionsRequest;
-import software.amazon.awssdk.services.apigateway.model.GetExportRequest;
-import software.amazon.awssdk.services.apigateway.model.GetStagesRequest;
-import software.amazon.awssdk.services.apigateway.model.PatchOperation;
 import software.amazon.awssdk.services.apigateway.model.RestApi;
-import software.amazon.awssdk.services.apigateway.model.Stage;
-import software.amazon.awssdk.services.apigateway.model.UpdateDocumentationVersionRequest;
 import software.amazon.awssdk.services.s3.S3Client;
 
 public class GenerateDocsHandler implements RequestStreamHandler {
@@ -47,7 +39,7 @@ public class GenerateDocsHandler implements RequestStreamHandler {
     public static final String EXPORT_STAGE_PROD = "Prod";
     public static final String APPLICATION_YAML = "application/yaml";
     public static final String VERSION_NAME = "swagger-generator";
-    private final ApiGatewayAsyncClient apiGatewayClient;
+    private final ApiGatewayHighLevelClient apiGatewayHighLevelClient;
     private final S3Client s3Client;
     private final OpenApiValidator openApiValidator = new OpenApiValidator();
     private final OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
@@ -60,18 +52,19 @@ public class GenerateDocsHandler implements RequestStreamHandler {
                                .numRetries(10)
                                .build();
 
-
         var clientOverrideConfiguration = ClientOverrideConfiguration.builder()
                          .retryPolicy(retryPolicy)
                          .build();
 
-        this.apiGatewayClient =
+        var apiGatewayClient =
             ApiGatewayAsyncClient.builder().overrideConfiguration(clientOverrideConfiguration).build();
+
+        this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(apiGatewayClient);
         this.s3Client = S3Driver.defaultS3Client().build();
     }
 
-    public GenerateDocsHandler(ApiGatewayAsyncClient apiGatewayClient, S3Client s3Client) {
-        this.apiGatewayClient = apiGatewayClient;
+    public GenerateDocsHandler(ApiGatewayHighLevelClient apiGatewayHighLevelClient, S3Client s3Client) {
+        this.apiGatewayHighLevelClient = apiGatewayHighLevelClient;
         this.s3Client = s3Client;
     }
 
@@ -81,57 +74,19 @@ public class GenerateDocsHandler implements RequestStreamHandler {
     }
 
 
-
-    private String fetchApiExport(String apiId, String stage, String contentType, String exportType) {
-        var getExportRequest = GetExportRequest.builder()
-                                   .restApiId(apiId)
-                                   .stageName(stage)
-                                   .accepts(contentType)
-                                   .exportType(exportType)
-                                   .build();
-
-        var export = attempt(() -> apiGatewayClient.getExport(getExportRequest).get())
-                         .orElseThrow();
-
-        return export.body().asString(StandardCharsets.UTF_8);
-    }
-
-    private List<String> fetchStages(String apiId) {
-        var request = GetStagesRequest.builder().restApiId(apiId).build();
-        var stages = attempt(() -> apiGatewayClient.getStages(request).get()).orElseThrow();
-
-        return stages.item().stream().map(Stage::stageName).collect(Collectors.toList());
-    }
-
     private void publishDocumentation(ApiData apiData) {
         var name = apiData.getOpenApi().getInfo().getTitle();
         var id = apiData.getAwsRestApi().id();
         logger.info("publishing {}", name);
 
-        var listRequest = GetDocumentationVersionsRequest.builder().restApiId(id).build();
-
-        var existingVersions
-            = attempt(() -> apiGatewayClient.getDocumentationVersions(listRequest).get()).orElseThrow();
-
+        var existingVersions = apiGatewayHighLevelClient.fetchVersions(id);
 
         if (existingVersions.items().stream().anyMatch(item -> VERSION_NAME.equals(item.version()))) {
             logger.info("{} has existing documentation - updating", name);
-            var updateRequest = UpdateDocumentationVersionRequest.builder()
-                                    .restApiId(id)
-                                    .documentationVersion(VERSION_NAME)
-                                    .patchOperations(
-                                        PatchOperation.builder().op("replace").path("/description").build()
-                                    ).build();
-
-            attempt(() -> apiGatewayClient.updateDocumentationVersion(updateRequest).get()).orElseThrow();
+            apiGatewayHighLevelClient.updateDocumentation(id, VERSION_NAME);
         } else {
             logger.info("{} has no existing documentation - creating", name);
-            var createRequest = CreateDocumentationVersionRequest.builder()
-                                    .restApiId(id)
-                                    .stageName(EXPORT_STAGE_PROD)
-                                    .documentationVersion(VERSION_NAME)
-                                    .build();
-            attempt(() -> apiGatewayClient.createDocumentationVersion(createRequest).get()).orElseThrow();
+            apiGatewayHighLevelClient.createDocumentation(id, VERSION_NAME, EXPORT_STAGE_PROD);
         }
     }
 
@@ -141,7 +96,7 @@ public class GenerateDocsHandler implements RequestStreamHandler {
 
     @Override
     public void handleRequest(InputStream input, OutputStream output, Context context) {
-        var apis = attempt(() -> apiGatewayClient.getRestApis().get()).orElseThrow();
+        var apis = apiGatewayHighLevelClient.getRestApis();
         logger.info(apis.toString());
 
         var template = openApiParser
@@ -184,10 +139,15 @@ public class GenerateDocsHandler implements RequestStreamHandler {
     }
 
     private ApiData fetchApiData(RestApi api) {
-        var stages = fetchStages(api.id());
+        var stages = apiGatewayHighLevelClient.fetchStages(api.id());
         var hasProdStage = stages.stream().anyMatch(stage -> EXPORT_STAGE_PROD.equals(stage));
         if (hasProdStage) {
-            var yaml = fetchApiExport(api.id(), EXPORT_STAGE_PROD, APPLICATION_YAML, EXPORT_TYPE_OA_3);
+            var yaml = apiGatewayHighLevelClient.fetchApiExport(
+                api.id(),
+                EXPORT_STAGE_PROD,
+                APPLICATION_YAML,
+                EXPORT_TYPE_OA_3
+            );
             var parseResult = openApiParser.readContents(yaml);
             return new ApiData(api, parseResult.getOpenAPI(), yaml);
         } else {

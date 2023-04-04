@@ -18,10 +18,10 @@ import static org.mockito.Mockito.when;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.parser.OpenAPIV3Parser;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
+import no.sikt.generator.ApiGatewayHighLevelClient;
 import no.sikt.generator.ApplicationConstants;
 import no.sikt.generator.OpenApiUtils;
 import no.unit.nva.s3.S3Driver;
@@ -30,37 +30,31 @@ import nva.commons.core.paths.UnixPath;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
 import org.apache.commons.lang3.StringUtils;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.apigateway.model.CreateDocumentationVersionRequest;
-import software.amazon.awssdk.services.apigateway.model.CreateDocumentationVersionResponse;
-import software.amazon.awssdk.services.apigateway.model.DeleteDocumentationVersionRequest;
-import software.amazon.awssdk.services.apigateway.model.DeleteDocumentationVersionResponse;
 import software.amazon.awssdk.services.apigateway.model.DocumentationVersion;
 import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionsRequest;
 import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionsResponse;
-import software.amazon.awssdk.services.apigateway.model.GetStagesRequest;
 import software.amazon.awssdk.services.apigateway.model.UpdateDocumentationVersionRequest;
-import software.amazon.awssdk.services.apigateway.model.UpdateDocumentationVersionResponse;
 
 class GenerateDocsHandlerTest {
 
     private final ApiGatewayAsyncClient apiGatewayAsyncClient = Mockito.mock(ApiGatewayAsyncClient.class);
+    private ApiGatewayHighLevelClient apiGatewayHighLevelClient;
     private GenerateDocsHandler handler;
     private S3Driver s3Driver;
     private OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
 
     @BeforeEach
     public void setup() {
-
         var fakeS3Client = new FakeS3Client();
         this.s3Driver = new S3Driver(fakeS3Client, ApplicationConstants.OUTPUT_BUCKET_NAME);
-
-        handler = new GenerateDocsHandler(apiGatewayAsyncClient, fakeS3Client);
+        this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(apiGatewayAsyncClient);
+        handler = new GenerateDocsHandler(apiGatewayHighLevelClient, fakeS3Client);
     }
 
     private void setupTestCasesFromFiles(String folder, List<String> filenames) {
@@ -94,7 +88,7 @@ class GenerateDocsHandlerTest {
     }
 
     @Test
-    public void shouldHaveConstrcutorWithNoArgument() {
+    public void shouldHaveConstructorWithNoArgument() {
         Executable action = () -> new GenerateDocsHandler();
     }
 
