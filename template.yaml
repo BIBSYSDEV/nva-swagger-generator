@@ -20,6 +20,7 @@ Globals:
         OUTPUT_BUCKET_NAME: !Ref SwaggerUiBucket
         DOMAIN: !Ref CustomDomain
         EXCLUDED_APIS: "NVA Courses API,DLR LaunchCanvas API"
+        CLOUD_FRONT_DISTRIBUTION: !Ref CustomDomainCloudfrontDistribution
 
 Resources:
   SwaggerGeneratorRole:
@@ -69,6 +70,15 @@ Resources:
                 Resource:
                   - !Sub 'arn:aws:s3:::${SwaggerUiBucket}'
                   - !Sub 'arn:aws:s3:::${SwaggerUiBucket}/*'
+        - PolicyName: invalidateCloudFront
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - cloudfront:CreateInvalidation
+                Resource:
+                  - '*'
 
   SwaggerUiBucket:
     Type: AWS::S3::Bucket
@@ -151,7 +161,7 @@ Resources:
       Handler: no.sikt.generator.handlers.GenerateDocsHandler::handleRequest
       Runtime: java11
       Role: !GetAtt SwaggerGeneratorRole.Arn
-      Timeout: 300
+      Timeout: 600
       Events:
         GenerateDocsScheduleEvent:
           Type: Schedule

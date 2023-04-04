@@ -1,8 +1,10 @@
 package no.sikt.generator.handlers;
 
 import static java.util.Locale.ENGLISH;
+import static no.sikt.generator.ApplicationConstants.ENVIRONMENT;
 import static no.sikt.generator.ApplicationConstants.OUTPUT_BUCKET_NAME;
 import static nva.commons.core.attempt.Try.attempt;
+import static software.amazon.awssdk.regions.Region.AWS_GLOBAL;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 import io.swagger.v3.core.util.Yaml;
@@ -17,6 +19,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import no.sikt.generator.ApiData;
 import no.sikt.generator.ApiGatewayHighLevelClient;
+import no.sikt.generator.CloudFrontHighLevelClient;
 import no.sikt.generator.OpenApiCombiner;
 import no.sikt.generator.OpenApiValidator;
 import no.sikt.generator.Utils;
@@ -28,8 +31,10 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.apigateway.model.RestApi;
+import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
 import software.amazon.awssdk.services.s3.S3Client;
 
 public class GenerateDocsHandler implements RequestStreamHandler {
@@ -40,9 +45,11 @@ public class GenerateDocsHandler implements RequestStreamHandler {
     public static final String APPLICATION_YAML = "application/yaml";
     public static final String VERSION_NAME = "swagger-generator";
     private final ApiGatewayHighLevelClient apiGatewayHighLevelClient;
+    private final CloudFrontHighLevelClient cloudFrontHighLevelClient;
     private final S3Client s3Client;
     private final OpenApiValidator openApiValidator = new OpenApiValidator();
     private final OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
+    private static final String CLOUD_FRONT_DISTRIBUTION = ENVIRONMENT.readEnv("CLOUD_FRONT_DISTRIBUTION");
 
     @JacocoGenerated
     public GenerateDocsHandler() {
@@ -58,13 +65,21 @@ public class GenerateDocsHandler implements RequestStreamHandler {
 
         var apiGatewayClient =
             ApiGatewayAsyncClient.builder().overrideConfiguration(clientOverrideConfiguration).build();
+        var cloudFrontClient = CloudFrontClient.builder()
+                                   .httpClient(UrlConnectionHttpClient.builder().build())
+                                   .region(AWS_GLOBAL)
+                                   .build();
 
         this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(apiGatewayClient);
+        this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(cloudFrontClient);
         this.s3Client = S3Driver.defaultS3Client().build();
     }
 
-    public GenerateDocsHandler(ApiGatewayHighLevelClient apiGatewayHighLevelClient, S3Client s3Client) {
+    public GenerateDocsHandler(ApiGatewayHighLevelClient apiGatewayHighLevelClient,
+                               CloudFrontHighLevelClient cloudFrontHighLevelClient,
+                               S3Client s3Client) {
         this.apiGatewayHighLevelClient = apiGatewayHighLevelClient;
+        this.cloudFrontHighLevelClient = cloudFrontHighLevelClient;
         this.s3Client = s3Client;
     }
 
@@ -73,20 +88,27 @@ public class GenerateDocsHandler implements RequestStreamHandler {
         attempt(() -> s3Driver.insertFile(UnixPath.of(filename), content)).orElseThrow();
     }
 
-
     private void publishDocumentation(ApiData apiData) {
         var name = apiData.getOpenApi().getInfo().getTitle();
-        var id = apiData.getAwsRestApi().id();
+        var apiId = apiData.getAwsRestApi().id();
         logger.info("publishing {}", name);
 
-        var existingVersions = apiGatewayHighLevelClient.fetchVersions(id);
+        var existingVersions = apiGatewayHighLevelClient.fetchVersions(apiId);
+        var partsHash = apiGatewayHighLevelClient.fetchDocumentationPartsHash(apiId);
+        var wantedDocVersion = VERSION_NAME + "-" + partsHash;
+        var docVersionExists
+            = existingVersions.items().stream().anyMatch(item -> wantedDocVersion.equals(item.version()));
+        logger.info("{} has parts-hash {}", name, partsHash);
 
-        if (existingVersions.items().stream().anyMatch(item -> VERSION_NAME.equals(item.version()))) {
-            logger.info("{} has existing documentation - updating", name);
-            apiGatewayHighLevelClient.updateDocumentation(id, VERSION_NAME);
+        if (docVersionExists && !apiData.getCurrentDocVersion().equals(wantedDocVersion)) {
+            logger.info("{} has existing documentation but its currently associated with {} - patching",
+                        name,
+                        apiData.getCurrentDocVersion()
+            );
+            apiGatewayHighLevelClient.setStageDocVersion(apiId, EXPORT_STAGE_PROD, wantedDocVersion);
         } else {
             logger.info("{} has no existing documentation - creating", name);
-            apiGatewayHighLevelClient.createDocumentation(id, VERSION_NAME, EXPORT_STAGE_PROD);
+            apiGatewayHighLevelClient.createDocumentation(apiId, wantedDocVersion, EXPORT_STAGE_PROD);
         }
     }
 
@@ -100,7 +122,7 @@ public class GenerateDocsHandler implements RequestStreamHandler {
         logger.info(apis.toString());
 
         var template = openApiParser
-                           .readContents(Utils.readResource("template.yaml"))
+                           .readContents(Utils.readResource("openapi.yaml"))
                            .getOpenAPI();
 
         var swaggers = apis.items().stream()
@@ -122,6 +144,7 @@ public class GenerateDocsHandler implements RequestStreamHandler {
 
         String combinedYaml = attempt(() -> Yaml.pretty().writeValueAsString(combined)).orElseThrow();
         writeToS3("docs/combined.yaml", combinedYaml);
+        cloudFrontHighLevelClient.invalidateAll(CLOUD_FRONT_DISTRIBUTION);
     }
 
     public static <T> Predicate<T> distinctByKey(Function<? super T,Object> keyExtractor) {
@@ -140,8 +163,10 @@ public class GenerateDocsHandler implements RequestStreamHandler {
 
     private ApiData fetchApiData(RestApi api) {
         var stages = apiGatewayHighLevelClient.fetchStages(api.id());
-        var hasProdStage = stages.stream().anyMatch(stage -> EXPORT_STAGE_PROD.equals(stage));
-        if (hasProdStage) {
+        var productionStage =
+            stages.stream().filter(s -> EXPORT_STAGE_PROD.equals(s.stageName())).findFirst().orElse(null);
+
+        if (productionStage != null) {
             var yaml = apiGatewayHighLevelClient.fetchApiExport(
                 api.id(),
                 EXPORT_STAGE_PROD,
@@ -149,7 +174,7 @@ public class GenerateDocsHandler implements RequestStreamHandler {
                 EXPORT_TYPE_OA_3
             );
             var parseResult = openApiParser.readContents(yaml);
-            return new ApiData(api, parseResult.getOpenAPI(), yaml);
+            return new ApiData(api, parseResult.getOpenAPI(), yaml, productionStage);
         } else {
             logger.warn("API {} ({}) does not have stage {}. Stages found: {}", api.name(), api.id(),
                         EXPORT_STAGE_PROD, stages);

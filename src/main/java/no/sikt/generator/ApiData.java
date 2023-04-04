@@ -5,17 +5,20 @@ import static no.sikt.generator.ApplicationConstants.EXCLUDED_APIS;
 import io.swagger.v3.oas.models.OpenAPI;
 import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.services.apigateway.model.RestApi;
+import software.amazon.awssdk.services.apigateway.model.Stage;
 
 public class ApiData implements Comparable<ApiData> {
 
     private final RestApi awsRestApi;
     private final OpenAPI openApi;
     private final String rawYaml;
+    private final Stage stage;
 
-    public ApiData(RestApi awsRestApi, OpenAPI openApi, String rawYaml) {
+    public ApiData(RestApi awsRestApi, OpenAPI openApi, String rawYaml, Stage stage) {
         this.awsRestApi = awsRestApi;
         this.openApi = openApi;
         this.rawYaml = rawYaml;
+        this.stage = stage;
     }
 
     public RestApi getAwsRestApi() {
@@ -32,6 +35,10 @@ public class ApiData implements Comparable<ApiData> {
 
     public String getRawYaml() {
         return rawYaml;
+    }
+
+    public String getCurrentDocVersion() {
+        return stage.documentationVersion();
     }
 
     public boolean hasCorrectDomain() {
