@@ -19,6 +19,7 @@ import software.amazon.awssdk.services.apigateway.model.UpdateStageRequest;
 public class ApiGatewayHighLevelClient {
 
     public static final String DOCUMENTATION_VERSION_PATH = "/documentationVersion";
+    public static final int LIMIT = 500;
     private final ApiGatewayAsyncClient apiGatewayClient;
 
     public ApiGatewayHighLevelClient(ApiGatewayAsyncClient apiGatewayClient) {
@@ -57,7 +58,7 @@ public class ApiGatewayHighLevelClient {
     }
 
     public GetDocumentationVersionsResponse fetchVersions(String id) {
-        var listRequest = GetDocumentationVersionsRequest.builder().restApiId(id).limit(500).build();
+        var listRequest = GetDocumentationVersionsRequest.builder().restApiId(id).limit(LIMIT).build();
 
         var existingVersions
             = attempt(() -> apiGatewayClient.getDocumentationVersions(listRequest).get()).orElseThrow();
@@ -66,7 +67,7 @@ public class ApiGatewayHighLevelClient {
 
     public int fetchDocumentationPartsHash(String apiId) {
 
-        var getDocumentationVersionRequest = GetDocumentationPartsRequest.builder().restApiId(apiId).limit(500).build();
+        var getDocumentationVersionRequest = GetDocumentationPartsRequest.builder().restApiId(apiId).limit(LIMIT).build();
         var documentParts =
             attempt(() -> apiGatewayClient.getDocumentationParts(getDocumentationVersionRequest).get()).orElseThrow();
 
