@@ -1,8 +1,10 @@
 package no.sikt.generator.handlers;
 
 import static java.util.Locale.ENGLISH;
+import static no.sikt.generator.ApplicationConstants.ENVIRONMENT;
 import static no.sikt.generator.ApplicationConstants.OUTPUT_BUCKET_NAME;
 import static nva.commons.core.attempt.Try.attempt;
+import static software.amazon.awssdk.regions.Region.AWS_GLOBAL;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 import io.swagger.v3.core.util.Yaml;
@@ -17,6 +19,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import no.sikt.generator.ApiData;
 import no.sikt.generator.ApiGatewayHighLevelClient;
+import no.sikt.generator.CloudFrontHighLevelClient;
 import no.sikt.generator.OpenApiCombiner;
 import no.sikt.generator.OpenApiValidator;
 import no.sikt.generator.Utils;
@@ -28,8 +31,10 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.apigateway.model.RestApi;
+import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
 import software.amazon.awssdk.services.s3.S3Client;
 
 public class GenerateDocsHandler implements RequestStreamHandler {
@@ -40,9 +45,11 @@ public class GenerateDocsHandler implements RequestStreamHandler {
     public static final String APPLICATION_YAML = "application/yaml";
     public static final String VERSION_NAME = "swagger-generator";
     private final ApiGatewayHighLevelClient apiGatewayHighLevelClient;
+    private final CloudFrontHighLevelClient cloudFrontHighLevelClient;
     private final S3Client s3Client;
     private final OpenApiValidator openApiValidator = new OpenApiValidator();
     private final OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
+    private static final String CLOUD_FRONT_DISTRIBUTION = ENVIRONMENT.readEnv("CLOUD_FRONT_DISTRIBUTION");
 
     @JacocoGenerated
     public GenerateDocsHandler() {
@@ -58,13 +65,21 @@ public class GenerateDocsHandler implements RequestStreamHandler {
 
         var apiGatewayClient =
             ApiGatewayAsyncClient.builder().overrideConfiguration(clientOverrideConfiguration).build();
+        var cloudFrontClient = CloudFrontClient.builder()
+                                   .httpClient(UrlConnectionHttpClient.builder().build())
+                                   .region(AWS_GLOBAL)
+                                   .build();
 
         this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(apiGatewayClient);
+        this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(cloudFrontClient);
         this.s3Client = S3Driver.defaultS3Client().build();
     }
 
-    public GenerateDocsHandler(ApiGatewayHighLevelClient apiGatewayHighLevelClient, S3Client s3Client) {
+    public GenerateDocsHandler(ApiGatewayHighLevelClient apiGatewayHighLevelClient,
+                               CloudFrontHighLevelClient cloudFrontHighLevelClient,
+                               S3Client s3Client) {
         this.apiGatewayHighLevelClient = apiGatewayHighLevelClient;
+        this.cloudFrontHighLevelClient = cloudFrontHighLevelClient;
         this.s3Client = s3Client;
     }
 
@@ -131,6 +146,7 @@ public class GenerateDocsHandler implements RequestStreamHandler {
 
         String combinedYaml = attempt(() -> Yaml.pretty().writeValueAsString(combined)).orElseThrow();
         writeToS3("docs/combined.yaml", combinedYaml);
+        cloudFrontHighLevelClient.invalidateAll(CLOUD_FRONT_DISTRIBUTION);
     }
 
     public static <T> Predicate<T> distinctByKey(Function<? super T,Object> keyExtractor) {

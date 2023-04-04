@@ -32,6 +32,9 @@ import software.amazon.awssdk.services.apigateway.model.UpdateDocumentationVersi
 import software.amazon.awssdk.services.apigateway.model.UpdateDocumentationVersionResponse;
 import software.amazon.awssdk.services.apigateway.model.UpdateStageRequest;
 import software.amazon.awssdk.services.apigateway.model.UpdateStageResponse;
+import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
+import software.amazon.awssdk.services.cloudfront.model.CreateInvalidationRequest;
+import software.amazon.awssdk.services.cloudfront.model.CreateInvalidationResponse;
 
 public class TestUtils {
 
@@ -52,7 +55,9 @@ public class TestUtils {
         return RestApi.builder().name(testCase.getName()).id(id).createdDate(created).build();
     }
 
-    public static void setupTestcasesFromFiles(ApiGatewayAsyncClient apiGatewayAsyncClient, String folder,
+    public static void setupTestcasesFromFiles(ApiGatewayAsyncClient apiGatewayAsyncClient,
+                                               CloudFrontClient cloudFrontClient,
+                                               String folder,
                                                List<String> fileNames) {
         var filePrefix = "openapi_docs/" + ((folder == null) ? "" : folder + "/");
         var testCases = fileNames.stream().map(f -> filePrefix + f).map(TestUtils::loadTestCase);
@@ -108,5 +113,9 @@ public class TestUtils {
                                     .build();
                 return CompletableFuture.completedFuture(response);
             });
+
+        var createInvalidationResponse = CreateInvalidationResponse.builder().build();
+        when(cloudFrontClient.createInvalidation(any(CreateInvalidationRequest.class)))
+            .thenReturn(createInvalidationResponse);
     }
 }

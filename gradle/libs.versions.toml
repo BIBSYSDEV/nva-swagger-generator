@@ -32,7 +32,7 @@ aws-sdk2-s3                     = { group = 'software.amazon.awssdk',   name = '
 aws-sdk2-urlconnectionclient    = { group = 'software.amazon.awssdk',   name = 'url-connection-client',     version.ref = 'awsSdk2' }
 aws-sdk2-cognitoidentityprovider= { group = 'software.amazon.awssdk',   name = 'cognitoidentityprovider',   version.ref = 'awsSdk2' }
 aws-sdk2-apigateway               = { group = 'software.amazon.awssdk',   name = 'apigateway',                  version.ref = 'awsSdk2' }
-
+aws-sdk2-cloudfront               = { group = 'software.amazon.awssdk',   name = 'cloudfront',                  version.ref = 'awsSdk2' }
 
 aws-lambda-events               = { group = 'com.amazonaws',            name = 'aws-lambda-java-events',    version.ref = 'awsLambdaEvents' }
 aws-lambda-java-core            = { group = 'com.amazonaws',            name = 'aws-lambda-java-core',      version.ref = 'awsLambdaCore' }

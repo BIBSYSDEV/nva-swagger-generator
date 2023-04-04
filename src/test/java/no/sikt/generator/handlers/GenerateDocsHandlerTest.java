@@ -24,6 +24,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 import no.sikt.generator.ApiGatewayHighLevelClient;
 import no.sikt.generator.ApplicationConstants;
+import no.sikt.generator.CloudFrontHighLevelClient;
 import no.sikt.generator.OpenApiUtils;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeS3Client;
@@ -44,11 +45,15 @@ import software.amazon.awssdk.services.apigateway.model.GetStagesRequest;
 import software.amazon.awssdk.services.apigateway.model.GetStagesResponse;
 import software.amazon.awssdk.services.apigateway.model.Stage;
 import software.amazon.awssdk.services.apigateway.model.UpdateStageRequest;
+import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
+import software.amazon.awssdk.services.cloudfront.model.CreateInvalidationRequest;
 
 class GenerateDocsHandlerTest {
 
     private final ApiGatewayAsyncClient apiGatewayAsyncClient = Mockito.mock(ApiGatewayAsyncClient.class);
+    private final CloudFrontClient cloudFrontClient = Mockito.mock(CloudFrontClient.class);
     private ApiGatewayHighLevelClient apiGatewayHighLevelClient;
+    private CloudFrontHighLevelClient cloudFrontHighLevelClient;
     private GenerateDocsHandler handler;
     private S3Driver s3Driver;
     private OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
@@ -58,11 +63,12 @@ class GenerateDocsHandlerTest {
         var fakeS3Client = new FakeS3Client();
         this.s3Driver = new S3Driver(fakeS3Client, ApplicationConstants.OUTPUT_BUCKET_NAME);
         this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(apiGatewayAsyncClient);
-        handler = new GenerateDocsHandler(apiGatewayHighLevelClient, fakeS3Client);
+        this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(cloudFrontClient);
+        handler = new GenerateDocsHandler(apiGatewayHighLevelClient, cloudFrontHighLevelClient, fakeS3Client);
     }
 
     private void setupTestCasesFromFiles(String folder, List<String> filenames) {
-        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, folder, filenames);
+        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, cloudFrontClient, folder, filenames);
     }
 
     private void setupSingleFile() {
@@ -130,7 +136,7 @@ class GenerateDocsHandlerTest {
         var fileNames = List.of(
             "api-with-options.yaml"
         );
-        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, null, fileNames);
+        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, cloudFrontClient, null, fileNames);
 
         handler.handleRequest(null, null, null);
 
@@ -279,7 +285,15 @@ class GenerateDocsHandlerTest {
 
         var s3FileContent = s3Driver.getFile(UnixPath.of("docs/nva-publication-api.yaml"));
         assertThat(s3FileContent, notNullValue());
+    }
 
+    @Test
+    public void shouldCallCloudFrontInvalidation() {
+        setupSingleFile();
+
+        handler.handleRequest(null, null, null);
+
+        verify(cloudFrontClient).createInvalidation(any(CreateInvalidationRequest.class));
     }
 
     private OpenAPI readGeneratedOpenApi() {
