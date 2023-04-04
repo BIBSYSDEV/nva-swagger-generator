@@ -67,7 +67,10 @@ public class ApiGatewayHighLevelClient {
 
     public int fetchDocumentationPartsHash(String apiId) {
 
-        var getDocumentationVersionRequest = GetDocumentationPartsRequest.builder().restApiId(apiId).limit(LIMIT).build();
+        var getDocumentationVersionRequest = GetDocumentationPartsRequest.builder()
+                                                 .restApiId(apiId)
+                                                 .limit(LIMIT)
+                                                 .build();
         var documentParts =
             attempt(() -> apiGatewayClient.getDocumentationParts(getDocumentationVersionRequest).get()).orElseThrow();
 

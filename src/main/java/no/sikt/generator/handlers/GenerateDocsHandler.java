@@ -100,7 +100,9 @@ public class GenerateDocsHandler implements RequestStreamHandler {
             = existingVersions.items().stream().anyMatch(item -> wantedDocVersion.equals(item.version()));
         logger.info("{} has parts-hash {}", name, partsHash);
 
-        if (docVersionExists && !apiData.getCurrentDocVersion().equals(wantedDocVersion)) {
+        if (docVersionExists && apiData.getCurrentDocVersion().equals(wantedDocVersion)) {
+            logger.info("{} has existing documentation and its set - ignoring", name);
+        } else if (docVersionExists) {
             logger.info("{} has existing documentation but its currently associated with {} - patching",
                         name,
                         apiData.getCurrentDocVersion()
