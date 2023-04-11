@@ -19,7 +19,7 @@ Globals:
       Variables:
         DOMAIN: !Ref CustomDomain
         EXCLUDED_APIS: "NVA Courses API,DLR LaunchCanvas API"
-        EXTERNAL_CLOUD_FRONT_DISTRIBUTION: !Ref ExternalCloudfrontDistribution
+        EXTERNAL_CLOUD_FRONT_DISTRIBUTION: !Ref CustomDomainCloudfrontDistribution
         INTERNAL_CLOUD_FRONT_DISTRIBUTION: !Ref InternalCloudfrontDistribution
         EXTERNAL_BUCKET_NAME: !Ref ExternalSwaggerUiBucket
         INTERNAL_BUCKET_NAME: !Ref InternalSwaggerUiBucket
@@ -221,7 +221,7 @@ Resources:
       CloudFrontOriginAccessIdentityConfig:
         Comment: !Ref AWS::StackName
 
-  ExternalCloudfrontDistribution:
+  CustomDomainCloudfrontDistribution:
     Type: AWS::CloudFront::Distribution
     DependsOn: ExternalSwaggerUiBucket
     Properties:
