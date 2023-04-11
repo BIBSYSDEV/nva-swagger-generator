@@ -1,5 +1,7 @@
 package no.sikt.generator.handlers;
 
+import static no.sikt.generator.ApplicationConstants.EXTERNAL_BUCKET_NAME;
+import static no.sikt.generator.ApplicationConstants.INTERNAL_BUCKET_NAME;
 import static no.sikt.generator.Utils.readResource;
 import static no.sikt.generator.handlers.GenerateDocsHandler.VERSION_NAME;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -14,6 +16,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -23,7 +26,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 import no.sikt.generator.ApiGatewayHighLevelClient;
-import no.sikt.generator.ApplicationConstants;
 import no.sikt.generator.CloudFrontHighLevelClient;
 import no.sikt.generator.OpenApiUtils;
 import no.unit.nva.s3.S3Driver;
@@ -55,13 +57,15 @@ class GenerateDocsHandlerTest {
     private ApiGatewayHighLevelClient apiGatewayHighLevelClient;
     private CloudFrontHighLevelClient cloudFrontHighLevelClient;
     private GenerateDocsHandler handler;
-    private S3Driver s3Driver;
+    private S3Driver s3DriverExternal;
+    private S3Driver s3DriverInternal;
     private OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
 
     @BeforeEach
     public void setup() {
         var fakeS3Client = new FakeS3Client();
-        this.s3Driver = new S3Driver(fakeS3Client, ApplicationConstants.OUTPUT_BUCKET_NAME);
+        this.s3DriverExternal = new S3Driver(fakeS3Client, EXTERNAL_BUCKET_NAME);
+        this.s3DriverInternal = new S3Driver(fakeS3Client, INTERNAL_BUCKET_NAME);
         this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(apiGatewayAsyncClient);
         this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(cloudFrontClient);
         handler = new GenerateDocsHandler(apiGatewayHighLevelClient, cloudFrontHighLevelClient, fakeS3Client);
@@ -123,11 +127,11 @@ class GenerateDocsHandlerTest {
         setupSimpleMocks();
         handler.handleRequest(null, null, null);
 
-        var singleFile = s3Driver.getFile(UnixPath.of("docs/api-a.yaml"));
+        var singleFile = s3DriverInternal.getFile(UnixPath.of("docs/api-a.yaml"));
         assertThat(singleFile, notNullValue());
         assertThat(singleFile, is(equalTo(readResource("openapi_docs/api-a.yaml"))));
 
-        var combinedFile = s3Driver.getFile(UnixPath.of("docs/combined.yaml"));
+        var combinedFile = s3DriverInternal.getFile(UnixPath.of("docs/openapi.yaml"));
         assertThat(combinedFile, notNullValue());
     }
 
@@ -140,7 +144,7 @@ class GenerateDocsHandlerTest {
 
         handler.handleRequest(null, null, null);
 
-        var yaml = s3Driver.getFile(UnixPath.of("docs/combined.yaml"));
+        var yaml = s3DriverInternal.getFile(UnixPath.of("docs/openapi.yaml"));
 
         var openApi = openApiParser
                           .readContents(yaml)
@@ -216,7 +220,7 @@ class GenerateDocsHandlerTest {
         setupSimpleMocks();
         handler.handleRequest(null, null, null);
 
-        var yaml = s3Driver.getFile(UnixPath.of("docs/combined.yaml"));
+        var yaml = s3DriverInternal.getFile(UnixPath.of("docs/openapi.yaml"));
 
         var openApi = openApiParser
                            .readContents(yaml)
@@ -240,7 +244,7 @@ class GenerateDocsHandlerTest {
         setupNvaMocks();
         handler.handleRequest(null, null, null);
 
-        var yaml = s3Driver.getFile(UnixPath.of("docs/combined.yaml"));
+        var yaml = s3DriverInternal.getFile(UnixPath.of("docs/openapi.yaml"));
         assertThat(yaml, notNullValue());
 
         var openApi = openApiParser
@@ -283,21 +287,21 @@ class GenerateDocsHandlerTest {
 
         handler.handleRequest(null, null, null);
 
-        var s3FileContent = s3Driver.getFile(UnixPath.of("docs/nva-publication-api.yaml"));
+        var s3FileContent = s3DriverInternal.getFile(UnixPath.of("docs/nva-publication-api.yaml"));
         assertThat(s3FileContent, notNullValue());
     }
 
     @Test
-    public void shouldCallCloudFrontInvalidation() {
+    public void shouldCallCloudFrontInvalidationTwice() {
         setupSingleFile();
 
         handler.handleRequest(null, null, null);
 
-        verify(cloudFrontClient).createInvalidation(any(CreateInvalidationRequest.class));
+        verify(cloudFrontClient, times(2)).createInvalidation(any(CreateInvalidationRequest.class));
     }
 
     private OpenAPI readGeneratedOpenApi() {
-        var yaml = s3Driver.getFile(UnixPath.of("docs/combined.yaml"));
+        var yaml = s3DriverInternal.getFile(UnixPath.of("docs/openapi.yaml"));
         assertThat(yaml, notNullValue());
 
         return openApiParser

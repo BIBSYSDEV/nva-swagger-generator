@@ -92,10 +92,12 @@ checkstyle {
 }
 
 test {
-    environment "OUTPUT_BUCKET_NAME", "notimportant"
+    environment "INTERNAL_BUCKET_NAME", "notimportant1"
+    environment "EXTERNAL_BUCKET_NAME", "notimportant2"
     environment "DOMAIN", "sandbox.nva.aws.unit.no"
     environment "EXCLUDED_APIS", "Api Exclude,Api Exclude"
-    environment "CLOUD_FRONT_DISTRIBUTION", "some_id"
+    environment "INTERNAL_CLOUD_FRONT_DISTRIBUTION", "some_id1"
+    environment "EXTERNAL_CLOUD_FRONT_DISTRIBUTION", "some_id2"
 
     useJUnitPlatform {}
     failFast = false

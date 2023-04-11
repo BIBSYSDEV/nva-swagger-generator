@@ -1,8 +1,10 @@
 package no.sikt.generator.handlers;
 
 import static java.util.Locale.ENGLISH;
-import static no.sikt.generator.ApplicationConstants.ENVIRONMENT;
-import static no.sikt.generator.ApplicationConstants.OUTPUT_BUCKET_NAME;
+import static no.sikt.generator.ApplicationConstants.EXTERNAL_BUCKET_NAME;
+import static no.sikt.generator.ApplicationConstants.EXTERNAL_CLOUD_FRONT_DISTRIBUTION;
+import static no.sikt.generator.ApplicationConstants.INTERNAL_BUCKET_NAME;
+import static no.sikt.generator.ApplicationConstants.INTERNAL_CLOUD_FRONT_DISTRIBUTION;
 import static nva.commons.core.attempt.Try.attempt;
 import static software.amazon.awssdk.regions.Region.AWS_GLOBAL;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -17,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import no.sikt.generator.ApiData;
 import no.sikt.generator.ApiGatewayHighLevelClient;
 import no.sikt.generator.CloudFrontHighLevelClient;
@@ -33,6 +36,7 @@ import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
+import software.amazon.awssdk.services.apigateway.model.GetRestApisResponse;
 import software.amazon.awssdk.services.apigateway.model.RestApi;
 import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -49,7 +53,6 @@ public class GenerateDocsHandler implements RequestStreamHandler {
     private final S3Client s3Client;
     private final OpenApiValidator openApiValidator = new OpenApiValidator();
     private final OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
-    private static final String CLOUD_FRONT_DISTRIBUTION = ENVIRONMENT.readEnv("CLOUD_FRONT_DISTRIBUTION");
 
     @JacocoGenerated
     public GenerateDocsHandler() {
@@ -83,8 +86,46 @@ public class GenerateDocsHandler implements RequestStreamHandler {
         this.s3Client = s3Client;
     }
 
-    private void writeToS3(String filename, String content) {
-        var s3Driver = new S3Driver(s3Client, OUTPUT_BUCKET_NAME);
+    @Override
+    public void handleRequest(InputStream input, OutputStream output, Context context) {
+        var apis = apiGatewayHighLevelClient.getRestApis();
+        logger.info(apis.toString());
+
+        var template = openApiParser
+                           .readContents(Utils.readResource("openapi.yaml"))
+                           .getOpenAPI();
+
+        var swaggers = validateAndPublishDocumentations(apis)
+            .map(this::fetchApiData)
+            .peek(this::writeApiDocsToExternalS3)
+            .peek(this::writeApiDocsToInternalS3)
+            .sorted()
+            .map(ApiData::getOpenApi)
+            .collect(Collectors.toList());
+
+        var combined = new OpenApiCombiner(template, swaggers).combine();
+
+        String combinedYaml = attempt(() -> Yaml.pretty().writeValueAsString(combined)).orElseThrow();
+        writeToS3(EXTERNAL_BUCKET_NAME, "docs/openapi.yaml", combinedYaml);
+        writeToS3(INTERNAL_BUCKET_NAME, "docs/openapi.yaml", combinedYaml);
+        cloudFrontHighLevelClient.invalidateAll(EXTERNAL_CLOUD_FRONT_DISTRIBUTION);
+        cloudFrontHighLevelClient.invalidateAll(INTERNAL_CLOUD_FRONT_DISTRIBUTION);
+    }
+
+    private Stream<RestApi> validateAndPublishDocumentations(GetRestApisResponse apis) {
+        return apis.items().stream()
+                                          .map(this::fetchApiData)
+                                          .filter(Objects::nonNull)
+                                          .peek(apiData -> openApiValidator.validateOpenApi(apiData.getOpenApi()))
+                                          .sorted(this::sortApisByDate)
+                                          .filter(this::apiShouldBeIncluded)
+                                          .filter(distinctByKey(ApiData::getName))
+                                          .peek(this::publishDocumentation)
+                                          .map(ApiData::getAwsRestApi);
+    }
+
+    private void writeToS3(String bucket, String filename, String content) {
+        var s3Driver = new S3Driver(s3Client, bucket);
         attempt(() -> s3Driver.insertFile(UnixPath.of(filename), content)).orElseThrow();
     }
 
@@ -118,37 +159,6 @@ public class GenerateDocsHandler implements RequestStreamHandler {
         return string.replaceAll("\\s+", "-").toLowerCase(ENGLISH);
     }
 
-    @Override
-    public void handleRequest(InputStream input, OutputStream output, Context context) {
-        var apis = apiGatewayHighLevelClient.getRestApis();
-        logger.info(apis.toString());
-
-        var template = openApiParser
-                           .readContents(Utils.readResource("openapi.yaml"))
-                           .getOpenAPI();
-
-        var swaggers = apis.items().stream()
-                           .map(this::fetchApiData)
-                           .filter(Objects::nonNull)
-                           .peek(apiData -> openApiValidator.validateOpenApi(apiData.getOpenApi()))
-                           .sorted(this::sortApisByDate)
-                           .filter(this::apiShouldBeIncluded)
-                           .filter(distinctByKey(ApiData::getName))
-                           .peek(this::publishDocumentation)
-                           .map(ApiData::getAwsRestApi)
-                           .map(this::fetchApiData)
-                           .peek(this::writeApiDataToS3)
-                           .sorted()
-                           .map(ApiData::getOpenApi)
-                           .collect(Collectors.toList());
-
-        var combined = new OpenApiCombiner(template, swaggers).combine();
-
-        String combinedYaml = attempt(() -> Yaml.pretty().writeValueAsString(combined)).orElseThrow();
-        writeToS3("docs/combined.yaml", combinedYaml);
-        cloudFrontHighLevelClient.invalidateAll(CLOUD_FRONT_DISTRIBUTION);
-    }
-
     public static <T> Predicate<T> distinctByKey(Function<? super T,Object> keyExtractor) {
         Map<Object,Boolean> seen = new ConcurrentHashMap<>();
         return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
@@ -158,9 +168,14 @@ public class GenerateDocsHandler implements RequestStreamHandler {
         return otherApiData.getAwsRestApi().createdDate().compareTo(apiData.getAwsRestApi().createdDate());
     }
 
-    private void writeApiDataToS3(ApiData apiData) {
+    private void writeApiDocsToExternalS3(ApiData apiData) {
         var yamlFilename = "docs/" + toSnakeCase(apiData.getAwsRestApi().name()) + ".yaml";
-        writeToS3(yamlFilename, apiData.getRawYaml());
+        writeToS3(EXTERNAL_BUCKET_NAME, yamlFilename, apiData.getRawYaml());
+    }
+
+    private void writeApiDocsToInternalS3(ApiData apiData) {
+        var yamlFilename = "docs/" + toSnakeCase(apiData.getAwsRestApi().name()) + ".yaml";
+        writeToS3(INTERNAL_BUCKET_NAME, yamlFilename, apiData.getRawYaml());
     }
 
     private ApiData fetchApiData(RestApi api) {

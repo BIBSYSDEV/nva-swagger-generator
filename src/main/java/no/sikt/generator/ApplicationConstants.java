@@ -8,7 +8,10 @@ import nva.commons.core.Environment;
 public final class ApplicationConstants {
     
     public static final Environment ENVIRONMENT = new Environment();
-    public static final String OUTPUT_BUCKET_NAME = readOutputBucketName();
+    public static final String EXTERNAL_BUCKET_NAME = readExternalBucketName();
+    public static final String INTERNAL_BUCKET_NAME = readInternalBucketName();
+    public static final String EXTERNAL_CLOUD_FRONT_DISTRIBUTION = readExternalCloudFrontDistributionId();
+    public static final String INTERNAL_CLOUD_FRONT_DISTRIBUTION = readInternalCloudFrontDistributionId();
     public static final String DOMAIN = readDomain();
 
     public static final List<String> EXCLUDED_APIS = readExcludedApis();
@@ -18,8 +21,20 @@ public final class ApplicationConstants {
     
     }
     
-    private static String readOutputBucketName() {
-        return ENVIRONMENT.readEnv("OUTPUT_BUCKET_NAME");
+    private static String readExternalBucketName() {
+        return ENVIRONMENT.readEnv("EXTERNAL_BUCKET_NAME");
+    }
+
+    private static String readInternalBucketName()  {
+        return ENVIRONMENT.readEnv("INTERNAL_BUCKET_NAME");
+    }
+
+    private static String readExternalCloudFrontDistributionId() {
+        return ENVIRONMENT.readEnv("EXTERNAL_CLOUD_FRONT_DISTRIBUTION");
+    }
+
+    private static String readInternalCloudFrontDistributionId() {
+        return ENVIRONMENT.readEnv("INTERNAL_CLOUD_FRONT_DISTRIBUTION");
     }
 
     private static String readDomain() {
