@@ -192,7 +192,7 @@ Resources:
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSLambda_ReadOnlyAccess
-      Handler: no.sikt.generator.handlers.GenerateDocsHandler::handleRequest
+      Handler: no.sikt.generator.handlers.PublishDocumentationsHandler::handleRequest
       Runtime: java11
       Role: !GetAtt SwaggerGeneratorRole.Arn
       Timeout: 600
