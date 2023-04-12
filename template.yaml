@@ -200,7 +200,7 @@ Resources:
         GenerateDocsScheduleEvent:
           Type: Schedule
           Properties:
-            Schedule: rate(4 hours)
+            Schedule: cron(0 0,4,8,12,16,20 ? * * *)
 
   GenerateExternalDocsHandler:
     Type: AWS::Serverless::Function
@@ -218,7 +218,7 @@ Resources:
         GenerateDocsScheduleEvent:
           Type: Schedule
           Properties:
-            Schedule: rate(4 hours)
+            Schedule: cron(15 0,4,8,12,16,20 ? * * *)
 
   GenerateInternalDocsHandler:
     Type: AWS::Serverless::Function
@@ -236,7 +236,7 @@ Resources:
         GenerateDocsScheduleEvent:
           Type: Schedule
           Properties:
-            Schedule: rate(4 hours)
+            Schedule: cron(10 0,4,8,12,16,20 ? * * *)
 
   InstallSwaggerUiHandler:
     Type: AWS::Serverless::Function
