@@ -6,7 +6,11 @@ import java.util.stream.Collectors;
 import nva.commons.core.Environment;
 
 public final class ApplicationConstants {
-    
+
+    public static final String EXPORT_STAGE_PROD = "Prod";
+    public static final String EXPORT_TYPE_OA_3 = "oas30";
+    public static final String APPLICATION_YAML = "application/yaml";
+    public static final String VERSION_NAME = "swagger-generator";
     public static final Environment ENVIRONMENT = new Environment();
     public static final String EXTERNAL_BUCKET_NAME = readExternalBucketName();
     public static final String INTERNAL_BUCKET_NAME = readInternalBucketName();

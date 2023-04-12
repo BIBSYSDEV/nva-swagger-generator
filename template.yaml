@@ -184,7 +184,7 @@ Resources:
       Timeout: 60
       Role: !GetAtt SwaggerGeneratorRole.Arn
 
-  GenerateDocsHandler:
+  PublishDocsHandler:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: .
@@ -200,7 +200,43 @@ Resources:
         GenerateDocsScheduleEvent:
           Type: Schedule
           Properties:
-            Schedule: rate(12 hours)
+            Schedule: rate(4 hours)
+
+  GenerateExternalDocsHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Description: Handler for generating swagger documentation
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambda_ReadOnlyAccess
+      Handler: no.sikt.generator.handlers.GenerateExternalDocsHandler::handleRequest
+      Runtime: java11
+      Role: !GetAtt SwaggerGeneratorRole.Arn
+      Timeout: 600
+      Events:
+        GenerateDocsScheduleEvent:
+          Type: Schedule
+          Properties:
+            Schedule: rate(4 hours)
+
+  GenerateInternalDocsHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Description: Handler for generating swagger documentation
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambda_ReadOnlyAccess
+      Handler: no.sikt.generator.handlers.GenerateInternalDocsHandler::handleRequest
+      Runtime: java11
+      Role: !GetAtt SwaggerGeneratorRole.Arn
+      Timeout: 600
+      Events:
+        GenerateDocsScheduleEvent:
+          Type: Schedule
+          Properties:
+            Schedule: rate(4 hours)
 
   InstallSwaggerUiHandler:
     Type: AWS::Serverless::Function

@@ -3,7 +3,6 @@ package no.sikt.generator.handlers;
 import static no.sikt.generator.ApplicationConstants.EXTERNAL_BUCKET_NAME;
 import static no.sikt.generator.ApplicationConstants.INTERNAL_BUCKET_NAME;
 import static no.sikt.generator.Utils.readResource;
-import static no.sikt.generator.handlers.GenerateDocsHandler.VERSION_NAME;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
@@ -15,16 +14,13 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.concurrent.CompletableFuture;
 import no.sikt.generator.ApiGatewayHighLevelClient;
 import no.sikt.generator.CloudFrontHighLevelClient;
 import no.sikt.generator.OpenApiUtils;
@@ -39,36 +35,26 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
-import software.amazon.awssdk.services.apigateway.model.CreateDocumentationVersionRequest;
-import software.amazon.awssdk.services.apigateway.model.DocumentationVersion;
-import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionsRequest;
-import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionsResponse;
-import software.amazon.awssdk.services.apigateway.model.GetStagesRequest;
-import software.amazon.awssdk.services.apigateway.model.GetStagesResponse;
-import software.amazon.awssdk.services.apigateway.model.Stage;
-import software.amazon.awssdk.services.apigateway.model.UpdateStageRequest;
 import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
 import software.amazon.awssdk.services.cloudfront.model.CreateInvalidationRequest;
 
-class GenerateDocsHandlerTest {
+class GenerateExternalDocsHandlerTest {
 
     private final ApiGatewayAsyncClient apiGatewayAsyncClient = Mockito.mock(ApiGatewayAsyncClient.class);
     private final CloudFrontClient cloudFrontClient = Mockito.mock(CloudFrontClient.class);
     private ApiGatewayHighLevelClient apiGatewayHighLevelClient;
     private CloudFrontHighLevelClient cloudFrontHighLevelClient;
-    private GenerateDocsHandler handler;
-    private S3Driver s3DriverExternal;
-    private S3Driver s3DriverInternal;
+    private GenerateExternalDocsHandler handler;
+    private S3Driver s3Driver;
     private OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
 
     @BeforeEach
     public void setup() {
         var fakeS3Client = new FakeS3Client();
-        this.s3DriverExternal = new S3Driver(fakeS3Client, EXTERNAL_BUCKET_NAME);
-        this.s3DriverInternal = new S3Driver(fakeS3Client, INTERNAL_BUCKET_NAME);
+        this.s3Driver = new S3Driver(fakeS3Client, EXTERNAL_BUCKET_NAME);
         this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(apiGatewayAsyncClient);
         this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(cloudFrontClient);
-        handler = new GenerateDocsHandler(apiGatewayHighLevelClient, cloudFrontHighLevelClient, fakeS3Client);
+        handler = new GenerateExternalDocsHandler(apiGatewayHighLevelClient, cloudFrontHighLevelClient, fakeS3Client);
     }
 
     private void setupTestCasesFromFiles(String folder, List<String> filenames) {
@@ -103,7 +89,7 @@ class GenerateDocsHandlerTest {
 
     @Test
     public void shouldHaveConstructorWithNoArgument() {
-        Executable action = () -> new GenerateDocsHandler();
+        Executable action = () -> new GenerateExternalDocsHandler();
     }
 
     @Test
@@ -127,11 +113,11 @@ class GenerateDocsHandlerTest {
         setupSimpleMocks();
         handler.handleRequest(null, null, null);
 
-        var singleFile = s3DriverInternal.getFile(UnixPath.of("docs/api-a.yaml"));
+        var singleFile = s3Driver.getFile(UnixPath.of("docs/api-a.yaml"));
         assertThat(singleFile, notNullValue());
         assertThat(singleFile, is(equalTo(readResource("openapi_docs/api-a.yaml"))));
 
-        var combinedFile = s3DriverInternal.getFile(UnixPath.of("docs/openapi.yaml"));
+        var combinedFile = s3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
         assertThat(combinedFile, notNullValue());
     }
 
@@ -144,7 +130,7 @@ class GenerateDocsHandlerTest {
 
         handler.handleRequest(null, null, null);
 
-        var yaml = s3DriverInternal.getFile(UnixPath.of("docs/openapi.yaml"));
+        var yaml = s3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
 
         var openApi = openApiParser
                           .readContents(yaml)
@@ -156,71 +142,11 @@ class GenerateDocsHandlerTest {
     }
 
     @Test
-    public void shouldNotPerformCreateOrUpdateStageWhenDocVersionExistsAndItsAssociatedWithProdStage() {
-        setupSingleFile();
-
-        var expectedHash = apiGatewayHighLevelClient.fetchDocumentationPartsHash("");
-        var expectedVersion = VERSION_NAME + "-" + expectedHash;
-
-        var listDocumentationVersionsResponse = GetDocumentationVersionsResponse.builder().items(
-            DocumentationVersion.builder().version(expectedVersion).build()
-        ).build();
-
-        when(apiGatewayAsyncClient.getDocumentationVersions(any(GetDocumentationVersionsRequest.class)))
-            .thenReturn(CompletableFuture.completedFuture(listDocumentationVersionsResponse));
-
-        var getStagesResponse = GetStagesResponse.builder().item(
-            List.of(
-                Stage.builder().stageName("Prod").documentationVersion(expectedVersion).build()
-            )
-        ).build();
-
-        when(apiGatewayAsyncClient.getStages(any(GetStagesRequest.class)))
-            .thenReturn(CompletableFuture.completedFuture(getStagesResponse));
-
-        handler.handleRequest(null, null, null);
-
-        verify(apiGatewayAsyncClient, never()).createDocumentationVersion(any(CreateDocumentationVersionRequest.class));
-        verify(apiGatewayAsyncClient, never()).updateStage(any(UpdateStageRequest.class));
-    }
-
-    @Test
-    public void shouldPerformCreateWhenDocVersionDoesNotExists() {
-        setupSingleFile();
-
-        var listDocumentationVersionsResponse = GetDocumentationVersionsResponse.builder().build();
-
-        when(apiGatewayAsyncClient.getDocumentationVersions(any(GetDocumentationVersionsRequest.class)))
-            .thenReturn(CompletableFuture.completedFuture(listDocumentationVersionsResponse));
-
-        handler.handleRequest(null, null, null);
-
-        verify(apiGatewayAsyncClient).createDocumentationVersion(any(CreateDocumentationVersionRequest.class));
-    }
-
-    @Test
-    public void shouldPerformUpdateStageWhenDocVersionExistsButItsNotAssociated() {
-        setupSingleFile();
-
-        var expectedHash = apiGatewayHighLevelClient.fetchDocumentationPartsHash("");
-        var listDocumentationVersionsResponse = GetDocumentationVersionsResponse.builder().items(
-            DocumentationVersion.builder().version(VERSION_NAME + "-" + expectedHash).build()
-        ).build();
-
-        when(apiGatewayAsyncClient.getDocumentationVersions(any(GetDocumentationVersionsRequest.class)))
-            .thenReturn(CompletableFuture.completedFuture(listDocumentationVersionsResponse));
-
-        handler.handleRequest(null, null, null);
-
-        verify(apiGatewayAsyncClient).updateStage(any(UpdateStageRequest.class));
-    }
-
-    @Test
     public void shouldMergeFiles() {
         setupSimpleMocks();
         handler.handleRequest(null, null, null);
 
-        var yaml = s3DriverInternal.getFile(UnixPath.of("docs/openapi.yaml"));
+        var yaml = s3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
 
         var openApi = openApiParser
                            .readContents(yaml)
@@ -244,7 +170,7 @@ class GenerateDocsHandlerTest {
         setupNvaMocks();
         handler.handleRequest(null, null, null);
 
-        var yaml = s3DriverInternal.getFile(UnixPath.of("docs/openapi.yaml"));
+        var yaml = s3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
         assertThat(yaml, notNullValue());
 
         var openApi = openApiParser
@@ -287,21 +213,21 @@ class GenerateDocsHandlerTest {
 
         handler.handleRequest(null, null, null);
 
-        var s3FileContent = s3DriverInternal.getFile(UnixPath.of("docs/nva-publication-api.yaml"));
+        var s3FileContent = s3Driver.getFile(UnixPath.of("docs/nva-publication-api.yaml"));
         assertThat(s3FileContent, notNullValue());
     }
 
     @Test
-    public void shouldCallCloudFrontInvalidationTwice() {
+    public void shouldCallCloudFrontInvalidation() {
         setupSingleFile();
 
         handler.handleRequest(null, null, null);
 
-        verify(cloudFrontClient, times(2)).createInvalidation(any(CreateInvalidationRequest.class));
+        verify(cloudFrontClient).createInvalidation(any(CreateInvalidationRequest.class));
     }
 
     private OpenAPI readGeneratedOpenApi() {
-        var yaml = s3DriverInternal.getFile(UnixPath.of("docs/openapi.yaml"));
+        var yaml = s3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
         assertThat(yaml, notNullValue());
 
         return openApiParser
