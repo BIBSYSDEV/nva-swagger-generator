@@ -1,8 +1,13 @@
 package no.sikt.generator;
 
+import static no.sikt.generator.ApplicationConstants.APPLICATION_YAML;
+import static no.sikt.generator.ApplicationConstants.EXPORT_TYPE_OA_3;
 import static nva.commons.core.attempt.Try.attempt;
+import io.swagger.v3.parser.OpenAPIV3Parser;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.apigateway.model.CreateDocumentationVersionRequest;
 import software.amazon.awssdk.services.apigateway.model.GetDocumentationPartsRequest;
@@ -13,11 +18,12 @@ import software.amazon.awssdk.services.apigateway.model.GetRestApisResponse;
 import software.amazon.awssdk.services.apigateway.model.GetStagesRequest;
 import software.amazon.awssdk.services.apigateway.model.Op;
 import software.amazon.awssdk.services.apigateway.model.PatchOperation;
+import software.amazon.awssdk.services.apigateway.model.RestApi;
 import software.amazon.awssdk.services.apigateway.model.Stage;
 import software.amazon.awssdk.services.apigateway.model.UpdateStageRequest;
 
 public class ApiGatewayHighLevelClient {
-
+    private static final Logger logger = LoggerFactory.getLogger(ApiGatewayHighLevelClient.class);
     public static final String DOCUMENTATION_VERSION_PATH = "/documentationVersion";
     public static final int LIMIT = 500;
     private final ApiGatewayAsyncClient apiGatewayClient;
@@ -51,6 +57,27 @@ public class ApiGatewayHighLevelClient {
             PatchOperation.builder().op(Op.REPLACE).path(DOCUMENTATION_VERSION_PATH).value(docVersion).build()
         ).build();
         attempt(() -> apiGatewayClient.updateStage(request).get()).orElseThrow();
+    }
+
+    public ApiData fetchApiDataForStage(RestApi api, String stageName, OpenAPIV3Parser openApiParser) {
+        var stages = fetchStages(api.id());
+        var productionStage =
+            stages.stream().filter(s -> stageName.equals(s.stageName())).findFirst().orElse(null);
+
+        if (productionStage != null) {
+            var yaml = fetchApiExport(
+                api.id(),
+                stageName,
+                APPLICATION_YAML,
+                EXPORT_TYPE_OA_3
+            );
+            var parseResult = openApiParser.readContents(yaml);
+            return new ApiData(api, parseResult.getOpenAPI(), yaml, productionStage);
+        } else {
+            logger.warn("API {} ({}) does not have stage {}. Stages found: {}", api.name(), api.id(),
+                        stageName, stages);
+            return null;
+        }
     }
 
     public GetRestApisResponse getRestApis() {

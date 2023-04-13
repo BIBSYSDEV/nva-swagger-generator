@@ -1,7 +1,8 @@
 package no.sikt.generator.handlers;
 
 import static java.net.http.HttpClient.Redirect.ALWAYS;
-import static no.sikt.generator.ApplicationConstants.OUTPUT_BUCKET_NAME;
+import static no.sikt.generator.ApplicationConstants.EXTERNAL_BUCKET_NAME;
+import static no.sikt.generator.ApplicationConstants.INTERNAL_BUCKET_NAME;
 import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
@@ -16,6 +17,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.zip.ZipInputStream;
 import no.sikt.generator.GithubApiResponse;
 import no.sikt.generator.Utils;
@@ -55,10 +57,10 @@ public class InstallSwaggerUiHandler implements RequestStreamHandler {
         return RequestBody.fromBytes(bytes);
     }
 
-    private void writeToS3(String filename, String content) {
+    private void writeToS3(String bucket, String filename, String content) {
         var fullPath = UnixPath.of(filename);
         var putObjectRequest = PutObjectRequest.builder()
-                                   .bucket(OUTPUT_BUCKET_NAME)
+                                   .bucket(bucket)
                                    .key(fullPath.toString())
                                    .contentType(getContentTypeFromFilename(filename))
                                    .build();
@@ -94,13 +96,22 @@ public class InstallSwaggerUiHandler implements RequestStreamHandler {
         httpClient.sendAsync(downloadRequest, BodyHandlers.ofInputStream())
                                  .thenApply(HttpResponse::body)
                                  .thenApply(ZipInputStream::new)
-                                 .thenAccept(this::writeZipFilesToS3)
+                                 .thenAccept(this::writeZipFileToBuckets)
                                  .join();
 
-        writeToS3(SWAGGER_INITIALIZER_JS, Utils.readResource(SWAGGER_INITIALIZER_JS));
+        writeToS3(EXTERNAL_BUCKET_NAME, SWAGGER_INITIALIZER_JS, Utils.readResource(SWAGGER_INITIALIZER_JS));
+        writeToS3(INTERNAL_BUCKET_NAME, SWAGGER_INITIALIZER_JS, Utils.readResource(SWAGGER_INITIALIZER_JS));
     }
 
-    private void writeZipFilesToS3(ZipInputStream zipStream) {
+    private void writeZipFileToBuckets(ZipInputStream zipStream) {
+        var buckets = List.of(
+            EXTERNAL_BUCKET_NAME,
+            INTERNAL_BUCKET_NAME
+        );
+        writeZipFilesToS3(buckets, zipStream);
+    }
+
+    private void writeZipFilesToS3(List<String> buckets, ZipInputStream zipStream) {
         try {
             for (var zip = zipStream.getNextEntry(); zip != null; zip = zipStream.getNextEntry()) {
 
@@ -113,8 +124,7 @@ public class InstallSwaggerUiHandler implements RequestStreamHandler {
 
                     var content = readFromZipInputStream(zipStream);
                     var fileName =  filePath.substring(filePath.lastIndexOf('/') + 1);
-
-                    writeToS3(fileName, content);
+                    buckets.forEach(b -> writeToS3(b, fileName, content));
                 }
             }
 

@@ -17,10 +17,12 @@ Globals:
     MemorySize: 1800
     Environment:
       Variables:
-        OUTPUT_BUCKET_NAME: !Ref SwaggerUiBucket
         DOMAIN: !Ref CustomDomain
         EXCLUDED_APIS: "NVA Courses API,DLR LaunchCanvas API"
-        CLOUD_FRONT_DISTRIBUTION: !Ref CustomDomainCloudfrontDistribution
+        EXTERNAL_CLOUD_FRONT_DISTRIBUTION: !Ref CustomDomainCloudfrontDistribution
+        INTERNAL_CLOUD_FRONT_DISTRIBUTION: !Ref InternalCloudfrontDistribution
+        EXTERNAL_BUCKET_NAME: !Ref ExternalSwaggerUiBucket
+        INTERNAL_BUCKET_NAME: !Ref InternalSwaggerUiBucket
 
 Resources:
   SwaggerGeneratorRole:
@@ -68,8 +70,10 @@ Resources:
                   - s3:PutObject
                   - s3:DeleteObject
                 Resource:
-                  - !Sub 'arn:aws:s3:::${SwaggerUiBucket}'
-                  - !Sub 'arn:aws:s3:::${SwaggerUiBucket}/*'
+                  - !Sub 'arn:aws:s3:::${InternalSwaggerUiBucket}'
+                  - !Sub 'arn:aws:s3:::${InternalSwaggerUiBucket}/*'
+                  - !Sub 'arn:aws:s3:::${ExternalSwaggerUiBucket}'
+                  - !Sub 'arn:aws:s3:::${ExternalSwaggerUiBucket}/*'
         - PolicyName: invalidateCloudFront
           PolicyDocument:
             Version: "2012-10-17"
@@ -80,17 +84,23 @@ Resources:
                 Resource:
                   - '*'
 
-  SwaggerUiBucket:
+  ExternalSwaggerUiBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub 'nva-swagger-ui-${AWS::AccountId}'
+      BucketName: !Sub 'nva-swagger-ui-external-${AWS::AccountId}'
+      WebsiteConfiguration:
+        IndexDocument: "index.html"
+  InternalSwaggerUiBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'nva-swagger-ui-internal-${AWS::AccountId}'
       WebsiteConfiguration:
         IndexDocument: "index.html"
 
-  SwaggerUiBucketPolicy:
+  ExternalSwaggerUiBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref SwaggerUiBucket
+      Bucket: !Ref ExternalSwaggerUiBucket
       PolicyDocument:
         Id: PublicReadPolicy
         Version: 2012-10-17
@@ -99,21 +109,45 @@ Resources:
             Effect: Allow
             Principal: '*'
             Action: 's3:GetObject'
-            Resource: !Sub arn:aws:s3:::${SwaggerUiBucket}/*
+            Resource: !Sub arn:aws:s3:::${ExternalSwaggerUiBucket}/*
 
-  CleanupBucketOnDelete:
+  InternalSwaggerUiBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref InternalSwaggerUiBucket
+      PolicyDocument:
+        Id: PublicReadPolicy
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Sub arn:aws:s3:::${InternalSwaggerUiBucket}/*
+
+  CleanupExternalBucketOnDelete:
     Type: Custom::cleanupbucket
     Properties:
       ServiceToken:
         Fn::GetAtt:
           - "CleanupSwaggerUiBucketOnDeleteLambda"
           - "Arn"
-      BucketName: !Ref SwaggerUiBucket
+      BucketName: !Ref ExternalSwaggerUiBucketPolicy
 
+  CleanupInternalBucketOnDelete:
+    Type: Custom::cleanupbucket
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - "CleanupSwaggerUiBucketOnDeleteLambda"
+          - "Arn"
+      BucketName: !Ref InternalSwaggerUiBucket
 
   CleanupSwaggerUiBucketOnDeleteLambda:
     Type: AWS::Lambda::Function
-    DependsOn: SwaggerUiBucket
+    DependsOn:
+      - ExternalSwaggerUiBucket
+      - InternalSwaggerUiBucket
     Properties:
       Code:
         ZipFile:
@@ -150,15 +184,15 @@ Resources:
       Timeout: 60
       Role: !GetAtt SwaggerGeneratorRole.Arn
 
-  GenerateDocsHandler:
+  PublishDocsHandler:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: .
-      Description: Handler for generating swagger documentation
+      Description: Published new documentation to all APIs in their production stage
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSLambda_ReadOnlyAccess
-      Handler: no.sikt.generator.handlers.GenerateDocsHandler::handleRequest
+      Handler: no.sikt.generator.handlers.PublishDocumentationsHandler::handleRequest
       Runtime: java11
       Role: !GetAtt SwaggerGeneratorRole.Arn
       Timeout: 600
@@ -166,7 +200,43 @@ Resources:
         GenerateDocsScheduleEvent:
           Type: Schedule
           Properties:
-            Schedule: rate(12 hours)
+            Schedule: cron(0 */4 ? * * *)
+
+  GenerateExternalDocsHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Description: Handler for generating external swagger documentation
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambda_ReadOnlyAccess
+      Handler: no.sikt.generator.handlers.GenerateExternalDocsHandler::handleRequest
+      Runtime: java11
+      Role: !GetAtt SwaggerGeneratorRole.Arn
+      Timeout: 600
+      Events:
+        GenerateDocsScheduleEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(15 */4 ? * * *)
+
+  GenerateInternalDocsHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Description: Handler for generating internal swagger documentation
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambda_ReadOnlyAccess
+      Handler: no.sikt.generator.handlers.GenerateInternalDocsHandler::handleRequest
+      Runtime: java11
+      Role: !GetAtt SwaggerGeneratorRole.Arn
+      Timeout: 600
+      Events:
+        GenerateDocsScheduleEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(10 */4 ? * * *)
 
   InstallSwaggerUiHandler:
     Type: AWS::Serverless::Function
@@ -189,7 +259,7 @@ Resources:
 
   CustomDomainCloudfrontDistribution:
     Type: AWS::CloudFront::Distribution
-    DependsOn: SwaggerUiBucket
+    DependsOn: ExternalSwaggerUiBucket
     Properties:
       DistributionConfig:
         CustomErrorResponses:
@@ -199,16 +269,46 @@ Resources:
         DefaultCacheBehavior:
           ForwardedValues:
             QueryString: true
-          TargetOriginId: 'swagger-ui-bucket'
+          TargetOriginId: 'swagger-ui-bucket-external'
           ViewerProtocolPolicy: redirect-to-https
         DefaultRootObject: index.html
         Enabled: true
-        Comment: !Sub 'Swagger-ui ${AWS::StackName}'
+        Comment: !Sub 'Swagger-ui-external ${AWS::StackName}'
         Aliases:
           - !Sub 'swagger-ui.${CustomDomain}'
         Origins:
-          - Id: 'swagger-ui-bucket'
-            DomainName: !Sub "${SwaggerUiBucket}.s3.${AWS::Region}.amazonaws.com"
+          - Id: 'swagger-ui-bucket-external'
+            DomainName: !Sub "${ExternalSwaggerUiBucket}.s3.${AWS::Region}.amazonaws.com"
+            CustomOriginConfig:
+              HTTPPort: 80
+              HTTPSPort: 443
+              OriginProtocolPolicy: match-viewer
+        ViewerCertificate:
+          AcmCertificateArn: !Ref SwaggerDomainCertificateArn
+          SslSupportMethod: 'sni-only'
+
+  InternalCloudfrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    DependsOn: InternalSwaggerUiBucket
+    Properties:
+      DistributionConfig:
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 403
+            ResponsePagePath: '/index.html'
+        DefaultCacheBehavior:
+          ForwardedValues:
+            QueryString: true
+          TargetOriginId: 'swagger-ui-bucket-internal'
+          ViewerProtocolPolicy: redirect-to-https
+        DefaultRootObject: index.html
+        Enabled: true
+        Comment: !Sub 'Swagger-ui-internal ${AWS::StackName}'
+        Aliases:
+          - !Sub 'swagger-ui-internal.${CustomDomain}'
+        Origins:
+          - Id: 'swagger-ui-bucket-internal'
+            DomainName: !Sub "${InternalSwaggerUiBucket}.s3.${AWS::Region}.amazonaws.com"
             CustomOriginConfig:
               HTTPPort: 80
               HTTPSPort: 443
