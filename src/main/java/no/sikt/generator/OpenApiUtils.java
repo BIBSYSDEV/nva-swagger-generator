@@ -3,6 +3,7 @@ package no.sikt.generator;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
@@ -10,15 +11,12 @@ import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.tags.Tag;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class OpenApiUtils {
-
-    private OpenApiUtils() {
-
-    }
 
     public static void addTag(Operation operation, String tag) {
         operation.addTagsItem(tag);
@@ -80,8 +78,8 @@ public final class OpenApiUtils {
     }
 
     public static Stream<String> getRefsFromPaths(OpenAPI openAPI) {
-        return openAPI
-                    .getPaths()
+        return Optional.ofNullable(openAPI.getPaths())
+                    .orElseGet(Paths::new)
                     .values()
                     .stream()
                     .flatMap(OpenApiUtils::getAllOperationsFromPathItem)

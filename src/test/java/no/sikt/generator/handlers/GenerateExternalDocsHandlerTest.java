@@ -1,7 +1,6 @@
 package no.sikt.generator.handlers;
 
 import static no.sikt.generator.ApplicationConstants.EXTERNAL_BUCKET_NAME;
-import static no.sikt.generator.ApplicationConstants.INTERNAL_BUCKET_NAME;
 import static no.sikt.generator.Utils.readResource;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.emptyString;
@@ -14,7 +13,8 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
@@ -31,6 +31,7 @@ import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mockito;
@@ -69,24 +70,6 @@ class GenerateExternalDocsHandlerTest {
         setupTestCasesFromFiles(null, List.of("api-a.yaml", "api-b.yaml"));
     }
 
-    private void setupNvaMocks() {
-        setupTestCasesFromFiles("nva", List.of(
-            "dlr-launchcanvas-api.yaml",
-            "nva-courses-api.yaml",
-            "nva-cristin-proxy-api.yaml",
-            "nva-customer-api.yaml",
-            "nva-download-publication-file-api.yaml",
-            "nva-fetch-doi.yaml",
-            "nva-ontology-service.yaml",
-            "nva-public-search-api.yaml",
-            "nva-publication-api.yaml",
-            "nva-publication-channels.yaml",
-            "nva-roles-and-users-catalogue.yaml",
-            "nva-verified-funding-sources-api.yaml",
-            "nva-s3-multipart-upload.yaml"
-        ));
-    }
-
     @Test
     public void shouldHaveConstructorWithNoArgument() {
         Executable action = () -> new GenerateExternalDocsHandler();
@@ -113,108 +96,53 @@ class GenerateExternalDocsHandlerTest {
         setupSimpleMocks();
         handler.handleRequest(null, null, null);
 
-        var singleFile = s3Driver.getFile(UnixPath.of("docs/api-a.yaml"));
-        assertThat(singleFile, notNullValue());
-        assertThat(singleFile, is(equalTo(readResource("openapi_docs/api-a.yaml"))));
-
         var combinedFile = s3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
         assertThat(combinedFile, notNullValue());
     }
 
     @Test
-    public void shouldRemoveOptionOperations() {
+    public void shouldRemoveExternalTags() {
         var fileNames = List.of(
-            "api-with-options.yaml"
+            "api-with-external.yaml"
         );
         TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, cloudFrontClient, null, fileNames);
 
         handler.handleRequest(null, null, null);
 
-        var yaml = s3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
+        var openApi = readGeneratedOpenApi();
 
-        var openApi = openApiParser
-                          .readContents(yaml)
-                          .getOpenAPI();
-
-        for (Entry<String, PathItem> path : openApi.getPaths().entrySet()) {
-            assertThat(path.getValue().getOptions(), nullValue());
-        }
+        assertThat(openApi.getTags(), hasSize(1));
+        assertThat(openApi.getTags().get(0).getName(), not(equalTo("external")));
     }
 
     @Test
-    public void shouldMergeFiles() {
-        setupSimpleMocks();
-        handler.handleRequest(null, null, null);
-
-        var yaml = s3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
-
-        var openApi = openApiParser
-                           .readContents(yaml)
-                           .getOpenAPI();
-
-        assertThat(openApi.getInfo(), notNullValue());
-        assertThat(openApi.getInfo().getVersion(), notNullValue());
-        assertThat(openApi.getInfo().getTitle(), is(not(emptyString())));
-        assertThat(openApi.getInfo().getDescription(), is(not(emptyString())));
-        assertThat(openApi.getComponents().getSecuritySchemes().entrySet(), hasSize(1));
-        assertThat(openApi.getComponents().getSchemas().entrySet(), hasSize(4));
-        assertThat(openApi.getComponents().getSchemas().get("Error"), notNullValue());
-        assertThat(openApi.getComponents().getSchemas().get("ApiAResponse"), notNullValue());
-        assertThat(openApi.getComponents().getSchemas().get("ApiBResponse"), notNullValue());
-        assertThat(openApi.getServers(), notNullValue());
-        assertThat(openApi.getServers(), hasSize(1));
-    }
-
-    @Test
-    public void shouldHandleRealNvaFiles() {
-        setupNvaMocks();
-        handler.handleRequest(null, null, null);
-
-        var yaml = s3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
-        assertThat(yaml, notNullValue());
-
-        var openApi = openApiParser
-                          .readContents(yaml)
-                          .getOpenAPI();
-        
-        
-        assertThatOpenApiIsValid(openApi);
-    }
-
-    private void assertThatOpenApiIsValid(OpenAPI openApi) {
-
-        var allRefs = OpenApiUtils.getAllRefs(openApi);
-        var schemas = openApi
-                          .getComponents()
-                          .getSchemas()
-                          .keySet();
-
-        for (String ref : allRefs) {
-            var expected = StringUtils.removeStart(ref, "#/components/schemas/");
-            assertThat(schemas, hasItem(expected));
-        }
-    }
-
-    @Test
-    public void shouldExcludeFilesWhenEnviormentVariableIsSet() {
-        setupTestCasesFromFiles(null, List.of("api-exluded.yaml"));
+    public void shouldNotIncludedNonExternalPaths() {
+        var fileNames = List.of(
+            "api-a.yaml"
+        );
+        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, cloudFrontClient, null, fileNames);
 
         handler.handleRequest(null, null, null);
 
         var openApi = readGeneratedOpenApi();
 
         assertThat(openApi.getPaths(), nullValue());
-        assertThat(openApi.getComponents().getSchemas(), nullValue());
+        assertThat(openApi.getTags(), nullValue());
     }
 
     @Test
-    public void shouldParseFile() {
-        setupNvaMocks();
+    public void shouldIncludeExternalPaths() {
+        var fileNames = List.of(
+            "api-with-external.yaml"
+        );
+        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, cloudFrontClient, null, fileNames);
 
         handler.handleRequest(null, null, null);
 
-        var s3FileContent = s3Driver.getFile(UnixPath.of("docs/nva-publication-api.yaml"));
-        assertThat(s3FileContent, notNullValue());
+        var openApi = readGeneratedOpenApi();
+
+        assertThat(openApi.getPaths().values(), hasSize(1));
+        assertThat(openApi.getPaths().values().stream().findFirst().get().readOperations(), hasSize(1));
     }
 
     @Test
