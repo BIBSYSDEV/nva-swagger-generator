@@ -15,8 +15,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import nva.commons.core.JacocoGenerated;
 
 public final class OpenApiUtils {
+
+    @JacocoGenerated
+    private OpenApiUtils() {
+
+    }
 
     public static void addTag(Operation operation, String tag) {
         operation.addTagsItem(tag);
