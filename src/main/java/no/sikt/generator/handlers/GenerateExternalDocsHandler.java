@@ -4,7 +4,6 @@ import static no.sikt.generator.ApplicationConstants.EXPORT_STAGE_PROD;
 import static no.sikt.generator.ApplicationConstants.EXTERNAL_BUCKET_NAME;
 import static no.sikt.generator.ApplicationConstants.EXTERNAL_CLOUD_FRONT_DISTRIBUTION;
 import static no.sikt.generator.Utils.distinctByKey;
-import static no.sikt.generator.Utils.toSnakeCase;
 import static nva.commons.core.attempt.Try.attempt;
 import static software.amazon.awssdk.regions.Region.AWS_GLOBAL;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -20,6 +19,7 @@ import no.sikt.generator.ApiData;
 import no.sikt.generator.ApiGatewayHighLevelClient;
 import no.sikt.generator.CloudFrontHighLevelClient;
 import no.sikt.generator.OpenApiCombiner;
+import no.sikt.generator.OpenApiExtractor;
 import no.sikt.generator.OpenApiValidator;
 import no.sikt.generator.Utils;
 import no.unit.nva.s3.S3Driver;
@@ -88,12 +88,13 @@ public class GenerateExternalDocsHandler implements RequestStreamHandler {
                            .getOpenAPI();
 
         var swaggers = validateAndFilterApis(apis)
-            .peek(this::writeApiDocsToExternalS3)
             .sorted()
             .map(ApiData::getOpenApi)
             .collect(Collectors.toList());
 
-        var combined = new OpenApiCombiner(template, swaggers).combine();
+
+        var onlyExternals = new OpenApiExtractor(swaggers).extract();
+        var combined = new OpenApiCombiner(template, onlyExternals).combine();
 
         String combinedYaml = attempt(() -> Yaml.pretty().writeValueAsString(combined)).orElseThrow();
         writeToS3(EXTERNAL_BUCKET_NAME, "docs/openapi.yaml", combinedYaml);
@@ -119,11 +120,6 @@ public class GenerateExternalDocsHandler implements RequestStreamHandler {
 
     private int sortApisByDate(ApiData apiData, ApiData otherApiData) {
         return otherApiData.getAwsRestApi().createdDate().compareTo(apiData.getAwsRestApi().createdDate());
-    }
-
-    private void writeApiDocsToExternalS3(ApiData apiData) {
-        var yamlFilename = "docs/" + toSnakeCase(apiData.getAwsRestApi().name()) + ".yaml";
-        writeToS3(EXTERNAL_BUCKET_NAME, yamlFilename, apiData.getRawYaml());
     }
 
     private ApiData fetchProdApiData(RestApi restApi) {

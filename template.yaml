@@ -10,6 +10,14 @@ Parameters:
   SwaggerDomainCertificateArn:
     Type: String
     Description: ARN for the certificate covering the swagger documentation.
+  InternalSwaggerUsername:
+    Type: String
+    Description: Username for the login for the internal swagger ui
+    Default: user
+  InternalSwaggerPassword:
+    Type: String
+    Description: Password for the login for the internal swagger ui
+    Default: password
 
 Globals:
   Function:
@@ -25,6 +33,22 @@ Globals:
         INTERNAL_BUCKET_NAME: !Ref InternalSwaggerUiBucket
 
 Resources:
+  InternalSwaggerUIBase64Auth:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: InternalSwaggerUIBase64Auth
+      Description: The prefix for the Cognito domain that hosts the sign-up and sign-in pages for your application.
+      Type: String
+      Value:
+        Fn::Sub:
+          - 'Basic ${B64}'
+          - B64:
+              Fn::Base64:
+                Fn::Join:
+                 - ':'
+                 - - !Ref InternalSwaggerUsername
+                   - !Ref InternalSwaggerPassword
+
   SwaggerGeneratorRole:
     Type: AWS::IAM::Role
     Properties:
@@ -83,6 +107,31 @@ Resources:
                   - cloudfront:CreateInvalidation
                 Resource:
                   - '*'
+
+  AuthenticateInternalSwaggerUIRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: "AllowS3ReadAccess"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "s3:GetObject"
+                Resource:
+                  - !Sub 'arn:aws:s3:::${InternalSwaggerUiBucket}'
+                  - !Sub 'arn:aws:s3:::${InternalSwaggerUiBucket}/*'
 
   ExternalSwaggerUiBucket:
     Type: AWS::S3::Bucket
@@ -251,6 +300,40 @@ Resources:
       Timeout: 300
       Role: !GetAtt SwaggerGeneratorRole.Arn
 
+  AuthenticateInternalSwaggerUIHandler:
+    Type: AWS::CloudFront::Function
+    Properties:
+      AutoPublish: true
+      Name: auth-internal-swagger-ui-function
+      FunctionCode: !Sub |
+        function handler(event) {
+          var authHeaders = event.request.headers.authorization;
+        
+          // The Base64-encoded Auth string that should be present.
+          // It is an encoding of `Basic base64([username]:[password])`
+          var expected = '${InternalSwaggerUIBase64Auth.Value}'
+        
+          if (authHeaders && authHeaders.value === expected) {
+            return event.request;
+          }
+          
+          var response = {
+            statusCode: 401,
+            statusDescription: "Unauthorized",
+            headers: {
+              "www-authenticate": {
+                value: 'Basic realm="Enter credentials for swagger ui"',
+              },
+            },
+          };
+        
+          return response;
+        }
+
+      FunctionConfig:
+        Comment: !Sub 'Authentication for internal swagger ui'
+        Runtime: cloudfront-js-1.0
+
   OriginAccessIdentity:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
@@ -301,6 +384,9 @@ Resources:
             QueryString: true
           TargetOriginId: 'swagger-ui-bucket-internal'
           ViewerProtocolPolicy: redirect-to-https
+          FunctionAssociations:
+            - EventType: "viewer-request"
+              FunctionARN: !GetAtt AuthenticateInternalSwaggerUIHandler.FunctionMetadata.FunctionARN
         DefaultRootObject: index.html
         Enabled: true
         Comment: !Sub 'Swagger-ui-internal ${AWS::StackName}'

@@ -13,7 +13,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
@@ -129,11 +128,7 @@ class GenerateInternalDocsHandlerTest {
 
         handler.handleRequest(null, null, null);
 
-        var yaml = s3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
-
-        var openApi = openApiParser
-                          .readContents(yaml)
-                          .getOpenAPI();
+        var openApi = readGeneratedOpenApi();
 
         for (Entry<String, PathItem> path : openApi.getPaths().entrySet()) {
             assertThat(path.getValue().getOptions(), nullValue());
@@ -141,15 +136,26 @@ class GenerateInternalDocsHandlerTest {
     }
 
     @Test
+    public void shouldRemoveExternalTags() {
+        var fileNames = List.of(
+            "api-with-external.yaml"
+        );
+        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, cloudFrontClient, null, fileNames);
+
+        handler.handleRequest(null, null, null);
+
+        var openApi = readGeneratedOpenApi();
+
+        assertThat(openApi.getTags(), hasSize(1));
+        assertThat(openApi.getTags().get(0).getName(), not(equalTo("external")));
+    }
+
+    @Test
     public void shouldMergeFiles() {
         setupSimpleMocks();
         handler.handleRequest(null, null, null);
 
-        var yaml = s3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
-
-        var openApi = openApiParser
-                           .readContents(yaml)
-                           .getOpenAPI();
+        var openApi = readGeneratedOpenApi();
 
         assertThat(openApi.getInfo(), notNullValue());
         assertThat(openApi.getInfo().getVersion(), notNullValue());
@@ -169,14 +175,8 @@ class GenerateInternalDocsHandlerTest {
         setupNvaMocks();
         handler.handleRequest(null, null, null);
 
-        var yaml = s3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
-        assertThat(yaml, notNullValue());
+        var openApi = readGeneratedOpenApi();
 
-        var openApi = openApiParser
-                          .readContents(yaml)
-                          .getOpenAPI();
-        
-        
         assertThatOpenApiIsValid(openApi);
     }
 
