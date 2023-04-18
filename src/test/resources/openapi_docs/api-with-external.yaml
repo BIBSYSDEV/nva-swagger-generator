@@ -8,7 +8,7 @@ servers:
     basePath:
       default: "/pathB"
 paths:
-  /path:
+  /external:
     get:
       tags:
         - external
@@ -18,25 +18,36 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Response"
-        "500":
-          description: "500 response"
+                $ref: "#/components/schemas/ExternalSchema"
+  /non-external:
+    get:
+      responses:
+        "200":
+          description: "200 response"
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: "#/components/schemas/InternalSchema"
 components:
   schemas:
-    Response:
+    ExternalSchema:
       type: "object"
       properties:
-        fieldOnlyInB:
-          type: "string"
-    Error:
+        tickets:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/NestedExternalSchema"
+    NestedInternalSchema:
+      type: "object"
+    NestedExternalSchema:
+      type: "object"
+    InternalSchema:
       type: "object"
       properties:
-        sameField:
-          type: "string"
+        tickets:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/NestedInternalSchema"
   securitySchemes:
     SharedUserPool:
       type: "apiKey"

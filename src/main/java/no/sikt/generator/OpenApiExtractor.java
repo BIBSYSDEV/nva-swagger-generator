@@ -1,9 +1,14 @@
 package no.sikt.generator;
 
+import static no.sikt.generator.OpenApiUtils.COMPONENTS_SCHEMAS;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.media.Schema;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,8 +23,29 @@ public class OpenApiExtractor {
 
     public List<OpenAPI> extract() {
         apis.forEach(this::removeNonExternalPaths);
+        apis.forEach(this::removeUnusedSchemas);
         apis.removeIf(this::apiHasNoPaths);
         return apis;
+    }
+
+    private void removeUnusedSchemas(OpenAPI openAPI) {
+        var schemas = openAPI.getComponents().getSchemas();
+        var usedSchemas = getUsedSchemas(openAPI);
+        var allSchemas = schemas.keySet();
+
+        Map<String, Schema> newSchemas = new HashMap();
+
+        allSchemas.forEach(key -> {
+            var value = schemas.get(key);
+            if (usedSchemas.contains(COMPONENTS_SCHEMAS + key)) {
+                newSchemas.put(key, value);
+            }
+        });
+        openAPI.getComponents().setSchemas(newSchemas);
+    }
+
+    private Set<String> getUsedSchemas(OpenAPI openAPI) {
+        return OpenApiUtils.getAllUsedSchemas(openAPI);
     }
 
     private boolean apiHasNoPaths(OpenAPI openAPI) {

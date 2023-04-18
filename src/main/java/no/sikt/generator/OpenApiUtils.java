@@ -19,6 +19,8 @@ import nva.commons.core.JacocoGenerated;
 
 public final class OpenApiUtils {
 
+    public static final String COMPONENTS_SCHEMAS = "#/components/schemas/";
+
     @JacocoGenerated
     private OpenApiUtils() {
 
@@ -141,5 +143,28 @@ public final class OpenApiUtils {
                 getSchemaPropertyItemRefs(openAPI)
             ).flatMap(stream -> stream)
                .collect(Collectors.toSet());
+    }
+
+    public static Set<String> getAllUsedSchemas(OpenAPI openAPI) {
+        var reffed = OpenApiUtils.getRefsFromPaths(openAPI).collect(Collectors.toSet());
+        var directUsedSchemas = openAPI.getComponents().getSchemas()
+                                    .entrySet()
+                                    .stream()
+                                    .filter(entry -> reffed.contains(COMPONENTS_SCHEMAS + entry.getKey()))
+                                    .map(entry -> entry.getValue())
+                                    .collect(Collectors.toSet());
+
+        var nestedSchemas = directUsedSchemas
+                                .stream()
+                                .flatMap(OpenApiUtils::getNestedSchemas)
+                                .map(Schema::get$ref)
+                                .collect(Collectors.toSet());
+
+        var combined = Stream.of(
+                reffed,
+                nestedSchemas
+            ).flatMap(Set::stream).collect(Collectors.toSet());
+
+        return combined;
     }
 }

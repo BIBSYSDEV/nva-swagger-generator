@@ -1,37 +1,26 @@
 package no.sikt.generator.handlers;
 
 import static no.sikt.generator.ApplicationConstants.EXTERNAL_BUCKET_NAME;
-import static no.sikt.generator.Utils.readResource;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import java.util.List;
-import java.util.Map.Entry;
 import no.sikt.generator.ApiGatewayHighLevelClient;
 import no.sikt.generator.CloudFrontHighLevelClient;
-import no.sikt.generator.OpenApiUtils;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeS3Client;
 import nva.commons.core.paths.UnixPath;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mockito;
@@ -146,12 +135,37 @@ class GenerateExternalDocsHandlerTest {
     }
 
     @Test
+    public void shouldIncludeExternalSchemaWhenItsDirectlyReferenced() {
+        var openapi = generateOpenApiFromExternalSpecs();
+
+        assertThat(openapi.getComponents().getSchemas().containsKey("ExternalSchema"),equalTo(true));
+    }
+
+    @Test
+    public void shouldNotIncludeNonExternalSchemaWhenItsDirectlyReferenced() {
+        var openapi = generateOpenApiFromExternalSpecs();
+
+        assertThat(openapi.getComponents().getSchemas().containsKey("InternalSchema"),equalTo(false));
+    }
+
+    @Test
     public void shouldCallCloudFrontInvalidation() {
         setupSingleFile();
 
         handler.handleRequest(null, null, null);
 
         verify(cloudFrontClient).createInvalidation(any(CreateInvalidationRequest.class));
+    }
+
+    private OpenAPI generateOpenApiFromExternalSpecs() {
+        var fileNames = List.of(
+            "api-with-external.yaml"
+        );
+        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, cloudFrontClient, null, fileNames);
+
+        handler.handleRequest(null, null, null);
+
+        return readGeneratedOpenApi();
     }
 
     private OpenAPI readGeneratedOpenApi() {

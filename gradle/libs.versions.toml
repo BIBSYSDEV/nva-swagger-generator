@@ -19,8 +19,8 @@ nvaCommons      = { strictly = '1.25.21' }
 nebula          = { strictly = '16.23.0' }
 slf4j           = { strictly = '1.8.0-beta4' }
 zalandoProblem  = { strictly = '0.27.1' }
-swagger-parser  = { strictly = '2.1.9' }
-swagger-core    = { strictly = '2.2.7' }
+swagger-parser  = { strictly = '2.1.12' }
+swagger-core    = { strictly = '2.2.8' }
 
 
 [libraries]
