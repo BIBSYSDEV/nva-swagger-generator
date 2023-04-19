@@ -2,11 +2,11 @@ package no.sikt.generator;
 
 import static no.sikt.generator.ApplicationConstants.DOMAIN;
 import static no.sikt.generator.OpenApiUtils.addTag;
-import static no.sikt.generator.OpenApiUtils.getAllOperationsFromPathItem;
 import static no.sikt.generator.OpenApiUtils.getResourcePath;
 import static no.sikt.generator.OpenApiUtils.hasPath;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
@@ -83,15 +83,17 @@ public class OpenApiCombiner {
         return baseTemplate;
     }
 
+    private void removeTag(Operation op) {
+        op.setTags(null);
+    }
+
     private void removeTags(OpenAPI api) {
-        api.getPaths().entrySet().forEach(path -> {
-            getAllOperationsFromPathItem(path.getValue()).forEach(op -> {
-                if (op.getTags() != null) {
-                    logger.info("Removing tags for {} {}", api.getInfo().getTitle(), path.getKey());
-                    op.setTags(null);
-                }
-            });
-        });
+        api.getPaths()
+            .values()
+            .stream()
+            .map(PathItem::readOperations)
+            .flatMap(Collection::stream)
+            .forEach(this::removeTag);
     }
 
     private void mergeSecurity(OpenAPI api) {
@@ -107,16 +109,16 @@ public class OpenApiCombiner {
         var title = api.getInfo().getTitle();
         var resourcePath = getResourcePath(api);
 
-        for (Entry<String, PathItem> path : api.getPaths().entrySet()) {
+        for (var entry : api.getPaths().entrySet()) {
 
-            getAllOperationsFromPathItem(path.getValue()).forEach(op -> addTag(op, title));
+            entry.getValue().readOperations().forEach(op -> addTag(op, title));
 
-            var newPathKey = "/" + resourcePath + path.getKey();
+            var newPathKey = "/" + resourcePath + entry.getKey();
             if (hasPath(baseTemplate, newPathKey)) {
                 throw new IllegalStateException("Path " + newPathKey + " already exists");
             }
 
-            this.baseTemplate.path(newPathKey, path.getValue());
+            this.baseTemplate.path(newPathKey, entry.getValue());
         }
     }
 
@@ -224,8 +226,8 @@ public class OpenApiCombiner {
     }
 
     private void renameSchemaRef(OpenAPI target, String oldName, String newName) {
-        target.getPaths().forEach((key, value) -> {
-            getAllOperationsFromPathItem(value).forEach(pathOperation -> {
+        target.getPaths().values().forEach(pathItem -> {
+            pathItem.readOperations().forEach(pathOperation -> {
                 pathOperation.getResponses().entrySet().forEach(response -> {
                     response.getValue().getContent().entrySet().forEach(content -> {
                         var oldRef = content.getValue().getSchema().get$ref();

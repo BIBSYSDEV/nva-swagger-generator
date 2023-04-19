@@ -9,6 +9,7 @@ import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.tags.Tag;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -40,20 +41,6 @@ public final class OpenApiUtils {
 
     public static Tag convertInfoToTag(Info info) {
         return new Tag().name(info.getTitle()).description(info.getDescription());
-    }
-
-    public static Stream<Operation> getAllOperationsFromPathItem(PathItem pathItem) {
-        return Stream.of(
-            pathItem.getGet(),
-            pathItem.getDelete(),
-            pathItem.getPut(),
-            pathItem.getPost(),
-            pathItem.getOptions(),
-            pathItem.getHead(),
-            pathItem.getTrace(),
-            pathItem.getPatch()
-        )
-           .filter(Objects::nonNull);
     }
 
     public static Stream<Schema> getNestedPropertiesSchemas(Schema schema) {
@@ -90,7 +77,8 @@ public final class OpenApiUtils {
                     .orElseGet(Paths::new)
                     .values()
                     .stream()
-                    .flatMap(OpenApiUtils::getAllOperationsFromPathItem)
+                    .map(PathItem::readOperations)
+                    .flatMap(Collection::stream)
                     .flatMap(OpenApiUtils::getApiResponsesFromOperation)
                     .flatMap(OpenApiUtils::getMediaTypesFromContent)
                     .map(OpenApiUtils::getRefFromMediaType)
