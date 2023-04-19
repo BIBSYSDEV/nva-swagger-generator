@@ -207,6 +207,21 @@ class GenerateInternalDocsHandlerTest {
     }
 
     @Test
+    public void shouldRenameRefsWhenTheyHaveSameNameAndAreNested() {
+        setupTestCasesFromFiles("same-schema-name", List.of("api-a.yaml", "api-b.yaml"));
+
+        handler.handleRequest(null, null, null);
+
+        var openApi = readGeneratedOpenApi();
+
+        assertThat(openApi.getComponents().getSchemas().get("DuplicateSchema"), nullValue());
+        var responseSchema = openApi.getComponents().getSchemas().get("ResponseA");
+        var firstSchema = OpenApiUtils.getNestedPropertiesSchemas(responseSchema).findFirst().get();
+        var nestedSchemaRef = firstSchema.get$ref();
+        assertThat(nestedSchemaRef,not(equalTo("#/components/schemas/DuplicateSchema")));
+    }
+
+    @Test
     public void shouldParseFile() {
         setupNvaMocks();
 

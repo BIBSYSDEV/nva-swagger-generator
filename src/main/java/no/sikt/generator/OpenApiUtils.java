@@ -63,6 +63,7 @@ public final class OpenApiUtils {
     public static Stream<Schema> getNestedSchemas(Schema schema) {
         var nestedSchemas = Stream.of(
             Stream.of(schema.getItems()),
+            OpenApiUtils.getNestedPropertiesSchemas(schema),
             OpenApiUtils.getNestedPropertiesSchemas(schema).map(Schema::getItems)
         ).flatMap(stream -> stream).filter(Objects::nonNull).collect(Collectors.toList());
 
