@@ -3,12 +3,15 @@ package no.sikt.generator.handlers;
 import static no.sikt.generator.ApplicationConstants.EXTERNAL_BUCKET_NAME;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
@@ -146,6 +149,27 @@ class GenerateExternalDocsHandlerTest {
         var openapi = generateOpenApiFromExternalSpecs();
 
         assertThat(openapi.getComponents().getSchemas().containsKey("InternalSchema"),equalTo(false));
+    }
+
+    @Test
+    public void shouldOnlyWriteTheCombinedOpenApiFileToS3() {
+        var fileNames = List.of(
+            "api-with-external.yaml"
+        );
+        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, cloudFrontClient, null, fileNames);
+
+        handler.handleRequest(null, null, null);
+
+        var files = s3Driver.listAllFiles(UnixPath.of("docs/"));
+        assertThat(files, hasSize(1));
+        assertThat(files.get(0).toString(), equalTo("docs/openapi.yaml"));
+    }
+
+    @Test
+    public void shouldOnlyIncludeOneSecurityScheme() {
+        var openapi = generateOpenApiFromExternalSpecs();
+        var securitySchemas = openapi.getComponents().getSecuritySchemes();
+        assertThat(securitySchemas.entrySet(), hasSize(1));
     }
 
     @Test
