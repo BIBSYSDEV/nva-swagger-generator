@@ -109,7 +109,7 @@ Resources:
                   - '*'
 
   AuthenticateInternalSwaggerUIRole:
-    Type: "AWS::IAM::Role"
+    Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -156,7 +156,8 @@ Resources:
         Statement:
           - Sid: PublicReadForGetBucketObjects
             Effect: Allow
-            Principal: '*'
+            Principal:
+              CanonicalUser: !GetAtt ExternalOriginAccessIdentity.S3CanonicalUserId
             Action: 's3:GetObject'
             Resource: !Sub arn:aws:s3:::${ExternalSwaggerUiBucket}/*
 
@@ -168,9 +169,10 @@ Resources:
         Id: PublicReadPolicy
         Version: 2012-10-17
         Statement:
-          - Sid: PublicReadForGetBucketObjects
+          - Sid: CloudFrontOnlyRead
             Effect: Allow
-            Principal: '*'
+            Principal:
+              CanonicalUser: !GetAtt InternalOriginAccessIdentity.S3CanonicalUserId
             Action: 's3:GetObject'
             Resource: !Sub arn:aws:s3:::${InternalSwaggerUiBucket}/*
 
@@ -334,11 +336,17 @@ Resources:
         Comment: !Sub 'Authentication for internal swagger ui'
         Runtime: cloudfront-js-1.0
 
-  OriginAccessIdentity:
+  InternalOriginAccessIdentity:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
       CloudFrontOriginAccessIdentityConfig:
-        Comment: !Ref AWS::StackName
+        Comment: !Sub 'CloudFront swagger-ui-internal.${CustomDomain}}'
+
+  ExternalOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub 'CloudFront swagger-ui.${CustomDomain}}'
 
   CustomDomainCloudfrontDistribution:
     Type: AWS::CloudFront::Distribution
@@ -362,10 +370,9 @@ Resources:
         Origins:
           - Id: 'swagger-ui-bucket-external'
             DomainName: !Sub "${ExternalSwaggerUiBucket}.s3.${AWS::Region}.amazonaws.com"
-            CustomOriginConfig:
-              HTTPPort: 80
-              HTTPSPort: 443
-              OriginProtocolPolicy: match-viewer
+            S3OriginConfig:
+              OriginAccessIdentity:
+                !Join ['', ['origin-access-identity/cloudfront/', !Ref ExternalOriginAccessIdentity]]
         ViewerCertificate:
           AcmCertificateArn: !Ref SwaggerDomainCertificateArn
           SslSupportMethod: 'sni-only'
@@ -395,10 +402,9 @@ Resources:
         Origins:
           - Id: 'swagger-ui-bucket-internal'
             DomainName: !Sub "${InternalSwaggerUiBucket}.s3.${AWS::Region}.amazonaws.com"
-            CustomOriginConfig:
-              HTTPPort: 80
-              HTTPSPort: 443
-              OriginProtocolPolicy: match-viewer
+            S3OriginConfig:
+              OriginAccessIdentity:
+                !Join ['', ['origin-access-identity/cloudfront/', !Ref InternalOriginAccessIdentity]]
         ViewerCertificate:
           AcmCertificateArn: !Ref SwaggerDomainCertificateArn
           SslSupportMethod: 'sni-only'
