@@ -16,10 +16,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResponseB"
+                $ref: "#/components/schemas/Response"
 components:
   schemas:
-    ResponseB:
+    Response:
       type: "object"
       properties:
         duplicateSchema:

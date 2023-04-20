@@ -30,6 +30,10 @@ import org.slf4j.LoggerFactory;
 public class OpenApiCombiner {
 
     public static final String COMPONENTS_SCHEMAS = "#/components/schemas/";
+    public static final int MAX_RENAME_ITERATIONS = 20;
+    public static final String MAX_RENAME_ITERATIONS_REACHED = "Max iterations of renaming schemas "
+                                                               + "reached. Infinite loop?";
+    public static final String DUPLICATES_FOUND = "Found duplicate schema-names that needs to be renamed: {}";
     private final OpenAPI baseTemplate;
     private final List<OpenAPI> others;
 
@@ -177,10 +181,19 @@ public class OpenApiCombiner {
         });
     }
 
+    @SuppressWarnings("PMD.AssignmentInOperand")
     private void renameDuplicateSchemas() {
-        var duplicateNames = findDuplicateSchemaNames();
-        renameSchemas(duplicateNames);
-        renameNestedSchemaRefs(duplicateNames);
+        Set<String> duplicateSchemas;
+        var iterations = 0;
+        do {
+            if (iterations++ > MAX_RENAME_ITERATIONS) {
+                throw new RuntimeException(MAX_RENAME_ITERATIONS_REACHED);
+            }
+            duplicateSchemas = findDuplicateSchemaNames();
+            logger.info(DUPLICATES_FOUND, duplicateSchemas);
+            renameSchemas(duplicateSchemas);
+            renameNestedSchemaRefs(duplicateSchemas);
+        } while (!duplicateSchemas.isEmpty());
     }
 
     private void renameNestedSchemaRefs(Set<String> duplicateNames) {

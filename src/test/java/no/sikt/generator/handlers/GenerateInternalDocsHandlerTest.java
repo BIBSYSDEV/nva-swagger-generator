@@ -215,7 +215,7 @@ class GenerateInternalDocsHandlerTest {
         var openApi = readGeneratedOpenApi();
 
         assertThat(openApi.getComponents().getSchemas().get("DuplicateSchema"), nullValue());
-        var responseSchema = openApi.getComponents().getSchemas().get("ResponseA");
+        var responseSchema = openApi.getComponents().getSchemas().get("ApiAResponse");
         var firstSchema = OpenApiUtils.getNestedPropertiesSchemas(responseSchema).findFirst().get();
         var nestedSchemaRef = firstSchema.get$ref();
         assertThat(nestedSchemaRef,not(equalTo("#/components/schemas/DuplicateSchema")));
