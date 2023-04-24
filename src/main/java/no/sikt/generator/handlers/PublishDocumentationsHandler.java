@@ -63,7 +63,8 @@ public class PublishDocumentationsHandler implements RequestStreamHandler {
         apis.items().stream()
             .map(this::fetchProdApiData)
             .filter(Objects::nonNull)
-            .sorted(this::sortApisByDate)
+            .sorted(ApiData::sortByDate)
+            .sorted(ApiData::sortByDashes)
             .filter(this::apiShouldBeIncluded)
             .filter(distinctByKey(ApiData::getName))
             .forEach(this::publishDocumentation);
@@ -102,10 +103,6 @@ public class PublishDocumentationsHandler implements RequestStreamHandler {
     public static <T> Predicate<T> distinctByKey(Function<? super T,Object> keyExtractor) {
         Map<Object,Boolean> seen = new ConcurrentHashMap<>();
         return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
-    }
-
-    private int sortApisByDate(ApiData apiData, ApiData otherApiData) {
-        return otherApiData.getAwsRestApi().createdDate().compareTo(apiData.getAwsRestApi().createdDate());
     }
 
     private boolean apiShouldBeIncluded(ApiData apiData) {
