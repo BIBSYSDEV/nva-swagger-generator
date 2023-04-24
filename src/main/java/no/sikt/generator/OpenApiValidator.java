@@ -20,6 +20,9 @@ public class OpenApiValidator {
         if (schemaName.matches(".*\\d.*")) {
             logger.warn("API {} schema '{}' contains numbers", apiName, schemaName);
         }
+        if (schemaName.matches(".*\\s.*")) {
+            logger.warn("API {} schema '{}' contains whitespace", apiName, schemaName);
+        }
     }
 
 }

@@ -105,20 +105,16 @@ public class GenerateInternalDocsHandler implements RequestStreamHandler {
                    .map(this::fetchProdApiData)
                    .filter(Objects::nonNull)
                    .peek(apiData -> openApiValidator.validateOpenApi(apiData.getOpenApi()))
-                   .sorted(this::sortApisByDate)
+                   .sorted(ApiData::sortByDate)
+                   .sorted(ApiData::sortByDashes)
                    .filter(this::apiShouldBeIncluded)
-                   .filter(distinctByKey(ApiData::getName));
+                   .filter(distinctByKey(ApiData::getName))
+                   .sorted(ApiData::sortByName);
     }
 
     private void writeToS3(String bucket, String filename, String content) {
         var s3Driver = new S3Driver(s3Client, bucket);
         attempt(() -> s3Driver.insertFile(UnixPath.of(filename), content)).orElseThrow();
-    }
-
-
-
-    private int sortApisByDate(ApiData apiData, ApiData otherApiData) {
-        return otherApiData.getAwsRestApi().createdDate().compareTo(apiData.getAwsRestApi().createdDate());
     }
 
     private void writeApiDocsToInternalS3(ApiData apiData) {

@@ -190,7 +190,9 @@ public class OpenApiCombiner {
                 throw new RuntimeException(MAX_RENAME_ITERATIONS_REACHED);
             }
             duplicateSchemas = findDuplicateSchemaNames();
-            logger.info(DUPLICATES_FOUND, duplicateSchemas);
+            if (!duplicateSchemas.isEmpty()) {
+                logger.info(DUPLICATES_FOUND, duplicateSchemas);
+            }
             renameSchemas(duplicateSchemas);
             renameNestedSchemaRefs(duplicateSchemas);
         } while (!duplicateSchemas.isEmpty());

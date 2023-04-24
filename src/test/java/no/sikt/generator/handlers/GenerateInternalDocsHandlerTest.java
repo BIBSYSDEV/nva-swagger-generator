@@ -222,6 +222,24 @@ class GenerateInternalDocsHandlerTest {
     }
 
     @Test
+    public void shouldNotThrowWhenApiSpecsMissServer() {
+        setupTestCasesFromFiles("server", List.of("api-without-server.yaml", "api-without-server.yaml"));
+
+        handler.handleRequest(null, null, null);
+    }
+
+    @Test
+    public void shouldOnlyIncludeSpecsForApiWithSingleDashInServerBasePathIfMultipleApisWithSameNamePresent() {
+        setupTestCasesFromFiles("server", List.of("api-with-basepath-with-1-dashes.yaml",
+                                                  "api-with-basepath-with-2-dashes.yaml"));
+
+        handler.handleRequest(null, null, null);
+        var openApi = readGeneratedOpenApi();
+        assertThat(openApi.getPaths().keySet().size(), equalTo(1));
+        assertThat(openApi.getPaths().keySet().stream().findFirst().get(), equalTo("/pathA-something/path"));
+    }
+
+    @Test
     public void shouldParseFile() {
         setupNvaMocks();
 

@@ -1,0 +1,43 @@
+openapi: "3.0.1"
+info:
+  title: "Api A"
+  version: "1.0"
+paths:
+  /path:
+    get:
+      responses:
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+        "500":
+          description: "500 response"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    Response:
+      type: "object"
+      properties:
+        fieldOnlyInA:
+          type: "string"
+    Error:
+      type: "object"
+      properties:
+        sameField:
+          type: "string"
+    UniqueSchemaWithNumber1:
+      type: "object"
+      properties:
+        field:
+          type: "string"
+  securitySchemes:
+    SharedUserPool:
+      type: "apiKey"
+      name: "Authorization"
+      in: "header"
+      x-amazon-apigateway-authtype: "cognito_user_pools"

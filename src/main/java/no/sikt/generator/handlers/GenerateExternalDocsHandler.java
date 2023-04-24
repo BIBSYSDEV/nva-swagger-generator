@@ -106,9 +106,11 @@ public class GenerateExternalDocsHandler implements RequestStreamHandler {
                    .map(this::fetchProdApiData)
                    .filter(Objects::nonNull)
                    .peek(apiData -> openApiValidator.validateOpenApi(apiData.getOpenApi()))
-                   .sorted(this::sortApisByDate)
+                   .sorted(ApiData::sortByDate)
+                   .sorted(ApiData::sortByDashes)
                    .filter(this::apiShouldBeIncluded)
-                   .filter(distinctByKey(ApiData::getName));
+                   .filter(distinctByKey(ApiData::getName))
+                   .sorted(ApiData::sortByName);
     }
 
     private void writeToS3(String bucket, String filename, String content) {
@@ -116,11 +118,6 @@ public class GenerateExternalDocsHandler implements RequestStreamHandler {
         attempt(() -> s3Driver.insertFile(UnixPath.of(filename), content)).orElseThrow();
     }
 
-
-
-    private int sortApisByDate(ApiData apiData, ApiData otherApiData) {
-        return otherApiData.getAwsRestApi().createdDate().compareTo(apiData.getAwsRestApi().createdDate());
-    }
 
     private ApiData fetchProdApiData(RestApi restApi) {
         return apiGatewayHighLevelClient.fetchApiDataForStage(restApi, EXPORT_STAGE_PROD, openApiParser);
