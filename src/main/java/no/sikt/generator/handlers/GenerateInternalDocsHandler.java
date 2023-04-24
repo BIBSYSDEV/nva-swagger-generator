@@ -104,19 +104,11 @@ public class GenerateInternalDocsHandler implements RequestStreamHandler {
                    .map(this::fetchProdApiData)
                    .filter(Objects::nonNull)
                    .peek(apiData -> openApiValidator.validateOpenApi(apiData.getOpenApi()))
-                   .peek((apiData) -> logApi("before sort", apiData))
                    .sorted(ApiData::sortByDate)
-                   .peek((apiData) -> logApi("after date sort", apiData))
                    .sorted(ApiData::sortByDashes)
-                   .peek((apiData) -> logApi("after dash sort", apiData))
                    .filter(this::apiShouldBeIncluded)
                    .filter(distinctByKey(ApiData::getName))
-                   .peek((apiData) -> logApi("after filter duplicates", apiData))
                    .sorted(ApiData::sortByName);
-    }
-
-    private void logApi(String text, ApiData apiData) {
-        logger.info("{} {} {}", text, apiData.getName(), apiData.getAwsRestApi().id());
     }
 
     private void writeToS3(String bucket, String filename, String content) {
