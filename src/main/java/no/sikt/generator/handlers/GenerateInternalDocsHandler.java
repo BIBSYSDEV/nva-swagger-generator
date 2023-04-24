@@ -89,7 +89,6 @@ public class GenerateInternalDocsHandler implements RequestStreamHandler {
 
         var swaggers = validateAndFilterApis(apis)
             .peek(this::writeApiDocsToInternalS3)
-            .sorted()
             .map(ApiData::getOpenApi)
             .collect(Collectors.toList());
 

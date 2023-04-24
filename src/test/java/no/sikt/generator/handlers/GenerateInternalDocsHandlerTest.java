@@ -16,9 +16,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.tags.Tag;
 import io.swagger.v3.parser.OpenAPIV3Parser;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import no.sikt.generator.ApiGatewayHighLevelClient;
 import no.sikt.generator.CloudFrontHighLevelClient;
 import no.sikt.generator.OpenApiUtils;
@@ -237,6 +241,18 @@ class GenerateInternalDocsHandlerTest {
         var openApi = readGeneratedOpenApi();
         assertThat(openApi.getPaths().keySet().size(), equalTo(1));
         assertThat(openApi.getPaths().keySet().stream().findFirst().get(), equalTo("/pathA-something/path"));
+    }
+
+    @Test
+    public void shouldSortApisAlphabetically() {
+        setupNvaMocks();
+
+        handler.handleRequest(null, null, null);
+        var openApi = readGeneratedOpenApi();
+        var tags = openApi.getTags().stream().map(Tag::getName).collect(Collectors.toList());
+        ArrayList<String> sortedTags = new ArrayList<>(tags);
+        Collections.sort(sortedTags);
+        assertThat(tags, is(equalTo(sortedTags)));
     }
 
     @Test

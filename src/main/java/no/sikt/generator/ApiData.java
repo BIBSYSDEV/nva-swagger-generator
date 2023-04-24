@@ -5,13 +5,12 @@ import static no.sikt.generator.ApplicationConstants.EXCLUDED_APIS;
 import io.swagger.v3.oas.models.OpenAPI;
 import nva.commons.core.attempt.Failure;
 import nva.commons.core.attempt.Try;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.apigateway.model.RestApi;
 import software.amazon.awssdk.services.apigateway.model.Stage;
 
-public class ApiData implements Comparable<ApiData> {
+public class ApiData {
 
     private final RestApi awsRestApi;
     private final OpenAPI openApi;
@@ -84,11 +83,6 @@ public class ApiData implements Comparable<ApiData> {
     }
 
     public static int sortByName(ApiData apiData, ApiData otherApiData) {
-        return otherApiData.getAwsRestApi().name().compareTo(apiData.getAwsRestApi().name());
-    }
-
-    @Override
-    public int compareTo(@NotNull ApiData o) {
-        return awsRestApi.id().compareTo(o.getAwsRestApi().id());
+        return apiData.getName().compareTo(otherApiData.getName());
     }
 }

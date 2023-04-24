@@ -88,7 +88,6 @@ public class GenerateExternalDocsHandler implements RequestStreamHandler {
                            .getOpenAPI();
 
         var swaggers = validateAndFilterApis(apis)
-            .sorted()
             .map(ApiData::getOpenApi)
             .collect(Collectors.toList());
 
