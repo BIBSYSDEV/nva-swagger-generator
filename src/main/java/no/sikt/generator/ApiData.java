@@ -60,14 +60,20 @@ public class ApiData {
     }
 
     private int getNumberOfDashesInBasePath() {
-        return (int) openApi.getServers()
-                         .get(0)
-                         .getVariables()
-                         .get("basePath")
-                         .getDefault()
-                         .chars()
-                         .filter(c -> c == '-')
-                         .count();
+        var basePath = openApi.getServers()
+                           .get(0)
+                           .getVariables()
+                           .get("basePath")
+                           .getDefault();
+
+        var dashCount = basePath
+                            .chars()
+                            .filter(c -> c == '-')
+                            .count();
+
+        logger.info("{} {} {} has {} dashes", getName(), this.awsRestApi.id(), basePath, dashCount);
+
+        return (int) dashCount;
     }
 
     public boolean isOnExcludeList() {
