@@ -23,6 +23,7 @@ import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersions
 import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionsResponse;
 import software.amazon.awssdk.services.apigateway.model.GetExportRequest;
 import software.amazon.awssdk.services.apigateway.model.GetExportResponse;
+import software.amazon.awssdk.services.apigateway.model.GetRestApisRequest;
 import software.amazon.awssdk.services.apigateway.model.GetRestApisResponse;
 import software.amazon.awssdk.services.apigateway.model.GetStagesRequest;
 import software.amazon.awssdk.services.apigateway.model.GetStagesResponse;
@@ -88,6 +89,8 @@ public class TestUtils {
         var updateStageResponse = UpdateStageResponse.builder().build();
 
         when(apiGatewayAsyncClient.getRestApis()).thenReturn(CompletableFuture.completedFuture(getRestApisResponse));
+        when(apiGatewayAsyncClient.getRestApis(any(GetRestApisRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(getRestApisResponse));
         when(apiGatewayAsyncClient.getDocumentationParts(any(GetDocumentationPartsRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(getDocPartsResponse));
         when(apiGatewayAsyncClient.getStages(any(GetStagesRequest.class)))

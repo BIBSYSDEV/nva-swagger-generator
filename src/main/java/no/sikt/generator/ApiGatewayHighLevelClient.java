@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.apigateway.model.GetDocumentationPartsReq
 import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionsRequest;
 import software.amazon.awssdk.services.apigateway.model.GetDocumentationVersionsResponse;
 import software.amazon.awssdk.services.apigateway.model.GetExportRequest;
+import software.amazon.awssdk.services.apigateway.model.GetRestApisRequest;
 import software.amazon.awssdk.services.apigateway.model.GetRestApisResponse;
 import software.amazon.awssdk.services.apigateway.model.GetStagesRequest;
 import software.amazon.awssdk.services.apigateway.model.Op;
@@ -25,6 +26,7 @@ import software.amazon.awssdk.services.apigateway.model.UpdateStageRequest;
 public class ApiGatewayHighLevelClient {
     private static final Logger logger = LoggerFactory.getLogger(ApiGatewayHighLevelClient.class);
     public static final String DOCUMENTATION_VERSION_PATH = "/documentationVersion";
+    public static final int MAX_API_LIMIT = 500;
     public static final int LIMIT = 500;
     private final ApiGatewayAsyncClient apiGatewayClient;
 
@@ -81,7 +83,10 @@ public class ApiGatewayHighLevelClient {
     }
 
     public GetRestApisResponse getRestApis() {
-        return attempt(() -> apiGatewayClient.getRestApis().get()).orElseThrow();
+        var request = GetRestApisRequest.builder()
+                          .limit(MAX_API_LIMIT)
+                          .build();
+        return attempt(() -> apiGatewayClient.getRestApis(request).get()).orElseThrow();
     }
 
     public GetDocumentationVersionsResponse fetchVersions(String id) {
