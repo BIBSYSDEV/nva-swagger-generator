@@ -3,6 +3,7 @@ package no.sikt.generator.handlers;
 import static no.sikt.generator.ApplicationConstants.INTERNAL_BUCKET_NAME;
 import static no.sikt.generator.Utils.readResource;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -253,6 +254,18 @@ class GenerateInternalDocsHandlerTest {
         ArrayList<String> sortedTags = new ArrayList<>(tags);
         Collections.sort(sortedTags);
         assertThat(tags, is(equalTo(sortedTags)));
+    }
+
+    @Test
+    public void shouldSortSchemasAlphabetically() {
+        setupNvaMocks();
+
+        handler.handleRequest(null, null, null);
+        var openApi = readGeneratedOpenApi();
+        var schemas = openApi.getComponents().getSchemas().keySet();
+        ArrayList<String> sortedSchemas = new ArrayList<>(schemas);
+        Collections.sort(sortedSchemas);
+        assertThat(new ArrayList<>(schemas), is(equalTo(sortedSchemas)));
     }
 
     @Test

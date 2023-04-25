@@ -83,8 +83,22 @@ public class OpenApiCombiner {
             mergePaths(api);
             mergeSecurity(api);
         });
+        sortSchemas();
 
         return baseTemplate;
+    }
+
+    private void sortSchemas() {
+        if (this.baseTemplate.getComponents().getSchemas() == null) {
+            return;
+        }
+        var unsorted = this.baseTemplate.getComponents().getSchemas().entrySet();
+        var sorted = unsorted.stream().sorted(Entry.comparingByKey()).collect(Collectors.toList());
+
+        this.baseTemplate.getComponents().setSchemas(null);
+        sorted.forEach(e -> {
+            this.baseTemplate.getComponents().addSchemas(e.getKey(), e.getValue());
+        });
     }
 
     private void removeTag(Operation op) {
