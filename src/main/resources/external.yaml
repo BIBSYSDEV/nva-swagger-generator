@@ -3,7 +3,14 @@ info:
   version: 1.0.0
   title: NVA Swagger main page
   description: Some documentation that applies to all external endpoints. Some documentation that applies to all external endpoints. Some documentation that applies to all external endpoints. Some documentation that applies to all external endpoints.
+  termsOfService: http://nva.unit.no/terms/
+  contact:
+    email: nva@unit.no
   license:
-    name: MIT
+    name: MIT/NLOD 2.0
+    url: https://link.to.license
+externalDocs:
+  description: Find out more about NVA
+  url: https://nva.unit.no
 servers:
   - url: https://example.com/
