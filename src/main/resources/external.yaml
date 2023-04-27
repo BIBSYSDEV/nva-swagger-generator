@@ -1,16 +1,52 @@
 openapi: "3.0.0"
 info:
   version: 1.0.0
-  title: NVA Swagger main page
-  description: Some documentation that applies to all external endpoints. Some documentation that applies to all external endpoints. Some documentation that applies to all external endpoints. Some documentation that applies to all external endpoints.
-  termsOfService: http://nva.unit.no/terms/
+  title: NVA API Dokumentasjon
+  description: |-
+    ## Om NVA
+    
+    Nasjonalt vitenarkiv (NVA) samler informasjon om norsk forskning og gjør forskningsresultater og forskningsinformasjon åpent tilgjengelig.
+
+    Med NVA får norske forskningsinstitusjoner en tjeneste for å:
+
+    Innfri krav om åpen tilgang til artikler og andre forskningsresultater gjennom deponering i et åpent vitenarkiv
+    Selv publisere rapporter, studentoppgaver og annet materiale produsert ved institusjonen
+    NVA utvikles også til bruk ved rapportering av vitenskapelig publisering til Kunnskapsdepartementet og Helse- og omsorgsdepartementet (NVI-rapportering), og for andre forskningsadministrative oppgaver.
+
+    Sikt er databehandler. Den enkelte Institusjon er behandlingsansvarlig og registrerer og vedlikeholder eget innhold i tjenesten og konfigurerer distribusjonsregler for publiserte ressurser (artikler, rapporter, datasett etc.). Tjenesten får også overført innhold fra andre datakilder.
+
+    NVA har støtte for utsatt publisering av ressurser. Det betyr at en registrering kan ferdigstilles slik at metadata om ressursen blir publisert, mens ressursen ikke blir åpent tilgjengelig før angitt dato. Tjenesten tillater ikke behandling av sensitive personopplysninger.
+
+    NVA vil tilgjengeliggjøre institusjonens åpne innhold via åpne grensesnitt, med hensikt å gjøre dette kjent og søkbart for omverdenen og fremme indeksering i søkemotorer og søkeportaler.
+
+    Selv om NVA er etablert og i bruk av flere institusjoner, vil tjenesten være i kontinuerlig utvikling i hele sin levetid. Institusjoner som ikke har et vitenarkiv kan kontakte Sikt for å få ta i bruk NVA som pilotinstitusjon.
+    
+    ## Bruk av APIet
+    
+    Ta kontakt for å få tildelt API-bruker. En bruker består av en ID og en Secret ([Client Credentials](https://oauth.net/2/grant-types/client-credentials/)) som kan benyttes til å generere en token mot [https://nva-prod-ext.auth.eu-west-1.amazoncognito.com/oauth2/token](https://nva-prod-ext.auth.eu-west-1.amazoncognito.com/oauth2/token).
+    Bruk Basic Auth med ID som username, Secret som password, og leg ved 'grant_type=client_credentials' i body. Eksempel på CURL:
+    ```
+    curl --location --request POST 'https://nva-prod-ext.auth.eu-west-1.amazoncognito.com/oauth2/token' \
+    -u "<id>:<secret>" \
+    --header 'Content-Type: application/x-www-form-urlencoded' \
+    --data-urlencode 'grant_type=client_credentials'
+    ```
+    En vil da få en JSON respons tilbake som inneholder en 'access_token'. Dette er en bearer token som varer i 15min
+    
+    ## Dataformat
+
+    The data is reformatted as JSON-LD with a schema defined in the [search ontology](https://bibsysdev.github.io/src/search-ontology.ttl) and the [publication channel ontology](https://bibsysdev.github.io/src/publication-channel-ontology.ttl).
+
+    To understand the semantic layer, take a look at the @context URI returned by the API, the data is marked up according to this and may be interpreted directly to RDF using this.
+  termsOfService: https://nva.unit.no/terms/
   contact:
     email: nva@unit.no
   license:
     name: MIT/NLOD 2.0
     url: https://link.to.license
 externalDocs:
-  description: Find out more about NVA
-  url: https://nva.unit.no
+  description: Les mer om NVA
+  url: https://nva.sikt.no/about
+paths:
 servers:
   - url: https://example.com/

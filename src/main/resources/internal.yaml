@@ -1,9 +1,14 @@
 openapi: "3.0.0"
 info:
   version: 1.0.0
-  title: NVA Swagger main page
-  description: Some documentation that applies to all internal endpoints. Some documentation that applies to all internal endpoints. Some documentation that applies to all internal endpoints. Some documentation that applies to all internal endpoints.
-  termsOfService: http://nva.unit.no/terms/
+  title: NVA API Dokumentasjon internt
+  description: |-
+    ## Dataformat
+    
+    The data is reformatted as JSON-LD with a schema defined in the [search ontology](https://bibsysdev.github.io/src/search-ontology.ttl) and the [publication channel ontology](https://bibsysdev.github.io/src/publication-channel-ontology.ttl).
+
+    To understand the semantic layer, take a look at the @context URI returned by the API, the data is marked up according to this and may be interpreted directly to RDF using this.
+  termsOfService: https://nva.unit.no/terms/
   contact:
     email: nva@unit.no
   license:
@@ -12,5 +17,6 @@ info:
 externalDocs:
   description: Find out more about NVA
   url: https://nva.unit.no
+paths:
 servers:
   - url: https://example.com/
