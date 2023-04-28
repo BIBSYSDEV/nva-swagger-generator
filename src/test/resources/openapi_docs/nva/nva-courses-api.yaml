@@ -16,7 +16,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MODEL132e1d"
+                $ref: "#/components/schemas/Courses"
         "502":
           description: "502 response"
           content:
@@ -30,7 +30,7 @@ paths:
         - "aws.cognito.signin.user.admin"
 components:
   schemas:
-    MODEL132e1d:
+    Courses:
       type: "object"
       properties:
         courses:
@@ -38,15 +38,31 @@ components:
           items:
             $ref: "#/components/schemas/Course"
     Problem:
-      type: "object"
+      type: object
+      description: NVA error reporting object
+      required:
+        - title
+        - detail
+        - status
       properties:
-        detail:
-          type: "string"
         title:
-          type: "string"
+          type: string
+          description: Human-readable description of the error status
+        detail:
+          type: string
+          description: A more detailed error message describing the error and potential mitigations
         status:
-          type: "integer"
-          format: "int32"
+          type: integer
+          description: The HTTP status code associated with the problem
+        requestId:
+          type: string
+          description: Identifier of the request causing the problem
+        instance:
+          type: string
+          description: The requested path associated with the error
+        type:
+          type: string
+          description: A URI describing the error and mitigations, in generic cases, this is about:blank
     Course:
       type: "object"
       properties:
