@@ -12,6 +12,12 @@ paths:
     get:
       tags:
         - external
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExternalRequestSchema'
       responses:
         "200":
           description: "200 response"
@@ -30,6 +36,8 @@ paths:
                 $ref: "#/components/schemas/InternalSchema"
 components:
   schemas:
+    ExternalRequestSchema:
+      type: "object"
     ExternalSchema:
       type: "object"
       properties:

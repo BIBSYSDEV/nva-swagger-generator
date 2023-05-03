@@ -135,10 +135,17 @@ class GenerateExternalDocsHandlerTest {
     }
 
     @Test
-    public void shouldIncludeExternalSchemaWhenItsDirectlyReferenced() {
+    public void shouldIncludeExternalSchemaWhenItsDirectlyReferencedFromResponse() {
         var openapi = generateOpenApiFromExternalSpecs();
 
         assertThat(openapi.getComponents().getSchemas().containsKey("ExternalSchema"),equalTo(true));
+    }
+
+    @Test
+    public void shouldIncludeExternalSchemaWhenItsReferencedFromRequest() {
+        var openapi = generateOpenApiFromExternalSpecs();
+
+        assertThat(openapi.getComponents().getSchemas().containsKey("ExternalRequestSchema"),equalTo(true));
     }
 
     @Test

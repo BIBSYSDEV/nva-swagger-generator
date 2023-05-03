@@ -1,12 +1,16 @@
 package no.sikt.generator;
 
+import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Stream.concat;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.tags.Tag;
 import java.util.Collection;
@@ -73,7 +77,24 @@ public final class OpenApiUtils {
         ).flatMap(stream -> stream);
     }
 
-    public static Stream<String> getRefsFromPaths(OpenAPI openAPI) {
+    public static Stream<String> getRefsFromRequestBodies(OpenAPI openAPI) {
+        return Optional.ofNullable(openAPI.getPaths())
+                   .orElseGet(Paths::new)
+                   .values()
+                   .stream()
+                   .map(PathItem::readOperations)
+                   .flatMap(Collection::stream)
+                   .map(Operation::getRequestBody)
+                   .filter(Objects::nonNull)
+                   .map(RequestBody::getContent)
+                   .map(Content::values)
+                   .flatMap(Collection::stream)
+                   .map(MediaType::getSchema)
+                   .map(Schema::get$ref)
+                   .distinct();
+    }
+
+    public static Stream<String> getResponseRefsFromPaths(OpenAPI openAPI) {
         return Optional.ofNullable(openAPI.getPaths())
                     .orElseGet(Paths::new)
                     .values()
@@ -126,33 +147,38 @@ public final class OpenApiUtils {
 
     public static Set<String> getAllRefs(OpenAPI openAPI) {
         return Stream.of(
-                getRefsFromPaths(openAPI),
+                getResponseRefsFromPaths(openAPI),
+                getRefsFromRequestBodies(openAPI),
                 getSchemaItemsRefs(openAPI),
                 getSchemaPropertyRefs(openAPI),
                 getSchemaPropertyItemRefs(openAPI)
             ).flatMap(stream -> stream)
-               .collect(Collectors.toSet());
+               .collect(toSet());
     }
 
     public static Set<String> getAllUsedSchemas(OpenAPI openAPI) {
-        var reffed = OpenApiUtils.getRefsFromPaths(openAPI).collect(Collectors.toSet());
+        var responseRefs = OpenApiUtils.getResponseRefsFromPaths(openAPI).collect(toSet());
+        var requestRefs = OpenApiUtils.getRefsFromRequestBodies(openAPI).collect(toSet());
+        var reffed = concat(responseRefs.stream(), requestRefs.stream())
+                                   .collect(toSet());
+
         var directUsedSchemas = openAPI.getComponents().getSchemas()
                                     .entrySet()
                                     .stream()
                                     .filter(entry -> reffed.contains(COMPONENTS_SCHEMAS + entry.getKey()))
                                     .map(entry -> entry.getValue())
-                                    .collect(Collectors.toSet());
+                                    .collect(toSet());
 
         var nestedSchemas = directUsedSchemas
                                 .stream()
                                 .flatMap(OpenApiUtils::getNestedSchemas)
                                 .map(Schema::get$ref)
-                                .collect(Collectors.toSet());
+                                .collect(toSet());
 
         var combined = Stream.of(
                 reffed,
                 nestedSchemas
-            ).flatMap(Set::stream).collect(Collectors.toSet());
+            ).flatMap(Set::stream).collect(toSet());
 
         return combined;
     }
