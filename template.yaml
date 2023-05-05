@@ -26,7 +26,7 @@ Globals:
     Environment:
       Variables:
         DOMAIN: !Ref CustomDomain
-        EXCLUDED_APIS: "NVA Courses API,DLR LaunchCanvas API,NVA Alma SRU Proxy"
+        EXCLUDED_APIS: "NVA Courses API,DLR LaunchCanvas API,NVA Alma SRU Proxy,NVA Ontology Service"
         EXTERNAL_CLOUD_FRONT_DISTRIBUTION: !Ref CustomDomainCloudfrontDistribution
         INTERNAL_CLOUD_FRONT_DISTRIBUTION: !Ref InternalCloudfrontDistribution
         EXTERNAL_BUCKET_NAME: !Ref ExternalSwaggerUiBucket
