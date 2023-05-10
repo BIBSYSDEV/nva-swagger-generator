@@ -39,6 +39,77 @@ info:
     The data is reformatted as JSON-LD with a schema defined in the [search ontology](https://bibsysdev.github.io/src/search-ontology.ttl) and the [publication channel ontology](https://bibsysdev.github.io/src/publication-channel-ontology.ttl).
 
     To understand the semantic layer, take a look at the @context URI returned by the API, the data is marked up according to this and may be interpreted directly to RDF using this.
+    
+    ## Common usecases
+    <details>
+      <summary>Create publication with uploaded file</summary>
+
+      ### Create publication with uploaded file
+      To create a publication with a file we need to perform a series of steps. First we need to upload a file and get its identifier/location. Then we need to create a or update a publication that has the "associatedArtifacts" field referencing the file.
+    
+      #### Uploading the file
+      The file can be uploaded by using the "NVA multipart upload API". This is a flexible API that support uploading a file in multiple parts, but in our example we will only use 1 part. 
+    
+      1. Create a Upload process by calling POST ../upload/create and store the returned  *uploadId* and *key*
+            ```json 
+            {
+              "filename": "sample.pdf",
+              "size": "3028",
+              "mimetype": "application/pdf"
+            }
+            ``` 
+      2. Get the upload URI by calling POST ../upload/prepare with the parameters from step 1:
+            ```json 
+            {
+             "uploadId": "*****",
+              "key": "****",
+              "number": 1,
+              "body": "{}"
+            } 
+            ``` 
+            This returns a object with a *url* property.
+      3. Do a PUT on the *url* with the file data
+      4. Verify that the part was received and grab its *etag* by calling POST ../upload/listparts with the *uploadId* and *key* from step 1.
+      5. Complete the upload by calling POST ../upload/complete with *uploadId*, *key* and the data returned by step 4:
+            ```json 
+            {
+              "uploadId": "*****",
+              "key": "****",
+              "parts": [
+                {
+                    "PartNumber": "1",
+                    "size": "3237",
+                    "ETag": "***"
+                }
+            ]
+            }
+            ``` 
+            This gives a *location* as response. Store this string as its needed later.
+      #### Create the publication
+      1. Do a POST ../publication with the location from earlier as identifier in associatedArtifacts:
+          ```json 
+          { 
+            "associatedArtifacts": [{
+              "type": "PublishedFile",
+              "identifier": "****",
+              "name": "sample.pdf",
+              "size": 3028,
+              "mimeType": "application/pdf",
+              "administrativeAgreement": false,
+              "publisherAuthority": null,
+              "embargoDate": null,
+              "license": null
+            }],
+            "type": "Publication",
+            "entityDescription": {
+              "mainTitle": "A publication with a file"
+            }
+          }
+          ```
+    
+    
+    </details>
+
   termsOfService: https://nva.unit.no/terms/
   contact:
     email: nva@unit.no
