@@ -51,6 +51,13 @@ info:
       The file can be uploaded by using the "NVA multipart upload API". This is a flexible API that support uploading a file in multiple parts, but in our example we will only use 1 part. 
     
       1. Create a Upload process by calling POST ../upload/create and store the returned  *uploadId* and *key*
+            ```json 
+            {
+              "filename": "sample.pdf",
+              "size": "3028",
+              "mimetype": "application/pdf"
+            }
+            ``` 
       2. Get the upload URI by calling POST ../upload/prepare with the parameters from step 1:
             ```json 
             {
