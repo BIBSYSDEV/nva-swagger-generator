@@ -155,6 +155,18 @@ class GenerateExternalDocsHandlerTest {
         assertThat(openapi.getComponents().getSchemas().containsKey("InternalSchema"),equalTo(false));
     }
 
+
+    @Test
+    public void shouldIncludeFieldsThatAreNestedWithAllOf() {
+        setupTestCasesFromFiles("all-of", List.of("api.yaml", "api.yaml"));
+
+        handler.handleRequest(null, null, null);
+
+        var openApi = readGeneratedOpenApi();
+
+        assertThat(openApi.getComponents().getSchemas().get("NestedResponse"), notNullValue());
+    }
+
     @Test
     public void shouldOnlyWriteTheCombinedOpenApiFileToS3() {
         var fileNames = List.of(

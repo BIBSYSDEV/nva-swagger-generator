@@ -47,6 +47,14 @@ public final class OpenApiUtils {
         return new Tag().name(info.getTitle()).description(info.getDescription());
     }
 
+    public static Stream<Schema> getNestedAllOfSchemas(Schema schema) {
+        return schema.getAllOf() != null ? schema.getAllOf().stream() : Stream.of();
+    }
+
+    public static Stream<Schema> getNestedAnyOfSchemas(Schema schema) {
+        return schema.getAnyOf() != null ? schema.getAnyOf().stream() : Stream.of();
+    }
+
     public static Stream<Schema> getNestedPropertiesSchemas(Schema schema) {
         Map<String, Schema> properties = schema.getProperties();
         return properties != null ? properties.values().stream() : Stream.of();
@@ -67,6 +75,8 @@ public final class OpenApiUtils {
     public static Stream<Schema> getNestedSchemas(Schema schema) {
         var nestedSchemas = Stream.of(
             Stream.of(schema.getItems()),
+            OpenApiUtils.getNestedAllOfSchemas(schema),
+            OpenApiUtils.getNestedAnyOfSchemas(schema),
             OpenApiUtils.getNestedPropertiesSchemas(schema),
             OpenApiUtils.getNestedPropertiesSchemas(schema).map(Schema::getItems)
         ).flatMap(stream -> stream).filter(Objects::nonNull).collect(Collectors.toList());
