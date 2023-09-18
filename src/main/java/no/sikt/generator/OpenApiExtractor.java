@@ -1,5 +1,6 @@
 package no.sikt.generator;
 
+import static java.util.Objects.isNull;
 import static no.sikt.generator.OpenApiUtils.COMPONENTS_SCHEMAS;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
@@ -60,7 +61,7 @@ public class OpenApiExtractor {
     private void removeExternalOps(Entry<String, PathItem> pathEntry) {
         var path = pathEntry.getValue();
         path.readOperationsMap().forEach((httpMethod, operation) -> {
-            if (operation.getTags() == null || !operation.getTags().stream().anyMatch(this::anyTagIsExternal)) {
+            if (isNull(operation.getTags()) || !operation.getTags().stream().anyMatch(this::anyTagIsExternal)) {
                 logger.info("Removing operation {} {} because its not tagged as external",
                             httpMethod,
                             pathEntry.getKey());

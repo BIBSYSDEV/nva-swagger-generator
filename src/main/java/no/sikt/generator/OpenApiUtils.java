@@ -1,5 +1,6 @@
 package no.sikt.generator;
 
+import static java.util.Objects.*;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.concat;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -40,16 +41,24 @@ public final class OpenApiUtils {
     }
 
     public static boolean hasPath(OpenAPI api, String pathKey) {
-        return api.getPaths() != null && api.getPaths().get(pathKey) != null;
+        return nonNull(api.getPaths()) && nonNull(api.getPaths().get(pathKey));
     }
 
     public static Tag convertInfoToTag(Info info) {
         return new Tag().name(info.getTitle()).description(info.getDescription());
     }
 
+    public static Stream<Schema> getNestedAllOfSchemas(Schema schema) {
+        return nonNull(schema.getAllOf()) ? schema.getAllOf().stream() : Stream.of();
+    }
+
+    public static Stream<Schema> getNestedAnyOfSchemas(Schema schema) {
+        return nonNull(schema.getAnyOf()) ? schema.getAnyOf().stream() : Stream.of();
+    }
+
     public static Stream<Schema> getNestedPropertiesSchemas(Schema schema) {
         Map<String, Schema> properties = schema.getProperties();
-        return properties != null ? properties.values().stream() : Stream.of();
+        return nonNull(properties) ? properties.values().stream() : Stream.of();
     }
 
     public static Stream<ApiResponse> getApiResponsesFromOperation(Operation operation) {
@@ -67,6 +76,8 @@ public final class OpenApiUtils {
     public static Stream<Schema> getNestedSchemas(Schema schema) {
         var nestedSchemas = Stream.of(
             Stream.of(schema.getItems()),
+            OpenApiUtils.getNestedAllOfSchemas(schema),
+            OpenApiUtils.getNestedAnyOfSchemas(schema),
             OpenApiUtils.getNestedPropertiesSchemas(schema),
             OpenApiUtils.getNestedPropertiesSchemas(schema).map(Schema::getItems)
         ).flatMap(stream -> stream).filter(Objects::nonNull).collect(Collectors.toList());

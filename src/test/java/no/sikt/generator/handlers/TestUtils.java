@@ -1,12 +1,14 @@
 package no.sikt.generator.handlers;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Objects.isNull;
 import static no.sikt.generator.Utils.readResource;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.core.SdkBytes;
@@ -60,7 +62,7 @@ public class TestUtils {
                                                CloudFrontClient cloudFrontClient,
                                                String folder,
                                                List<String> fileNames) {
-        var filePrefix = "openapi_docs/" + ((folder == null) ? "" : folder + "/");
+        var filePrefix = "openapi_docs/" + ((isNull(folder)) ? "" : folder + "/");
         var testCases = fileNames.stream().map(f -> filePrefix + f).map(TestUtils::loadTestCase);
 
         var getRestApisResponse = GetRestApisResponse.builder().items(

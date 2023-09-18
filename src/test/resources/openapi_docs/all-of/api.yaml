@@ -1,0 +1,38 @@
+openapi: "3.0.1"
+info:
+  title: "Api A"
+  version: "1.0"
+servers:
+- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+  variables:
+    basePath:
+      default: "/pathA"
+paths:
+  /path:
+    get:
+      tags:
+        - external
+      responses:
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+components:
+  schemas:
+    Response:
+      type: "object"
+      allOf:
+        - $ref: "#/components/schemas/NestedResponse"
+    NestedResponse:
+      type: "object"
+      properties:
+        nestedField:
+          type: "string"
+  securitySchemes:
+    SharedUserPool:
+      type: "apiKey"
+      name: "Authorization"
+      in: "header"
+      x-amazon-apigateway-authtype: "cognito_user_pools"

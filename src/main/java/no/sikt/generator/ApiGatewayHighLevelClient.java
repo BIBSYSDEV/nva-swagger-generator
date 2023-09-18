@@ -1,5 +1,6 @@
 package no.sikt.generator;
 
+import static java.util.Objects.nonNull;
 import static no.sikt.generator.ApplicationConstants.APPLICATION_YAML;
 import static no.sikt.generator.ApplicationConstants.EXPORT_TYPE_OA_3;
 import static nva.commons.core.attempt.Try.attempt;
@@ -66,7 +67,7 @@ public class ApiGatewayHighLevelClient {
         var productionStage =
             stages.stream().filter(s -> stageName.equals(s.stageName())).findFirst().orElse(null);
 
-        if (productionStage != null) {
+        if (nonNull(productionStage)) {
             var yaml = fetchApiExport(
                 api.id(),
                 stageName,
