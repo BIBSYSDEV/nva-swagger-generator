@@ -1,5 +1,7 @@
 package no.sikt.generator;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static no.sikt.generator.ApplicationConstants.DOMAIN;
 import static no.sikt.generator.OpenApiUtils.addTag;
 import static no.sikt.generator.OpenApiUtils.getResourcePath;
@@ -63,12 +65,12 @@ public class OpenApiCombiner {
 
         var mainServer = findMainServer();
 
-        if (mainServer != null) {
+        if (nonNull(mainServer)) {
             this.baseTemplate.setServers(List.of(mainServer));
         }
 
 
-        if (this.baseTemplate.getComponents() == null) {
+        if (isNull(this.baseTemplate.getComponents())) {
             this.baseTemplate.setComponents(new Components());
         }
 
@@ -89,7 +91,7 @@ public class OpenApiCombiner {
     }
 
     private void sortSchemas() {
-        if (this.baseTemplate.getComponents().getSchemas() == null) {
+        if (isNull(this.baseTemplate.getComponents().getSchemas())) {
             return;
         }
         var unsorted = this.baseTemplate.getComponents().getSchemas().entrySet();
@@ -115,7 +117,7 @@ public class OpenApiCombiner {
     }
 
     private void mergeSecurity(OpenAPI api) {
-        if (api.getSecurity() != null) {
+        if (nonNull(api.getSecurity())) {
             for (SecurityRequirement securityRequirement : api.getSecurity()) {
                 logger.info("adding security req {}", securityRequirement.toString());
                 this.baseTemplate.addSecurityItem(securityRequirement);
@@ -141,23 +143,23 @@ public class OpenApiCombiner {
     }
 
     private void mergeComponents(OpenAPI api) {
-        if (api.getComponents() == null) {
+        if (isNull(api.getComponents())) {
             return;
         }
 
-        if (api.getComponents().getParameters() != null) {
+        if (nonNull(api.getComponents().getParameters())) {
             for (Entry<String, Parameter> parameter : api.getComponents().getParameters().entrySet()) {
                 this.baseTemplate.getComponents().addParameters(parameter.getKey(), parameter.getValue());
             }
         }
 
-        if (api.getComponents().getSchemas() != null) {
+        if (nonNull(api.getComponents().getSchemas())) {
             for (Entry<String, Schema> schema : api.getComponents().getSchemas().entrySet()) {
                 mergeScheme(baseTemplate, schema);
             }
         }
 
-        if (api.getComponents().getSecuritySchemes() != null) {
+        if (nonNull(api.getComponents().getSecuritySchemes())) {
             var entrySet = api.getComponents().getSecuritySchemes().entrySet();
             for (Entry<String, SecurityScheme> securitySchemeEntry : entrySet) {
                 mergeSecuritySchemes(baseTemplate, securitySchemeEntry);
@@ -170,9 +172,9 @@ public class OpenApiCombiner {
         Set<String> collidingSchemaNames = new HashSet<>();
 
         this.others.stream().forEach(api -> {
-            if (api.getComponents().getSchemas() != null) {
+            if (nonNull(api.getComponents().getSchemas())) {
                 for (Entry<String, Schema> schema : api.getComponents().getSchemas().entrySet()) {
-                    if (schemas.get(schema.getKey()) == null) {
+                    if (isNull(schemas.get(schema.getKey()))) {
                         schemas.put(schema.getKey(), schema.getValue());
                     } else if (!schemas.get(schema.getKey()).equals(schema.getValue())) {
                         collidingSchemaNames.add(schema.getKey());
@@ -187,7 +189,7 @@ public class OpenApiCombiner {
     private void removeOptions() {
         this.others.stream().forEach(api -> {
             api.getPaths().entrySet().forEach(path -> {
-                if (path.getValue().getOptions() != null) {
+                if (nonNull(path.getValue().getOptions())) {
                     logger.info("Removing options for {} {}", api.getInfo().getTitle(), path.getKey());
                     path.getValue().setOptions(null);
                 }
@@ -214,7 +216,7 @@ public class OpenApiCombiner {
 
     private void renameNestedSchemaRefs(Set<String> duplicateNames) {
         this.others.stream().forEach(api -> {
-            if (api.getComponents().getSchemas() != null) {
+            if (nonNull(api.getComponents().getSchemas())) {
                 for (var schemaEntry : api.getComponents().getSchemas().entrySet()) {
                     var nestedSchemas = OpenApiUtils.getNestedSchemas(schemaEntry.getValue());
                     nestedSchemas.filter(Objects::nonNull).forEach(s -> {
@@ -232,7 +234,7 @@ public class OpenApiCombiner {
 
     private void renameSchemas(Set<String> duplicateNames) {
         this.others.stream().forEach(api -> {
-            if (api.getComponents().getSchemas() != null) {
+            if (nonNull(api.getComponents().getSchemas())) {
                 Map<String, Schema> newSchemas = new HashMap<>();
 
                 for (var schemaEntry : api.getComponents().getSchemas().entrySet()) {
@@ -266,7 +268,7 @@ public class OpenApiCombiner {
                     });
                 });
                 var requestBody = pathOperation.getRequestBody();
-                if (requestBody != null) {
+                if (nonNull(requestBody)) {
                     requestBody.getContent().entrySet().forEach(content -> {
                         var oldRef = content.getValue().getSchema().get$ref();
                         if (oldRef.equals(COMPONENTS_SCHEMAS + oldName)) {
@@ -280,8 +282,8 @@ public class OpenApiCombiner {
 
     private void mergeScheme(OpenAPI target, Entry<String, Schema> source) {
         var newKey = source.getKey();
-        if (this.baseTemplate.getComponents().getSchemas() != null
-            && this.baseTemplate.getComponents().getSchemas().get(newKey) != null) {
+        if (nonNull(this.baseTemplate.getComponents().getSchemas())
+            && nonNull(this.baseTemplate.getComponents().getSchemas().get(newKey))) {
 
             var targetValue = this.baseTemplate.getComponents().getSchemas().get(newKey);
             var sourceValue = source.getValue();
@@ -298,8 +300,8 @@ public class OpenApiCombiner {
 
     private void mergeSecuritySchemes(OpenAPI target, Entry<String, SecurityScheme> source) {
         var newKey = source.getKey();
-        if (this.baseTemplate.getComponents().getSecuritySchemes() != null
-            && this.baseTemplate.getComponents().getSecuritySchemes().get(newKey) != null) {
+        if (nonNull(this.baseTemplate.getComponents().getSecuritySchemes())
+            && nonNull(this.baseTemplate.getComponents().getSecuritySchemes().get(newKey))) {
 
             var targetValue = this.baseTemplate.getComponents().getSecuritySchemes().get(newKey);
             var sourceValue = source.getValue();

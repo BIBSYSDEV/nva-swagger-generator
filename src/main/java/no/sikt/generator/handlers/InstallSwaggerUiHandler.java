@@ -1,6 +1,7 @@
 package no.sikt.generator.handlers;
 
 import static java.net.http.HttpClient.Redirect.ALWAYS;
+import static java.util.Objects.nonNull;
 import static no.sikt.generator.ApplicationConstants.EXTERNAL_BUCKET_NAME;
 import static no.sikt.generator.ApplicationConstants.INTERNAL_BUCKET_NAME;
 import static nva.commons.core.attempt.Try.attempt;
@@ -113,7 +114,7 @@ public class InstallSwaggerUiHandler implements RequestStreamHandler {
 
     private void writeZipFilesToS3(List<String> buckets, ZipInputStream zipStream) {
         try {
-            for (var zip = zipStream.getNextEntry(); zip != null; zip = zipStream.getNextEntry()) {
+            for (var zip = zipStream.getNextEntry(); nonNull(zip); zip = zipStream.getNextEntry()) {
 
                 var filePath = zip.getName();
                 if (filePath.contains("/dist/")
