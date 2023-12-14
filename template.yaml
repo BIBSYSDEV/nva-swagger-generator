@@ -362,6 +362,7 @@ Resources:
             QueryString: true
           TargetOriginId: 'swagger-ui-bucket-external'
           ViewerProtocolPolicy: redirect-to-https
+          ResponseHeadersPolicyId: !Ref ResponseHeadersPolicy
         DefaultRootObject: index.html
         Enabled: true
         Comment: !Sub 'Swagger-ui-external ${AWS::StackName}'
@@ -376,6 +377,20 @@ Resources:
         ViewerCertificate:
           AcmCertificateArn: !Ref SwaggerDomainCertificateArn
           SslSupportMethod: 'sni-only'
+          MinimumProtocolVersion: TLSv1.2_2021
+
+  ResponseHeadersPolicy:
+   Type: AWS::CloudFront::ResponseHeadersPolicy
+   Properties:
+     ResponseHeadersPolicyConfig:
+       Name: HSTS-Header-Policy
+       Comment: Policy for adding HSTS header
+       SecurityHeadersConfig:
+         StrictTransportSecurity:
+           AccessControlMaxAgeSec: 63072000
+           IncludeSubdomains: true
+           Preload: true
+           Override: false
 
   InternalCloudfrontDistribution:
     Type: AWS::CloudFront::Distribution
@@ -391,6 +406,7 @@ Resources:
             QueryString: true
           TargetOriginId: 'swagger-ui-bucket-internal'
           ViewerProtocolPolicy: redirect-to-https
+          ResponseHeadersPolicyId: !Ref ResponseHeadersPolicy
           FunctionAssociations:
             - EventType: "viewer-request"
               FunctionARN: !GetAtt AuthenticateInternalSwaggerUIHandler.FunctionMetadata.FunctionARN
@@ -408,3 +424,4 @@ Resources:
         ViewerCertificate:
           AcmCertificateArn: !Ref SwaggerDomainCertificateArn
           SslSupportMethod: 'sni-only'
+          MinimumProtocolVersion: TLSv1.2_2021
