@@ -1,13 +1,11 @@
 [versions]
 
-awsLambdaCore   = { strictly = '1.2.1' }
-awsLambdaEvents = { strictly = '3.9.0' }
 awsSdk          = { strictly = '1.12.220' }
 awsSdk2         = { strictly = '2.17.191' }
 guava           = { strictly = '31.0.1-jre' }
 hamcrest        = { strictly = '2.2' }
 hamcrestJackson = { strictly = '1.2.0' }
-jackson         = { strictly = '2.13.0' }
+jackson         = { strictly = '2.16.0' }
 jacksonFormat   = { strictly = '1.0.6'}
 jacoco          = { strictly = '0.8.7' }
 json            = { strictly = '20220320'}
@@ -15,17 +13,15 @@ jsonld          = { strictly = '0.13.3' }
 junit           = { strictly = '5.8.2' }
 log4j           = { strictly = '2.17.2' }
 mockito         = { strictly = '3.12.4' }
-nvaCommons      = { strictly = '1.25.21' }
+nvaCommons      = { strictly = '1.37.1' }
 nebula          = { strictly = '16.23.0' }
 slf4j           = { strictly = '1.8.0-beta4' }
 zalandoProblem  = { strictly = '0.27.1' }
-swagger-parser  = { strictly = '2.1.12' }
-swagger-core    = { strictly = '2.2.8' }
+swagger-parser  = { strictly = '2.1.20' }
+swagger-core    = { strictly = '2.2.20' }
 
 
 [libraries]
-aws-core                        = { group = 'software.amazon.awssdk',   name = 'aws-core',                  version.ref = 'awsSdk2' }
-aws-sdk2-core                   = { group = 'software.amazon.awssdk',   name = 'sdk-core',                  version.ref = 'awsSdk2' }
 aws-sdk2-eventbridge            = { group = 'software.amazon.awssdk',   name = 'eventbridge',               version.ref = 'awsSdk2' }
 aws-sdk2-regions                = { group = 'software.amazon.awssdk',   name = 'regions',                   version.ref = 'awsSdk2' }
 aws-sdk2-s3                     = { group = 'software.amazon.awssdk',   name = 's3',                        version.ref = 'awsSdk2' }
@@ -34,10 +30,7 @@ aws-sdk2-cognitoidentityprovider= { group = 'software.amazon.awssdk',   name = '
 aws-sdk2-apigateway               = { group = 'software.amazon.awssdk',   name = 'apigateway',                  version.ref = 'awsSdk2' }
 aws-sdk2-cloudfront               = { group = 'software.amazon.awssdk',   name = 'cloudfront',                  version.ref = 'awsSdk2' }
 
-aws-lambda-events               = { group = 'com.amazonaws',            name = 'aws-lambda-java-events',    version.ref = 'awsLambdaEvents' }
-aws-lambda-java-core            = { group = 'com.amazonaws',            name = 'aws-lambda-java-core',      version.ref = 'awsLambdaCore' }
 aws-java-sdk-core               = { group = 'com.amazonaws',            name = 'aws-java-sdk-core',         version.ref = 'awsSdk' }
-aws-sdk-apigateway              = { group = 'com.amazonaws',            name = 'aws-java-sdk-api-gateway',  version.ref = 'awsSdk' }
 
 guava                           = { group = 'com.google.guava',         name = 'guava',                     version.ref = 'guava' }
 hamcrest-base                   = { group = 'org.hamcrest',             name = 'hamcrest',                  version.ref = 'hamcrest' }
@@ -49,8 +42,6 @@ jackson-databind                = { group = 'com.fasterxml.jackson.core', name =
 jackson-datatype-jdk8           = { group = 'com.fasterxml.jackson.datatype', name = 'jackson-datatype-jdk8', version.ref = 'jackson' }
 jackson-datatype-jsr310         = { group = 'com.fasterxml.jackson.datatype', name = 'jackson-datatype-jsr310', version.ref = 'jackson' }
 jackson-dataformat              = { group = 'io.openapitools.jackson.dataformat', name = 'jackson-dataformat-hal', version.ref = 'jacksonFormat' }
-jackson-datatype-problem        = { group = 'org.zalando',              name = 'jackson-datatype-problem',  version.ref = 'zalandoProblem' }
-jackson-module-parameter-names  = { group = 'com.fasterxml.jackson.module', name = 'jackson-module-parameter-names', version.ref = 'jackson' }
 json                            = { group = 'org.json',                 name = 'json',                      version.ref = 'json'}
 jacoco-core                     = { group = 'org.jacoco',               name = 'org.jacoco.core',            version.ref = 'jacoco'}
 jacoco-report                   = { group = 'org.jacoco',               name = 'org.jacoco.report',          version.ref = 'jacoco'}
@@ -73,7 +64,6 @@ swagger-parser                  = { group = 'io.swagger.parser.v3',     name = '
 
 nva-apigateway                  = { group = 'com.github.bibsysdev',     name = 'apigateway',                version.ref = 'nvaCommons' }
 nva-core                        = { group = 'com.github.bibsysdev',     name = 'core',                      version.ref = 'nvaCommons' }
-nva-eventhandlers               = { group = 'com.github.bibsysdev',     name = 'eventhandlers',             version.ref = 'nvaCommons' }
 nva-json                        = { group = 'com.github.bibsysdev',     name = 'json',                      version.ref = 'nvaCommons' }
 nva-logutils                    = { group = 'com.github.bibsysdev',     name = 'logutils',                  version.ref = 'nvaCommons' }
 nva-s3                          = { group = 'com.github.bibsysdev',     name = 's3',                        version.ref = 'nvaCommons' }

@@ -24,8 +24,8 @@ repositories {
 
 java {
     // added to ensure Compatibility in dev mode for devs with java versions > 11
-    sourceCompatibility JavaVersion.VERSION_11
-    targetCompatibility JavaVersion.VERSION_11
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
 }
 
 dependencies {
@@ -66,31 +66,6 @@ dependencies {
     testImplementation libs.bundles.testing
 }
 
-testing {
-    suites {
-        // Configure the built-in test suite
-        test {
-            // Use JUnit4 test framework
-            useJUnit('4.13.2')
-        }
-    }
-}
-
-
-pmd {
-    consoleOutput = true
-    ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')
-    ruleSets = []
-    ignoreFailures = false
-}
-
-checkstyle {
-    configFile = rootProject.resources.text.fromFile('config/checkstyle/checkstyle.xml').asFile()
-    showViolations = true
-    ignoreFailures = false
-    maxWarnings = 0
-}
-
 test {
     environment "INTERNAL_BUCKET_NAME", "notimportant1"
     environment "EXTERNAL_BUCKET_NAME", "notimportant2"
@@ -106,14 +81,34 @@ test {
         showCauses true
         exceptionFormat "full"
     }
-
-    finalizedBy jacocoTestReport
 }
+
+tasks.named('test') {
+    useJUnitPlatform()
+    failFast = false
+    testLogging {
+        events 'skipped', 'passed', 'failed'
+    }
+}
+
+pmd {
+    toolVersion = '6.20.0'
+    ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')
+    ruleSets = []
+    ignoreFailures = false
+}
+
+checkstyle {
+    configFile = rootProject.resources.text.fromFile('config/checkstyle/checkstyle.xml').asFile()
+    showViolations = true
+}
+
 
 check.dependsOn jacocoTestCoverageVerification
 jacocoTestCoverageVerification.dependsOn(jacocoTestReport)
 
 jacocoTestCoverageVerification {
+
     violationRules {
         rule {
             limit {
@@ -130,18 +125,5 @@ jacocoTestCoverageVerification {
                 minimum = 1.000
             }
         }
-    }
-}
-
-jacocoTestReport {
-    dependsOn test
-}
-
-
-tasks.withType(Checkstyle) {
-    reports {
-        xml.required = false
-        html.required = true
-        html.stylesheet rootProject.resources.text.fromFile('config/checkstyle/checkstyle-simple.xsl')
     }
 }
