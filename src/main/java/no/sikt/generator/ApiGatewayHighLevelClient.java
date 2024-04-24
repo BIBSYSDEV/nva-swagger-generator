@@ -78,7 +78,7 @@ public class ApiGatewayHighLevelClient {
             var parseOptions = new ParseOptions(); // TODO: Look into if ParseOptions can fix the issue
             var parseResult = openApiParser.readContents(yaml, null, parseOptions);
             return new ApiData(api, parseResult.getOpenAPI(), yaml, productionStage); // TODO: Bug. Set breapoint
-            // here and notice how "parseResult" contains the style/explode without paths/get/parameters while "yaml"
+            // here and notice how "parseResult" contains the style/explode (within paths/get/parameters) while "yaml"
             // does not
         } else {
             logger.warn("API {} ({}) does not have stage {}. Stages found: {}", api.name(), api.id(),
