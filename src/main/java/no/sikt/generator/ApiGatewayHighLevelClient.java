@@ -5,6 +5,7 @@ import static no.sikt.generator.ApplicationConstants.APPLICATION_YAML;
 import static no.sikt.generator.ApplicationConstants.EXPORT_TYPE_OA_3;
 import static nva.commons.core.attempt.Try.attempt;
 import io.swagger.v3.parser.OpenAPIV3Parser;
+import io.swagger.v3.parser.core.models.ParseOptions;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.slf4j.Logger;
@@ -74,8 +75,11 @@ public class ApiGatewayHighLevelClient {
                 APPLICATION_YAML,
                 EXPORT_TYPE_OA_3
             );
-            var parseResult = openApiParser.readContents(yaml);
-            return new ApiData(api, parseResult.getOpenAPI(), yaml, productionStage);
+            var parseOptions = new ParseOptions(); // TODO: Look into if ParseOptions can fix the issue
+            var parseResult = openApiParser.readContents(yaml, null, parseOptions);
+            return new ApiData(api, parseResult.getOpenAPI(), yaml, productionStage); // TODO: Bug. Set breapoint
+            // here and notice how "parseResult" contains the style/explode without paths/get/parameters while "yaml"
+            // does not
         } else {
             logger.warn("API {} ({}) does not have stage {}. Stages found: {}", api.name(), api.id(),
                         stageName, stages);
