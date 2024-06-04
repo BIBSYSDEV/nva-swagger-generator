@@ -2,15 +2,26 @@ package no.sikt.generator.handlers;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.isNull;
+import static no.sikt.generator.ApplicationConstants.readOpenApiBucketName;
 import static no.sikt.generator.Utils.readResource;
+import static no.sikt.generator.Utils.readResourceOptional;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import io.swagger.v3.parser.OpenAPIV3Parser;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import no.sikt.generator.ApplicationConstants;
+import no.sikt.generator.Utils;
+import no.unit.nva.s3.S3Driver;
+import nva.commons.core.attempt.Try;
+import nva.commons.core.paths.UnixPath;
+import org.apache.commons.lang3.tuple.Pair;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.apigateway.model.CreateDocumentationVersionRequest;
@@ -38,18 +49,20 @@ import software.amazon.awssdk.services.apigateway.model.UpdateStageResponse;
 import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
 import software.amazon.awssdk.services.cloudfront.model.CreateInvalidationRequest;
 import software.amazon.awssdk.services.cloudfront.model.CreateInvalidationResponse;
+import software.amazon.awssdk.services.s3.S3Client;
 
 public class TestUtils {
 
     private static OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
 
-    private static TestCase loadTestCase(String filename) {
+    private static TestCase loadTestCase(String filename, Optional<String> filenameGithub) {
         var id = filename.substring(filename.lastIndexOf('/') + 1).split(".yaml")[0];
-        var fileContent = readResource(filename);
+        var fileContentApiGateway = readResource(filename);
+        var fileContentGithub = filenameGithub.map(Utils::readResource);
         var openApi = openApiParser
-                          .readContents(fileContent)
+                          .readContents(fileContentApiGateway)
                           .getOpenAPI();
-        return new TestCase(id, openApi.getInfo().getTitle());
+        return new TestCase(id, openApi.getInfo().getTitle(), fileContentApiGateway, fileContentGithub);
     }
 
     private static RestApi buildRestApiFromTestCase(TestCase testCase) {
@@ -58,16 +71,32 @@ public class TestUtils {
         return RestApi.builder().name(testCase.getName()).id(id).createdDate(created).build();
     }
 
-    public static void setupTestcasesFromFiles(ApiGatewayAsyncClient apiGatewayAsyncClient,
+    public static void loadGithubOpenapiFile(S3Driver s3Driver, TestCase testCase) {
+        if (testCase.getContentGithub().isPresent()) {
+            Try.attempt(() ->
+                            s3Driver.insertFile(UnixPath.of(String.valueOf(Path.of(testCase.getId() + ".yaml")))
+                                , testCase.getContentGithub().get())
+            );
+        }
+    }
+
+    public static void setupTestcasesFromFiles(S3Client s3Client,
+                                               ApiGatewayAsyncClient apiGatewayAsyncClient,
                                                CloudFrontClient cloudFrontClient,
                                                String folder,
-                                               List<String> fileNames) {
+                                               List<Pair<String, Optional<String>>> fileNames) {
         var filePrefix = "openapi_docs/" + ((isNull(folder)) ? "" : folder + "/");
-        var testCases = fileNames.stream().map(f -> filePrefix + f).map(TestUtils::loadTestCase);
+        var testCases = fileNames.stream().map(fileName -> loadTestCase(filePrefix + fileName.getLeft(),
+                                                                        fileName.getRight().map(fn -> filePrefix + fn)) ).toList();
+
+        var s3driver = new S3Driver(s3Client, readOpenApiBucketName());
+        testCases.forEach(tc -> loadGithubOpenapiFile(s3driver, tc));
 
         var getRestApisResponse = GetRestApisResponse.builder().items(
-            testCases.map(TestUtils::buildRestApiFromTestCase).collect(Collectors.toList())
+            testCases.stream().map(TestUtils::buildRestApiFromTestCase).collect(Collectors.toList())
         ).build();
+
+
 
         var getStagesResponse = GetStagesResponse.builder().item(
             List.of(

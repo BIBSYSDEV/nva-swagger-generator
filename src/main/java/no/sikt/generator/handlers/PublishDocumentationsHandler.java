@@ -75,7 +75,7 @@ public class PublishDocumentationsHandler implements RequestStreamHandler {
     }
 
     private void publishDocumentation(ApiData apiData) {
-        var name = apiData.getOpenApi().getInfo().getTitle();
+        var name = apiData.getOpenapi().getInfo().getTitle();
         var apiId = apiData.getAwsRestApi().id();
         logger.info("publishing {}", name);
 

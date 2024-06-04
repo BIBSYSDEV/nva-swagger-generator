@@ -8,6 +8,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -19,8 +20,12 @@ public final class Utils {
     }
 
     public static String readResource(String filename) {
+        return readResourceOptional(filename).orElseThrow();
+    }
+
+    public static Optional<String> readResourceOptional(String filename) {
         URL url = Resources.getResource(filename);
-        return attempt(() -> Resources.toString(url, StandardCharsets.UTF_8)).orElseThrow();
+        return attempt(() -> Resources.toString(url, StandardCharsets.UTF_8)).toOptional();
     }
 
     public static InputStream readResourceAsStream(String filename) {

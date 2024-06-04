@@ -17,12 +17,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.parameters.Parameter.StyleEnum;
 import io.swagger.v3.oas.models.tags.Tag;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import no.sikt.generator.ApiGatewayHighLevelClient;
 import no.sikt.generator.CloudFrontHighLevelClient;
@@ -33,6 +35,8 @@ import nva.commons.core.paths.UnixPath;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -40,6 +44,7 @@ import org.mockito.Mockito;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
 import software.amazon.awssdk.services.cloudfront.model.CreateInvalidationRequest;
+import software.amazon.awssdk.services.s3.S3Client;
 
 class GenerateInternalDocsHandlerTest {
 
@@ -48,20 +53,34 @@ class GenerateInternalDocsHandlerTest {
     private ApiGatewayHighLevelClient apiGatewayHighLevelClient;
     private CloudFrontHighLevelClient cloudFrontHighLevelClient;
     private GenerateInternalDocsHandler handler;
-    private S3Driver s3Driver;
+    private S3Driver outputS3Driver;
+    private S3Driver inputS3Driver;
     private OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
+    private S3Client inputS3client;
 
     @BeforeEach
     public void setup() {
-        var fakeS3Client = new FakeS3Client();
-        this.s3Driver = new S3Driver(fakeS3Client, INTERNAL_BUCKET_NAME);
+        var outputS3client = new FakeS3Client();
+        this.inputS3client = new FakeS3Client();
+        this.outputS3Driver = new S3Driver(outputS3client, INTERNAL_BUCKET_NAME);
         this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(apiGatewayAsyncClient);
         this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(cloudFrontClient);
-        handler = new GenerateInternalDocsHandler(apiGatewayHighLevelClient, cloudFrontHighLevelClient, fakeS3Client);
+        handler = new GenerateInternalDocsHandler(apiGatewayHighLevelClient, cloudFrontHighLevelClient,
+                                                  outputS3client, inputS3client);
     }
 
     private void setupTestCasesFromFiles(String folder, List<String> filenames) {
-        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, cloudFrontClient, folder, filenames);
+        TestUtils.setupTestcasesFromFiles(inputS3client, apiGatewayAsyncClient, cloudFrontClient, folder,
+                                          filenames.stream()
+                                              .map(fn -> new ImmutablePair<String, Optional<String>>(fn,
+                                                                                                     Optional.empty()))
+                                              .collect(
+                                                  Collectors.toList()));
+    }
+
+    private void setupTestCasesFromFilesWithGithubOpenapi(String folder,
+                                                          List<Pair<String, Optional<String>>> filenames) {
+        TestUtils.setupTestcasesFromFiles(inputS3client, apiGatewayAsyncClient, cloudFrontClient, folder, filenames);
     }
 
     private void setupSingleFile() {
@@ -116,11 +135,11 @@ class GenerateInternalDocsHandlerTest {
         setupSimpleMocks();
         handler.handleRequest(null, null, null);
 
-        var singleFile = s3Driver.getFile(UnixPath.of("docs/api-a.yaml"));
+        var singleFile = outputS3Driver.getFile(UnixPath.of("docs/api-a.yaml"));
         assertThat(singleFile, notNullValue());
         assertThat(singleFile, is(equalTo(readResource("openapi_docs/api-a.yaml"))));
 
-        var combinedFile = s3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
+        var combinedFile = outputS3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
         assertThat(combinedFile, notNullValue());
     }
 
@@ -129,7 +148,7 @@ class GenerateInternalDocsHandlerTest {
         var fileNames = List.of(
             "api-with-options.yaml"
         );
-        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, cloudFrontClient, null, fileNames);
+        setupTestCasesFromFiles(null, fileNames);
 
         handler.handleRequest(null, null, null);
 
@@ -145,7 +164,7 @@ class GenerateInternalDocsHandlerTest {
         var fileNames = List.of(
             "api-with-external.yaml"
         );
-        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, cloudFrontClient, null, fileNames);
+        setupTestCasesFromFiles(null, fileNames);
 
         handler.handleRequest(null, null, null);
 
@@ -257,6 +276,21 @@ class GenerateInternalDocsHandlerTest {
     }
 
     @Test
+    public void shouldOverrideStyleIfSetInGithubOpenapi() {
+        setupTestCasesFromFilesWithGithubOpenapi("nva/publication-api", List.of(Pair.of("apigateway.yaml", Optional.of(
+            "github"
+            + ".yaml"))));
+
+        handler.handleRequest(null, null, null);
+        var openApi = readGeneratedOpenApi();
+        var parameter =
+            openApi.getPaths().get("/publication/{publicationIdentifier}").getGet().getParameters().stream().filter(param -> param.getName().equals("doNotRedirect")).findFirst().get();
+
+        assertThat(parameter.getStyle(), is(equalTo(StyleEnum.FORM)));
+        assertThat(parameter.getExplode(), is(equalTo(false)));
+    }
+
+    @Test
     public void shouldSortSchemasAlphabetically() {
         setupNvaMocks();
 
@@ -274,7 +308,7 @@ class GenerateInternalDocsHandlerTest {
 
         handler.handleRequest(null, null, null);
 
-        var s3FileContent = s3Driver.getFile(UnixPath.of("docs/nva-publication-api.yaml"));
+        var s3FileContent = outputS3Driver.getFile(UnixPath.of("docs/nva-publication-api.yaml"));
         assertThat(s3FileContent, notNullValue());
     }
 
@@ -288,7 +322,7 @@ class GenerateInternalDocsHandlerTest {
     }
 
     private OpenAPI readGeneratedOpenApi() {
-        var yaml = s3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
+        var yaml = outputS3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
         assertThat(yaml, notNullValue());
 
         return openApiParser
