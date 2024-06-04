@@ -247,7 +247,7 @@ Resources:
               responseData['Data'] = {}
               cfnresponse.send(event, context, responseStatus, responseData, "CustomResourcePhysicalID")
       Handler: "index.lambda_handler"
-      Runtime: python3.7
+      Runtime: python3.12
       MemorySize: 128
       Timeout: 60
       Role: !GetAtt SwaggerGeneratorRole.Arn
