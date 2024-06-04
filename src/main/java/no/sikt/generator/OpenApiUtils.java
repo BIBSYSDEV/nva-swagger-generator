@@ -3,6 +3,7 @@ package no.sikt.generator;
 import static java.util.Objects.*;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.concat;
+import io.swagger.models.parameters.PathParameter;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;

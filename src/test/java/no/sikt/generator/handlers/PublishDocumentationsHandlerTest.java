@@ -6,9 +6,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import no.sikt.generator.ApiGatewayHighLevelClient;
 import no.sikt.generator.ApplicationConstants;
+import no.unit.nva.stubs.FakeS3Client;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -33,7 +36,9 @@ class PublishDocumentationsHandlerTest {
     @BeforeEach
     public void setup() {
         this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(apiGatewayAsyncClient);
-        setupTestcasesFromFiles(apiGatewayAsyncClient, cloudFrontClient, null, List.of("api-a.yaml", "api-a.yaml"));
+        setupTestcasesFromFiles(new FakeS3Client(), apiGatewayAsyncClient, cloudFrontClient, null, List.of(
+            ImmutablePair.of("api-a.yaml", Optional.empty()), ImmutablePair.of("api-a.yaml", Optional.empty()))
+        );
         handler = new PublishDocumentationsHandler(apiGatewayHighLevelClient);
     }
 

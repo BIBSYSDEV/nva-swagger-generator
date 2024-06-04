@@ -3,24 +3,30 @@ package no.sikt.generator;
 import static no.sikt.generator.ApplicationConstants.DOMAIN;
 import static no.sikt.generator.ApplicationConstants.EXCLUDED_APIS;
 import io.swagger.v3.oas.models.OpenAPI;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import nva.commons.core.attempt.Failure;
 import nva.commons.core.attempt.Try;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.apigateway.model.RestApi;
 import software.amazon.awssdk.services.apigateway.model.Stage;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 public class ApiData {
 
     private final RestApi awsRestApi;
-    private final OpenAPI openApi;
+    private final OpenAPI openapiApiGateway;
+    private Optional<OpenAPI> openapiApiGithub;
     private final String rawYaml;
     private final Stage stage;
     private static final Logger logger = LoggerFactory.getLogger(ApiData.class);
 
-    public ApiData(RestApi awsRestApi, OpenAPI openApi, String rawYaml, Stage stage) {
+    public ApiData(RestApi awsRestApi, OpenAPI openapiApiGateway, String rawYaml, Stage stage) {
         this.awsRestApi = awsRestApi;
-        this.openApi = openApi;
+        this.openapiApiGateway = openapiApiGateway;
         this.rawYaml = rawYaml;
         this.stage = stage;
     }
@@ -29,8 +35,8 @@ public class ApiData {
         return awsRestApi;
     }
 
-    public OpenAPI getOpenApi() {
-        return openApi;
+    public OpenAPI getOpenapi() {
+        return openapiApiGateway;
     }
 
     public String getName() {
@@ -46,11 +52,55 @@ public class ApiData {
     }
 
     public boolean hasCorrectDomain() {
-        return openApi.getServers().stream().anyMatch(server -> server.getUrl().contains(DOMAIN));
+        return openapiApiGateway.getServers().stream().anyMatch(server -> server.getUrl().contains(DOMAIN));
     }
 
     public int getDashesInPath() {
         return Try.attempt(this::getNumberOfDashesInBasePath).orElse(this::handleGetDashesFailure);
+    }
+
+    public void setMatchingGithubOpenapi(List<Pair<S3Object, OpenAPI>> templateOpenapiDocs) {
+        var title = this.openapiApiGateway.getInfo().getTitle();
+        var matchingGithubOpenApi = templateOpenapiDocs.stream()
+                                        .filter(templateOpenapiDoc -> templateOpenapiDoc.getRight()
+                                                                          .getInfo()
+                                                                          .getTitle()
+                                                                          .equals(title))
+                                        .findFirst();
+        if (matchingGithubOpenApi.isPresent()) {
+            logger.info("Using matching github openapi at " + matchingGithubOpenApi.get().getLeft().key()+ " for " + title);
+            this.openapiApiGithub = Optional.of(matchingGithubOpenApi.get().getRight());
+        } else {
+            logger.warn("No matching github openapi found for " + title);
+            this.openapiApiGithub = Optional.empty();
+        }
+;
+    }
+
+    public ApiData overridePropsFromGithub() {
+        if (this.openapiApiGithub.isPresent()) {
+            this.openapiApiGateway.getPaths().forEach((pathKey, pathItem) -> {
+                pathItem.readOperationsMap().forEach((httpMethod, operation) -> {
+                    if (Objects.nonNull(operation.getParameters())) {
+                        operation.getParameters().forEach(parameter -> {
+                            var operationInGithub = Optional.ofNullable(openapiApiGithub.get().getPaths().get(pathKey).readOperationsMap()
+                                                                             .get(httpMethod));
+                            if (operationInGithub.isPresent()) {
+                                var paramInGithub = operationInGithub.get().getParameters().stream()
+                                    .filter(githubparam -> githubparam.getName().equals(parameter.getName())).findFirst();
+
+                                if (paramInGithub.isPresent()) {
+                                    parameter.setStyle(paramInGithub.get().getStyle());
+                                    parameter.setExplode(paramInGithub.get().getExplode());
+                                }
+                            }
+
+                        });
+                    }
+                });
+            });
+        }
+        return this;
     }
 
     private int handleGetDashesFailure(Failure failure) {
@@ -60,7 +110,7 @@ public class ApiData {
     }
 
     private int getNumberOfDashesInBasePath() {
-        return (int) openApi.getServers()
+        return (int) openapiApiGateway.getServers()
                          .get(0)
                          .getVariables()
                          .get("basePath")

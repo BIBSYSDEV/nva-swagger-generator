@@ -13,6 +13,8 @@ import static org.mockito.Mockito.verify;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import no.sikt.generator.ApiGatewayHighLevelClient;
 import no.sikt.generator.CloudFrontHighLevelClient;
 import no.unit.nva.s3.S3Driver;
@@ -20,6 +22,7 @@ import no.unit.nva.stubs.FakeS3Client;
 import nva.commons.core.paths.UnixPath;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -27,6 +30,7 @@ import org.mockito.Mockito;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
 import software.amazon.awssdk.services.cloudfront.model.CreateInvalidationRequest;
+import software.amazon.awssdk.services.s3.S3Client;
 
 class GenerateExternalDocsHandlerTest {
 
@@ -37,18 +41,26 @@ class GenerateExternalDocsHandlerTest {
     private GenerateExternalDocsHandler handler;
     private S3Driver s3Driver;
     private OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
+    private S3Client inputS3client;
 
     @BeforeEach
     public void setup() {
-        var fakeS3Client = new FakeS3Client();
-        this.s3Driver = new S3Driver(fakeS3Client, EXTERNAL_BUCKET_NAME);
+        var fakeS3ClientInput = new FakeS3Client();
+        var fakeS3ClientOutput = new FakeS3Client();
+        this.inputS3client = new FakeS3Client();
+        this.s3Driver = new S3Driver(fakeS3ClientOutput, EXTERNAL_BUCKET_NAME);
         this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(apiGatewayAsyncClient);
         this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(cloudFrontClient);
-        handler = new GenerateExternalDocsHandler(apiGatewayHighLevelClient, cloudFrontHighLevelClient, fakeS3Client);
+        handler = new GenerateExternalDocsHandler(apiGatewayHighLevelClient, cloudFrontHighLevelClient,
+                                                  fakeS3ClientOutput, fakeS3ClientInput);
     }
 
     private void setupTestCasesFromFiles(String folder, List<String> filenames) {
-        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, cloudFrontClient, folder, filenames);
+        TestUtils.setupTestcasesFromFiles(inputS3client, apiGatewayAsyncClient, cloudFrontClient, folder,
+                                          filenames.stream()
+                                              .map(fn -> new ImmutablePair<>(fn, Optional.<String>empty()))
+                                              .collect(
+                                                  Collectors.toList()));
     }
 
     private void setupSingleFile() {
@@ -94,7 +106,7 @@ class GenerateExternalDocsHandlerTest {
         var fileNames = List.of(
             "api-with-external.yaml"
         );
-        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, cloudFrontClient, null, fileNames);
+        setupTestCasesFromFiles(null, fileNames);
 
         handler.handleRequest(null, null, null);
 
@@ -109,7 +121,7 @@ class GenerateExternalDocsHandlerTest {
         var fileNames = List.of(
             "api-a.yaml"
         );
-        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, cloudFrontClient, null, fileNames);
+        setupTestCasesFromFiles(null, fileNames);
 
         handler.handleRequest(null, null, null);
 
@@ -124,7 +136,7 @@ class GenerateExternalDocsHandlerTest {
         var fileNames = List.of(
             "api-with-external.yaml"
         );
-        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, cloudFrontClient, null, fileNames);
+        setupTestCasesFromFiles(null, fileNames);
 
         handler.handleRequest(null, null, null);
 
@@ -172,7 +184,7 @@ class GenerateExternalDocsHandlerTest {
         var fileNames = List.of(
             "api-with-external.yaml"
         );
-        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, cloudFrontClient, null, fileNames);
+        setupTestCasesFromFiles(null, fileNames);
 
         handler.handleRequest(null, null, null);
 
@@ -201,7 +213,7 @@ class GenerateExternalDocsHandlerTest {
         var fileNames = List.of(
             "api-with-external.yaml"
         );
-        TestUtils.setupTestcasesFromFiles(apiGatewayAsyncClient, cloudFrontClient, null, fileNames);
+        setupTestCasesFromFiles(null, fileNames);
 
         handler.handleRequest(null, null, null);
 

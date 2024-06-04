@@ -1,0 +1,1526 @@
+openapi: "3.0.1"
+info:
+  title: "NVA Publication API"
+  version: "1.0.0"
+servers:
+  - url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+    variables:
+      basePath:
+        default: "publication"
+paths:
+  /{publicationIdentifier}/doi:
+    post:
+      summary: "Reserves doi for draft publication"
+      operationId: "reserveDoiForDraftPublication"
+      parameters:
+        - name: "publicationIdentifier"
+          in: "path"
+          description: "UUID identifier of the Publication to fetch."
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "404":
+          description: "Publication not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "405":
+          description: "Operation is not allowed, publication is not a draft"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "OK, doi is already reserved"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Doi"
+        "201":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Doi"
+        "401":
+          description: "Unauthorized, no config found for users customer"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "Bad response from Datacite"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      parameters:
+        - name: "publicationIdentifier"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /tickets:
+    get:
+      description: "List tickets for user"
+      operationId: "listTicketsForUser"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketCollection"
+      security:
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /{publicationIdentifier}/ticket:
+    post:
+      description: "Create a new ticket"
+      operationId: "createTicketForPublication"
+      parameters:
+        - name: "publicationIdentifier"
+          in: "path"
+          description: "UUID of the publication"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewTicketRequest"
+        required: true
+      responses:
+        "201":
+          description: "ACCEPTED"
+          headers:
+            Location:
+              description: "URI to created ticket"
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ticket"
+      security:
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      parameters:
+        - name: "publicationIdentifier"
+          in: "path"
+          description: "UUID of the publication"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /{publicationIdentifier}/tickets:
+    get:
+      description: "List tickets for publication"
+      operationId: "listTicketsForPublication"
+      parameters:
+        - name: "publicationIdentifier"
+          in: "path"
+          description: "UUID of the ticket"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketCollection"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      parameters:
+        - name: "publicationIdentifier"
+          in: "path"
+          description: "UUID of the ticket"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /{publicationIdentifier}/ticket/{ticketIdentifier}/message:
+    post:
+      description: "Add message to ticket"
+      operationId: "addMessageToTicket"
+      parameters:
+        - name: "ticketIdentifier"
+          in: "path"
+          description: "UUID of the ticket"
+          required: true
+          schema:
+            type: "string"
+        - name: "publicationIdentifier"
+          in: "path"
+          description: "UUID of the publication"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        description: "Message"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Message"
+        required: true
+      responses:
+        "201":
+          description: "Created"
+          headers:
+            Location:
+              description: "The URI of the created message"
+              schema:
+                type: "string"
+          content: {}
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      parameters:
+        - name: "ticketIdentifier"
+          in: "path"
+          description: "UUID of the ticket"
+          required: true
+          schema:
+            type: "string"
+        - name: "publicationIdentifier"
+          in: "path"
+          description: "UUID of the publication"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /context:
+    get:
+      tags:
+        - "external"
+      summary: "Fetch Publication context"
+      operationId: "fetchPublicationContext"
+      responses:
+        "415":
+          description: "Unsupported Media Type"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicationContext"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/PublicationContext"
+    options:
+      summary: "CORS support"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /:
+    post:
+      tags:
+        - "external"
+      summary: "Create Publication"
+      operationId: "createPublication"
+      requestBody:
+        description: "Complete Publication entity"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Publication"
+        required: true
+      responses:
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "201":
+          description: "Created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Publication"
+        "502":
+          description: "Bad Gateway"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+            - "https://api.nva.unit.no/scopes/third-party/publication-upsert"
+    options:
+      summary: "CORS support"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /{publicationIdentifier}:
+    get:
+      tags:
+        - "external"
+      summary: "Fetch Publication by Identifier"
+      operationId: "fetchPublicationByIdentifier"
+      parameters:
+        - name: "doNotRedirect"
+          in: "query"
+          description: "If fetching a deleted / unpublished publication, the response\
+          \ code will be 410, instead of 301. A non deleted / non-unpublished will\
+          \ respond as if the query param was not set."
+          schema:
+            type: "string"
+        - name: "publicationIdentifier"
+          in: "path"
+          description: "UUID identifier of the Publication to fetch."
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "301":
+          description: "MOVED PERMANENTLY"
+          headers:
+            Cache-Control:
+              description: "Cache-Control header"
+              schema:
+                type: "string"
+            Location:
+              description: "URI to the new location"
+              schema:
+                type: "string"
+          content: {}
+        "200":
+          description: "OK"
+          content:
+            application/vnd.schemaorg.ld+json:
+              schema:
+                $ref: "#/components/schemas/PublicationSchemaOrg"
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/PublicationResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicationResponse"
+            application/vnd.datacite.datacite+xml:
+              schema:
+                $ref: "#/components/schemas/PublicationDataCiteXml"
+        "410":
+          description: "Permanently gone"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    put:
+      tags:
+        - "external"
+      summary: "Update Publication for Identifier"
+      operationId: "updatePublication"
+      parameters:
+        - name: "publicationIdentifier"
+          in: "path"
+          description: "UUID identifier of the Publication to update."
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicationResponse"
+        "202":
+          description: "Accepted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicationResponse"
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+            - "https://api.nva.unit.no/scopes/third-party/publication-upsert"
+    delete:
+      tags:
+        - "external"
+      summary: "Delete Publication for Identifier"
+      operationId: "deletePublication"
+      parameters:
+        - name: "publicationIdentifier"
+          in: "path"
+          description: "UUID identifier of the Publication to delete."
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "202":
+          description: "Accepted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Publication"
+      security:
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+            - "https://api.nva.unit.no/scopes/third-party/publication-upsert"
+    options:
+      summary: "CORS support"
+      parameters:
+        - name: "publicationIdentifier"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /import-candidate/{importCandidateIdentifier}/file/{fileIdentifier}:
+    get:
+      summary: "Fetch pre-signed url for import candidate file"
+      operationId: "fetchPreSignedUrlForImportCandidateFile"
+      parameters:
+        - name: "importCandidateIdentifier"
+          in: "path"
+          description: "Identifier of the import candidate."
+          required: true
+          schema:
+            type: "string"
+        - name: "fileIdentifier"
+          in: "path"
+          description: "Identifier of the file to fetch."
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "404":
+          description: "File not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PresignedUrl"
+        "502":
+          description: "Bad Gateway"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    options:
+      summary: "CORS support"
+      parameters:
+        - name: "importCandidateIdentifier"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - name: "fileIdentifier"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /import-candidate/{importCandidateIdentifier}:
+    get:
+      summary: "Fetch Import candidate by Identifier"
+      operationId: "fetchImportCandidateByIdentifier"
+      parameters:
+        - name: "importCandidateIdentifier"
+          in: "path"
+          description: "UUID identifier of the import candidate to fetch."
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "404":
+          description: "Import candidate not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportCandidate"
+        "502":
+          description: "Bad Gateway"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    put:
+      summary: "Update import status"
+      operationId: "updateImportCandidate"
+      parameters:
+        - name: "importCandidateIdentifier"
+          in: "path"
+          description: "UUID identifier of the import candidate"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportStatus"
+        required: true
+      responses:
+        "404":
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportCandidate"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "Bad Gateway"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    post:
+      summary: "Create Publication from Import candidate"
+      operationId: "createPublicationFromImportCandidate"
+      parameters:
+        - name: "importCandidateIdentifier"
+          in: "path"
+          description: "UUID identifier of the import candidate to publish."
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        description: "Complete Import candidate entity"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportCandidate"
+        required: true
+      responses:
+        "201":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Publication"
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "Bad Gateway"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    options:
+      summary: "CORS support"
+      parameters:
+        - name: "importCandidateIdentifier"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /{publicationIdentifier}/ticket/{ticketIdentifier}/message/{messageIdentifier}:
+    delete:
+      description: "Deleting message"
+      operationId: "deleteMessageForTicket"
+      parameters:
+        - name: "messageIdentifier"
+          in: "path"
+          description: "UUID of the message"
+          required: true
+          schema:
+            type: "string"
+        - name: "ticketIdentifier"
+          in: "path"
+          description: "UUID of the ticket"
+          required: true
+          schema:
+            type: "string"
+        - name: "publicationIdentifier"
+          in: "path"
+          description: "UUID of the publication"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "404":
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "Ok"
+          headers:
+            Location:
+              description: "Message has been successfully deleted"
+              schema:
+                type: "string"
+          content: {}
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "Bad Gateway"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      parameters:
+        - name: "messageIdentifier"
+          in: "path"
+          description: "UUID of the message"
+          required: true
+          schema:
+            type: "string"
+        - name: "ticketIdentifier"
+          in: "path"
+          description: "UUID of the ticket"
+          required: true
+          schema:
+            type: "string"
+        - name: "publicationIdentifier"
+          in: "path"
+          description: "UUID of the publication"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /by-owner:
+    get:
+      tags:
+        - "external"
+      summary: "Get Publications by Owner"
+      operationId: "listPublicationsByOwner"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArrayOfPublication"
+      security:
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+            - "https://api.nva.unit.no/scopes/third-party/publication-read"
+    options:
+      summary: "CORS support"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /{publicationIdentifier}/ticket/{ticketIdentifier}:
+    get:
+      description: "Get an existing ticket"
+      operationId: "fetchTicketForPublication"
+      parameters:
+        - name: "ticketIdentifier"
+          in: "path"
+          description: "UUID of the ticket"
+          required: true
+          schema:
+            type: "string"
+        - name: "publicationIdentifier"
+          in: "path"
+          description: "UUID of the publication"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ticket"
+        "502":
+          description: "Bad gateway"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+    put:
+      description: "Update existing ticket"
+      operationId: "updateTicketForPublication"
+      parameters:
+        - name: "ticketIdentifier"
+          in: "path"
+          description: "UUID of the ticket"
+          required: true
+          schema:
+            type: "string"
+        - name: "publicationIdentifier"
+          in: "path"
+          description: "UUID of the publication"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        description: "A Ticket Object containing the status, assignee and viewedStatus"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTicketRequest"
+        required: true
+      responses:
+        "202":
+          description: "Accepted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateTicketRequest"
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "Bad gateway"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+    delete:
+      description: "Delete existing ticket"
+      operationId: "deleteTicketForPublication"
+      parameters:
+        - name: "ticketIdentifier"
+          in: "path"
+          description: "UUID of the ticket"
+          required: true
+          schema:
+            type: "string"
+        - name: "publicationIdentifier"
+          in: "path"
+          description: "UUID of the publication"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "404":
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "Ok"
+          content: {}
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: "Bad gateway"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      parameters:
+        - name: "ticketIdentifier"
+          in: "path"
+          description: "UUID of the ticket"
+          required: true
+          schema:
+            type: "string"
+        - name: "publicationIdentifier"
+          in: "path"
+          description: "UUID of the publication"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+components:
+  schemas:
+    Ticket:
+      type: "object"
+      properties:
+        owner:
+          type: "string"
+        identifier:
+          type: "string"
+        finalizedDate:
+          type: "string"
+          format: "date"
+        type:
+          type: "string"
+          enum:
+            - "DoiRequest"
+            - "PublishingRequest"
+            - "GeneralSupportCase"
+        finalizedBy:
+          type: "string"
+        createdDate:
+          type: "string"
+          format: "date"
+        viewedBy:
+          type: "array"
+          items:
+            type: "string"
+        publicationIdentifier:
+          type: "string"
+        modifiedDate:
+          type: "string"
+          format: "date"
+        messages:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Message"
+        assignee:
+          type: "string"
+        ownerAffiliation:
+          type: "string"
+          format: "uri"
+        status:
+          type: "string"
+          enum:
+            - "Pending"
+            - "Completed"
+            - "Closed"
+    ImportCandidate:
+      type: "object"
+      properties:
+        owner:
+          type: "string"
+        importStatus:
+          type: "object"
+          properties:
+            candidateStatus:
+              type: "string"
+              enum:
+                - "IMPORTED"
+                - "NOT_IMPORTED"
+                - "NOT_APPLICABLE"
+            modifiedDate:
+              type: "string"
+            comment:
+              type: "string"
+            nvaPublicationId:
+              type: "string"
+            setBy:
+              type: "string"
+        publicationType:
+          type: "string"
+        description:
+          type: "string"
+        abstract:
+          type: "string"
+          description: "short abstract of content"
+        title:
+          type: "string"
+        tags:
+          type: "array"
+          items:
+            type: "string"
+        reference:
+          type: "object"
+          properties:
+            publicationInstance:
+              type: "object"
+              properties:
+                volume:
+                  type: "string"
+                pages:
+                  type: "object"
+                  properties:
+                    illustrated:
+                      type: "boolean"
+                    pages:
+                      type: "string"
+                    end:
+                      type: "string"
+                    type:
+                      type: "string"
+                    begin:
+                      type: "string"
+                issue:
+                  type: "string"
+                articleNumber:
+                  type: "string"
+                textbookContent:
+                  type: "boolean"
+                peerReviewed:
+                  type: "boolean"
+                type:
+                  type: "string"
+            type:
+              type: "string"
+            publicationContext:
+              type: "object"
+              properties:
+                level:
+                  type: "string"
+                openAccess:
+                  type: "boolean"
+                peerReviewed:
+                  type: "boolean"
+                publisher:
+                  type: "string"
+                linkedContext:
+                  type: "string"
+                title:
+                  type: "string"
+                onlineIssn:
+                  type: "string"
+                type:
+                  type: "string"
+                printIssn:
+                  type: "string"
+                url:
+                  type: "string"
+                seriesTitle:
+                  type: "string"
+            doi:
+              type: "string"
+              format: "uri"
+        modifiedDate:
+          type: "string"
+          format: "date"
+        publisher:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            id:
+              type: "string"
+              format: "uri"
+        publishedDate:
+          type: "string"
+          format: "date"
+        contributors:
+          type: "array"
+          description: "List of contributing people"
+          items:
+            type: "object"
+            properties:
+              name:
+                type: "string"
+              id:
+                type: "string"
+                format: "uri"
+        id:
+          type: "string"
+        publicationDate:
+          type: "object"
+          properties:
+            month:
+              type: "string"
+            year:
+              type: "string"
+            type:
+              type: "string"
+            day:
+              type: "string"
+        alternativeTitles:
+          type: "array"
+          description: "short abstract of content"
+          items:
+            type: "string"
+        doi:
+          type: "string"
+          format: "uri"
+      description: "Complete Import candidate entity"
+    Message:
+      type: "object"
+      properties:
+        owner:
+          type: "string"
+          description: "Ticket owner"
+        identifier:
+          type: "string"
+        createdDate:
+          type: "string"
+          format: "date"
+        sender:
+          type: "string"
+        text:
+          type: "string"
+        id:
+          type: "string"
+          format: "uri"
+        status:
+          type: "string"
+          enum:
+            - "Active"
+            - "Deleted"
+      description: "Message"
+    PublicationSchemaOrg:
+      type: "object"
+    UpdateTicketRequest:
+      type: "object"
+      properties:
+        assignee:
+          type: "string"
+          description: "Username to assign or empty string to deallocate"
+        viewStatus:
+          type: "string"
+          enum:
+            - "Read"
+            - "Unread"
+        status:
+          type: "string"
+          enum:
+            - "Pending"
+            - "Completed"
+            - "Closed"
+      description: "Only few fields of Ticket are exposed for update"
+    TicketCollection:
+      type: "object"
+      properties:
+        tickets:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Ticket"
+        type:
+          type: "string"
+    Publication:
+      required:
+        - "type"
+      type: "object"
+      properties:
+        owner:
+          type: "string"
+        publicationType:
+          type: "string"
+        description:
+          type: "string"
+        abstract:
+          type: "string"
+          description: "short abstract of content"
+        title:
+          type: "string"
+        type:
+          type: "string"
+          description: "Type of the request"
+          enum:
+            - "Publication"
+        tags:
+          type: "array"
+          items:
+            type: "string"
+        reference:
+          type: "object"
+          properties:
+            publicationInstance:
+              type: "object"
+              properties:
+                volume:
+                  type: "string"
+                pages:
+                  type: "object"
+                  properties:
+                    illustrated:
+                      type: "boolean"
+                    pages:
+                      type: "string"
+                    end:
+                      type: "string"
+                    type:
+                      type: "string"
+                    begin:
+                      type: "string"
+                issue:
+                  type: "string"
+                articleNumber:
+                  type: "string"
+                textbookContent:
+                  type: "boolean"
+                peerReviewed:
+                  type: "boolean"
+                type:
+                  type: "string"
+            type:
+              type: "string"
+            publicationContext:
+              type: "object"
+              properties:
+                level:
+                  type: "string"
+                openAccess:
+                  type: "boolean"
+                peerReviewed:
+                  type: "boolean"
+                publisher:
+                  type: "string"
+                linkedContext:
+                  type: "string"
+                title:
+                  type: "string"
+                onlineIssn:
+                  type: "string"
+                type:
+                  type: "string"
+                printIssn:
+                  type: "string"
+                url:
+                  type: "string"
+                seriesTitle:
+                  type: "string"
+            doi:
+              type: "string"
+        modifiedDate:
+          type: "string"
+          format: "date"
+        publisher:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            id:
+              type: "string"
+              format: "uri"
+        publishedDate:
+          type: "string"
+          format: "date"
+        contributors:
+          type: "array"
+          description: "List of contributing people"
+          items:
+            type: "object"
+            properties:
+              name:
+                type: "string"
+              id:
+                type: "string"
+                format: "uri"
+        id:
+          type: "string"
+          format: "uri"
+        publicationDate:
+          type: "object"
+          properties:
+            month:
+              type: "string"
+            year:
+              type: "string"
+            type:
+              type: "string"
+            day:
+              type: "string"
+        alternativeTitles:
+          type: "array"
+          description: "short abstract of content"
+          items:
+            type: "string"
+        doi:
+          type: "string"
+          format: "uri"
+      description: "Complete Publication entity"
+    NewTicketRequest:
+      type: "object"
+      properties:
+        type:
+          type: "string"
+          enum:
+            - "DoiRequest"
+            - "PublishingRequest"
+            - "GeneralSupportCase"
+    ArrayOfPublication:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/Publication"
+    PublicationResponse:
+      allOf:
+        - $ref: "#/components/schemas/Publication"
+        - type: "object"
+          properties:
+            allowedOperations:
+              type: "array"
+              description: "Returns a list of allowed operations for the current user\
+              \ on the publication if a bearer token is provided. Otherwise the list\
+              \ will be empty\n  * update - Can edit the publication. Accessed though\
+              \ PUT  \n  * delete - Permanently delete. Accessed though DELETE  \n\
+              \  * terminate - Can mark publication as deleted and remove associated\
+              \ files. Accessed though PUT\n  * unpublish - Can change published publication\
+              \ status to unpublished. Accessed though PUT\n  * ticket/publish - Allowed\
+              \ to approve a PublishingRequest ticket\n"
+              items:
+                type: "string"
+                enum:
+                  - "update"
+                  - "delete"
+                  - "terminate"
+                  - "unpublish"
+                  - "ticket/publish"
+    PublicationDataCiteXml:
+      type: "object"
+    PublicationContext:
+      type: "object"
+      description: "Publication context"
+    PresignedUrl:
+      type: "object"
+      properties:
+        expires:
+          type: "string"
+        fileIdentifier:
+          type: "string"
+        uri:
+          type: "string"
+          format: "uri"
+      description: "PresignedUrl response"
+    ImportStatus:
+      type: "object"
+      properties:
+        candidateStatus:
+          type: "string"
+          enum:
+            - "IMPORTED"
+            - "NOT_IMPORTED"
+            - "NOT_APPLICABLE"
+        comment:
+          type: "string"
+        nvaPublicationId:
+          type: "string"
+          format: "uri"
+    Problem:
+      required:
+        - "detail"
+        - "status"
+        - "title"
+      type: "object"
+      properties:
+        instance:
+          type: "string"
+          description: "The requested path associated with the error"
+        requestId:
+          type: "string"
+          description: "Identifier of the request causing the problem"
+          format: "uuid"
+        detail:
+          type: "string"
+          description: "A more detailed error message describing the error and potential\
+            \ mitigations"
+        title:
+          type: "string"
+          description: "Human-readable description of the error status"
+        type:
+          type: "string"
+          description: "A URI describing the error and mitigations, in generic cases,\
+            \ this is about:blank"
+        status:
+          type: "integer"
+          description: "The HTTP status code associated with the problem"
+          format: "int32"
+      description: "NVA error reporting object"
+    Doi:
+      type: "object"
+      properties:
+        doi:
+          type: "string"
+          format: "uri"
+  securitySchemes:
+    CognitoUserPool:
+      type: "apiKey"
+      name: "Authorization"
+      in: "header"
+      x-amazon-apigateway-authtype: "cognito_user_pools"
