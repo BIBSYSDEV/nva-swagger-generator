@@ -109,6 +109,7 @@ Resources:
             Statement:
               - Action:
                   - s3:GetObject
+                  - s3:ListBucket
                   - s3:ListObjects
                   - s3:ListObjectsV2
                 Effect: Allow
