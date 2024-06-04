@@ -114,6 +114,7 @@ Resources:
                   - s3:ListObjectsV2
                 Effect: Allow
                 Resource:
+                  - !Sub 'arn:aws:s3:::${OpenApiDocsBucket}'
                   - !Sub 'arn:aws:s3:::${OpenApiDocsBucket}/*'
         - PolicyName: invalidateCloudFront
           PolicyDocument:
