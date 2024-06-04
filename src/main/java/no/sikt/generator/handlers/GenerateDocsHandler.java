@@ -1,6 +1,7 @@
 package no.sikt.generator.handlers;
 
 import static no.sikt.generator.ApplicationConstants.EXPORT_STAGE_PROD;
+import static no.sikt.generator.ApplicationConstants.readOpenApiBucketName;
 import static nva.commons.core.attempt.Try.attempt;
 import static software.amazon.awssdk.regions.Region.AWS_GLOBAL;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
@@ -16,6 +17,8 @@ import no.unit.nva.s3.S3Driver;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UnixPath;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
@@ -30,13 +33,14 @@ import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
 public abstract class GenerateDocsHandler implements RequestStreamHandler {
-
+    private static final Logger logger = LoggerFactory.getLogger(GenerateDocsHandler.class);
     ApiGatewayHighLevelClient apiGatewayHighLevelClient;
     CloudFrontHighLevelClient cloudFrontHighLevelClient;
     S3Client s3ClientOutput;
     S3Client s3ClientInput;
     final OpenApiValidator openApiValidator = new OpenApiValidator();
     final OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
+    final String openApiBucketName = readOpenApiBucketName();
 
     @JacocoGenerated
     public GenerateDocsHandler() {
@@ -75,13 +79,16 @@ public abstract class GenerateDocsHandler implements RequestStreamHandler {
 
     List<Pair<S3Object, OpenAPI>> getTemplateOpenApiDocs() {
         var listing =
-            s3ClientInput.listObjects(ListObjectsRequest.builder().bucket("openapidocs").maxKeys(1000).build())
-                .contents().stream().sorted(Comparator.comparing(S3Object::lastModified)).toList();
+            s3ClientInput.listObjects(ListObjectsRequest.builder().bucket(openApiBucketName).maxKeys(1000).build())
+                .contents().stream()
+                .filter(s3Object -> s3Object.key().endsWith(".yaml"))
+                .sorted(Comparator.comparing(S3Object::lastModified)).toList();
+        logger.info("Found " + listing.size() + " .yaml files");
         return listing.stream().map(s3Object -> Pair.of(s3Object, getOpenApiFromFilePath(s3Object))).toList();
     }
 
     private OpenAPI getOpenApiFromFilePath(S3Object s3Object) {
-        var request = GetObjectRequest.builder().bucket("openapidocs").key(s3Object.key()).build();
+        var request = GetObjectRequest.builder().bucket(openApiBucketName).key(s3Object.key()).build();
         var fileContent =
             s3ClientInput.getObject(request, ResponseTransformer.toBytes()).asUtf8String();
         return openApiParser.readContents(fileContent).getOpenAPI();

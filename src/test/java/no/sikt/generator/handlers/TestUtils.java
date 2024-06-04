@@ -2,6 +2,7 @@ package no.sikt.generator.handlers;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.isNull;
+import static no.sikt.generator.ApplicationConstants.readOpenApiBucketName;
 import static no.sikt.generator.Utils.readResource;
 import static no.sikt.generator.Utils.readResourceOptional;
 import static org.mockito.ArgumentMatchers.any;
@@ -15,6 +16,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import no.sikt.generator.ApplicationConstants;
 import no.sikt.generator.Utils;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.attempt.Try;
@@ -87,7 +89,7 @@ public class TestUtils {
         var testCases = fileNames.stream().map(fileName -> loadTestCase(filePrefix + fileName.getLeft(),
                                                                         fileName.getRight().map(fn -> filePrefix + fn)) ).toList();
 
-        var s3driver = new S3Driver(s3Client, "openapidocs");
+        var s3driver = new S3Driver(s3Client, readOpenApiBucketName());
         testCases.forEach(tc -> loadGithubOpenapiFile(s3driver, tc));
 
         var getRestApisResponse = GetRestApisResponse.builder().items(

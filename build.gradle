@@ -73,6 +73,7 @@ test {
     environment "EXCLUDED_APIS", "Api Exclude,Api Exclude"
     environment "INTERNAL_CLOUD_FRONT_DISTRIBUTION", "some_id1"
     environment "EXTERNAL_CLOUD_FRONT_DISTRIBUTION", "some_id2"
+    environment "OPEN_API_DOCS_BUCKET_NAME", "docs-bucket"
 
     useJUnitPlatform {}
     failFast = false

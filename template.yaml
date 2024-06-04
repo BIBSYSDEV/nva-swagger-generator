@@ -18,6 +18,10 @@ Parameters:
     Type: String
     Description: Password for the login for the internal swagger ui
     Default: password
+  OpenApiDocsBucket:
+    Type: AWS::SSM::Parameter::Value<String>
+    Description: The bucket for openapi docs
+    Default: /NVA/OpenApiDocsBucket
 
 Globals:
   Function:
@@ -31,6 +35,7 @@ Globals:
         INTERNAL_CLOUD_FRONT_DISTRIBUTION: !Ref InternalCloudfrontDistribution
         EXTERNAL_BUCKET_NAME: !Ref ExternalSwaggerUiBucket
         INTERNAL_BUCKET_NAME: !Ref InternalSwaggerUiBucket
+        OPEN_API_DOCS_BUCKET_NAME: !Ref OpenApiDocsBucket
 
 Resources:
   InternalSwaggerUIBase64Auth:
@@ -83,7 +88,7 @@ Resources:
                   - apigateway:PATCH
                   - apigateway:DELETE
                 Resource: '*'
-        - PolicyName: readWriteS3
+        - PolicyName: readWriteS3Output
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -98,6 +103,17 @@ Resources:
                   - !Sub 'arn:aws:s3:::${InternalSwaggerUiBucket}/*'
                   - !Sub 'arn:aws:s3:::${ExternalSwaggerUiBucket}'
                   - !Sub 'arn:aws:s3:::${ExternalSwaggerUiBucket}/*'
+        - PolicyName: OpenapidocsBucket
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - s3:GetObject
+                  - s3:ListObjects
+                  - s3:ListObjectsV2
+                Effect: Allow
+                Resource:
+                  - !Sub 'arn:aws:s3:::${OpenApiDocsBucket}/*'
         - PolicyName: invalidateCloudFront
           PolicyDocument:
             Version: "2012-10-17"
