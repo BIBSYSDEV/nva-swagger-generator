@@ -17,6 +17,7 @@ import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.tags.Tag;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -62,6 +63,14 @@ public final class OpenApiUtils {
         return nonNull(properties) ? properties.values().stream() : Stream.of();
     }
 
+    public static Stream<Schema> getAdditionalPropertiesSchemas(Schema schema) {
+        if (nonNull(schema.getAdditionalProperties()) && schema.getAdditionalProperties() instanceof Schema) {
+            return Stream.of((Schema) schema.getAdditionalProperties());
+        } else {
+            return Stream.of();
+        }
+    }
+
     public static Stream<ApiResponse> getApiResponsesFromOperation(Operation operation) {
         return operation.getResponses().values().stream().filter(Objects::nonNull);
     }
@@ -80,8 +89,9 @@ public final class OpenApiUtils {
             OpenApiUtils.getNestedAllOfSchemas(schema),
             OpenApiUtils.getNestedAnyOfSchemas(schema),
             OpenApiUtils.getNestedPropertiesSchemas(schema),
-            OpenApiUtils.getNestedPropertiesSchemas(schema).map(Schema::getItems)
-        ).flatMap(stream -> stream).filter(Objects::nonNull).collect(Collectors.toList());
+            OpenApiUtils.getNestedPropertiesSchemas(schema).map(Schema::getItems),
+            OpenApiUtils.getAdditionalPropertiesSchemas(schema)
+        ).flatMap(stream -> stream).filter(Objects::nonNull).toList();
 
         return Stream.of(
             nestedSchemas.stream(),
@@ -178,7 +188,7 @@ public final class OpenApiUtils {
                                     .entrySet()
                                     .stream()
                                     .filter(entry -> reffed.contains(COMPONENTS_SCHEMAS + entry.getKey()))
-                                    .map(entry -> entry.getValue())
+                                    .map(Entry::getValue)
                                     .collect(toSet());
 
         var nestedSchemas = directUsedSchemas
