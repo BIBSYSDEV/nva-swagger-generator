@@ -24,8 +24,13 @@ repositories {
 
 java {
     // added to ensure Compatibility in dev mode for devs with java versions > 11
-    sourceCompatibility JavaVersion.VERSION_17
-    targetCompatibility JavaVersion.VERSION_17
+    sourceCompatibility JavaVersion.VERSION_21
+    targetCompatibility JavaVersion.VERSION_21
+}
+
+wrapper {
+    distributionType = Wrapper.DistributionType.ALL
+    gradleVersion = "8.5"
 }
 
 dependencies {
