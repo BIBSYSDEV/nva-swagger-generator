@@ -262,7 +262,7 @@ Resources:
         - AWSLambdaBasicExecutionRole
         - AWSLambda_ReadOnlyAccess
       Handler: no.sikt.generator.handlers.PublishDocumentationsHandler::handleRequest
-      Runtime: java17
+      Runtime: java21
       Role: !GetAtt SwaggerGeneratorRole.Arn
       Timeout: 600
       Events:
@@ -280,7 +280,7 @@ Resources:
         - AWSLambdaBasicExecutionRole
         - AWSLambda_ReadOnlyAccess
       Handler: no.sikt.generator.handlers.GenerateExternalDocsHandler::handleRequest
-      Runtime: java17
+      Runtime: java21
       Role: !GetAtt SwaggerGeneratorRole.Arn
       Timeout: 600
       Events:
@@ -298,7 +298,7 @@ Resources:
         - AWSLambdaBasicExecutionRole
         - AWSLambda_ReadOnlyAccess
       Handler: no.sikt.generator.handlers.GenerateInternalDocsHandler::handleRequest
-      Runtime: java17
+      Runtime: java21
       Role: !GetAtt SwaggerGeneratorRole.Arn
       Timeout: 600
       Events:
@@ -316,7 +316,7 @@ Resources:
         - AWSLambdaBasicExecutionRole
         - AWSLambda_ReadOnlyAccess
       Handler: no.sikt.generator.handlers.InstallSwaggerUiHandler::handleRequest
-      Runtime: java17
+      Runtime: java21
       Timeout: 300
       Role: !GetAtt SwaggerGeneratorRole.Arn
 
