@@ -92,6 +92,7 @@ public class ApiData {
                                 if (paramInGithub.isPresent()) {
                                     parameter.setStyle(paramInGithub.get().getStyle());
                                     parameter.setExplode(paramInGithub.get().getExplode());
+                                    parameter.setExample(paramInGithub.get().getExample());
                                 }
                             }
 

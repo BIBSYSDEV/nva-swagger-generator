@@ -180,6 +180,17 @@ class GenerateExternalDocsHandlerTest {
     }
 
     @Test
+    public void shouldIncludeFieldsThatAreNestedInAdditionalProperties() {
+        setupTestCasesFromFiles("additional-properties", List.of("api.yaml", "api.yaml"));
+
+        handler.handleRequest(null, null, null);
+
+        var openApi = readGeneratedOpenApi();
+
+        assertThat(openApi.getComponents().getSchemas().get("NestedResponse"), notNullValue());
+    }
+
+    @Test
     public void shouldOnlyWriteTheCombinedOpenApiFileToS3() {
         var fileNames = List.of(
             "api-with-external.yaml"
