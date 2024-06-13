@@ -151,6 +151,7 @@ class GenerateExternalDocsHandlerTest {
         var openapi = generateOpenApiFromExternalSpecs();
 
         assertThat(openapi.getComponents().getSchemas().containsKey("ExternalSchema"),equalTo(true));
+        assertThat(openapi.getComponents().getSchemas().containsKey("NestedExternalSchema"),equalTo(true));
     }
 
     @Test
@@ -177,6 +178,7 @@ class GenerateExternalDocsHandlerTest {
         var openApi = readGeneratedOpenApi();
 
         assertThat(openApi.getComponents().getSchemas().get("NestedResponse"), notNullValue());
+        assertThat(openApi.getComponents().getSchemas().get("NestedNestedResponse"), notNullValue());
     }
 
     @Test

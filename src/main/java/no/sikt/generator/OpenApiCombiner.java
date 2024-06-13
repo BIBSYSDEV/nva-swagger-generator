@@ -218,8 +218,8 @@ public class OpenApiCombiner {
         this.others.stream().forEach(api -> {
             if (nonNull(api.getComponents().getSchemas())) {
                 for (var schemaEntry : api.getComponents().getSchemas().entrySet()) {
-                    var nestedSchemas = OpenApiUtils.getNestedSchemas(schemaEntry.getValue());
-                    nestedSchemas.filter(Objects::nonNull).forEach(s -> {
+                    var nestedSchemas = OpenApiUtils.getNestedSchemas(api ,schemaEntry.getValue());
+                    nestedSchemas.stream().filter(Objects::nonNull).forEach(s -> {
                         var refName = StringUtils.stripStart(s.get$ref(), COMPONENTS_SCHEMAS);
                         var newName = CaseUtils.toCamelCase(api.getInfo().getTitle(), true)
                                       + refName;

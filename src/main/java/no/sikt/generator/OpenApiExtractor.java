@@ -40,6 +40,8 @@ public class OpenApiExtractor {
             var value = schemas.get(key);
             if (usedSchemas.contains(COMPONENTS_SCHEMAS + key)) {
                 newSchemas.put(key, value);
+            } else {
+                logger.info("Removing schema " + key + " as no reference found");
             }
         });
         openAPI.getComponents().setSchemas(newSchemas);
