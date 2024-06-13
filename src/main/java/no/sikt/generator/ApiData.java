@@ -85,17 +85,7 @@ public class ApiData {
                         operation.getParameters().forEach(parameter -> {
                             var operationInGithub = Optional.ofNullable(openapiApiGithub.get().getPaths().get(pathKey).readOperationsMap()
                                                                              .get(httpMethod));
-                            if (operationInGithub.isPresent()) {
-                                var paramInGithub = operationInGithub.get().getParameters().stream()
-                                    .filter(githubparam -> githubparam.getName().equals(parameter.getName())).findFirst();
-
-                                if (paramInGithub.isPresent()) {
-                                    parameter.setStyle(paramInGithub.get().getStyle());
-                                    parameter.setExplode(paramInGithub.get().getExplode());
-                                    parameter.setExample(paramInGithub.get().getExample());
-                                }
-                            }
-
+                            operationInGithub.ifPresent(value -> operation.setParameters(value.getParameters()));
                         });
                     }
                 });
