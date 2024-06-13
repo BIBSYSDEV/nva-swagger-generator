@@ -1,9 +1,8 @@
 package no.sikt.generator;
 
-import static java.util.Objects.*;
+import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.concat;
-import io.swagger.models.parameters.PathParameter;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
@@ -15,15 +14,17 @@ import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.tags.Tag;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import nva.commons.core.JacocoGenerated;
+import org.apache.commons.lang3.StringUtils;
 
 public final class OpenApiUtils {
 
@@ -83,20 +84,37 @@ public final class OpenApiUtils {
         return mediaType.getSchema().get$ref();
     }
 
-    public static Stream<Schema> getNestedSchemas(Schema schema) {
+    public static Set<Schema> getNestedSchemas(OpenAPI openAPI, Schema schema) {
+        return getNestedSchemas(openAPI, new HashSet<>(Arrays.asList()), schema);
+
+    }
+
+    public static Set<Schema> getNestedSchemas(OpenAPI openAPI, Set<Schema> visited, Schema schema) {
         var nestedSchemas = Stream.of(
             Stream.of(schema.getItems()),
+            OpenApiUtils.getReffedSchema(openAPI, schema),
             OpenApiUtils.getNestedAllOfSchemas(schema),
             OpenApiUtils.getNestedAnyOfSchemas(schema),
             OpenApiUtils.getNestedPropertiesSchemas(schema),
-            OpenApiUtils.getNestedPropertiesSchemas(schema).map(Schema::getItems),
             OpenApiUtils.getAdditionalPropertiesSchemas(schema)
-        ).flatMap(stream -> stream).filter(Objects::nonNull).toList();
+        ).flatMap(stream -> stream).filter(Objects::nonNull).collect(toSet());
 
-        return Stream.of(
-            nestedSchemas.stream(),
-            nestedSchemas.stream().flatMap(OpenApiUtils::getNestedSchemas)
-        ).flatMap(stream -> stream);
+        var newSchemas = nestedSchemas.stream().filter(ns -> !visited.contains(ns)).collect(toSet());
+
+        visited.addAll(nestedSchemas);
+        newSchemas.stream()
+            .forEach(s -> getNestedSchemas(openAPI, visited, s));
+
+        return visited;
+
+    }
+
+    private static Stream<Schema> getReffedSchema(OpenAPI openAPI, Schema schema) {
+        if (nonNull(schema.get$ref()) && schema.get$ref().startsWith(COMPONENTS_SCHEMAS)) {
+            return Stream.of(openAPI.getComponents().getSchemas().get(StringUtils.stripStart(schema.get$ref(), COMPONENTS_SCHEMAS)));
+        } else {
+            return Stream.of();
+        }
     }
 
     public static Stream<String> getRefsFromRequestBodies(OpenAPI openAPI) {
@@ -190,10 +208,9 @@ public final class OpenApiUtils {
                                     .filter(entry -> reffed.contains(COMPONENTS_SCHEMAS + entry.getKey()))
                                     .map(Entry::getValue)
                                     .collect(toSet());
-
         var nestedSchemas = directUsedSchemas
                                 .stream()
-                                .flatMap(OpenApiUtils::getNestedSchemas)
+                                .flatMap(s -> getNestedSchemas(openAPI, s).stream())
                                 .map(Schema::get$ref)
                                 .collect(toSet());
 

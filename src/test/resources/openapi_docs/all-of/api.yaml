@@ -28,7 +28,14 @@ components:
     NestedResponse:
       type: "object"
       properties:
+        nestedNestedField:
+          $ref: "#/components/schemas/NestedNestedResponse"
         nestedField:
+          type: "string"
+    NestedNestedResponse:
+      type: "object"
+      properties:
+        nestedNestedField:
           type: "string"
   securitySchemes:
     SharedUserPool:
