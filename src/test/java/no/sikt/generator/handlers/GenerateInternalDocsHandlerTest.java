@@ -291,6 +291,19 @@ class GenerateInternalDocsHandlerTest {
     }
 
     @Test
+    public void shouldIncludeParameteredSchemas() {
+        setupTestCasesFromFilesWithGithubOpenapi("parameters", List.of(Pair.of("api.yaml", Optional.of(
+            "github"
+            + ".yaml"))));
+
+        handler.handleRequest(null, null, null);
+        var openApi = readGeneratedOpenApi();
+        var categoryEnum = openApi.getComponents().getSchemas().get("CategoryEnum");
+
+        assertThat(categoryEnum,is(notNullValue()));
+    }
+
+    @Test
     public void shouldSortSchemasAlphabetically() {
         setupNvaMocks();
 

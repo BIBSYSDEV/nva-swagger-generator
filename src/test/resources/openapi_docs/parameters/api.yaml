@@ -1,0 +1,3058 @@
+openapi: "3.0.1"
+info:
+  title: "NVA Public Search API"
+  description: "Public search API for resources in NVA. The API is backed by Amazon\
+    \ OpenSearch and uses [OpenSearch query syntax](https://opensearch.org/docs/latest/opensearch/query-dsl/full-text/)."
+  version: "0.2.0"
+servers:
+  - url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+    variables:
+      basePath:
+        default: "search"
+paths:
+  /customer/import-candidates:
+    get:
+      description: "Search for import candidates by given criteria"
+      parameters:
+        - name: "publisher"
+          in: "query"
+          description: "Returns document with this publisher."
+          schema:
+            type: "string"
+        - name: "contributor_not"
+          in: "query"
+          description: "Returns document without Author's ids(URI)."
+          schema:
+            type: "string"
+        - name: "title_not"
+          in: "query"
+          description: "Returns document without these words in the title."
+          schema:
+            type: "string"
+        - name: "lang"
+          in: "query"
+          description: "Two letter language code. IGNORED, here to be compatible with\
+          \ CristinAPI."
+          schema:
+            type: "string"
+        - name: "license_not"
+          in: "query"
+          description: "Returns document without this license key (without version)."
+          schema:
+            type: "string"
+        - name: "publication_year_before"
+          in: "query"
+          description: "Returns document with publication year prior to value."
+          schema:
+            type: "string"
+        - name: "has_file"
+          in: "query"
+          description: "Returns documents with visibleForNonOwner=true/false."
+          schema:
+            type: "string"
+        - name: "collaboration_type"
+          in: "query"
+          description: "Returns document with enum."
+          schema:
+            type: "string"
+        - name: "fields"
+          in: "query"
+          description: "'fields=all' will search all fields in documents, or you can\
+          \ specify a comma separated list of fields to search in."
+          schema:
+            type: "string"
+        - name: "from"
+          in: "query"
+          description: "Start result from item no. zero based [offset] is also accepted.\
+          \ Default is 0."
+          schema:
+            type: "string"
+        - name: "title"
+          in: "query"
+          description: "Returns document with these words in the title."
+          schema:
+            type: "string"
+        - name: "id"
+          in: "query"
+          description: "Returns document with the identifier (UUID)."
+          schema:
+            type: "string"
+        - name: "top_level_organization"
+          in: "query"
+          description: "Returns documents with this reference."
+          schema:
+            type: "string"
+        - name: "category"
+          in: "query"
+          description: "Returns documents with this category code, only one category\
+          \ code is allowed."
+          schema:
+            type: "string"
+        - name: "contributor"
+          in: "query"
+          description: "Returns document with Author's id(URI)."
+          schema:
+            type: "string"
+        - name: "license"
+          in: "query"
+          description: "Returns document with this license key (without version)."
+          schema:
+            type: "string"
+        - name: "order"
+          in: "query"
+          description: "SortOrder is either 'asc' or 'desc'. See Search and sort Default\
+          \ sort order is on 'cristin_result_id' in ascending order."
+          schema:
+            type: "string"
+        - name: "type"
+          in: "query"
+          description: "Returns document with these types"
+          schema:
+            type: "string"
+        - name: "additional_identifiers"
+          in: "query"
+          description: "Returns document with identifier value."
+          schema:
+            type: "string"
+        - name: "import_status"
+          in: "query"
+          description: "Returns document with this importStatus."
+          schema:
+            type: "string"
+        - name: "doi"
+          in: "query"
+          description: "Returns document with this DOI id."
+          schema:
+            type: "string"
+        - name: "doi_not"
+          in: "query"
+          description: "Returns document without these DOI ids."
+          schema:
+            type: "string"
+        - name: "top_level_organization_not"
+          in: "query"
+          description: "Returns documents without this reference."
+          schema:
+            type: "string"
+        - name: "publication_year"
+          in: "query"
+          description: "Returns document with this publication year."
+          schema:
+            type: "string"
+        - name: "publisher_not"
+          in: "query"
+          description: "Returns document without this publisher."
+          schema:
+            type: "string"
+        - name: "search_all"
+          in: "query"
+          description: "Returns document with this search phrase"
+          schema:
+            type: "string"
+        - name: "cristin_identifier"
+          in: "query"
+          description: "Returns documents with the cristin identifier."
+          schema:
+            type: "string"
+        - name: "size"
+          in: "query"
+          description: "Number of items returned. [per_page|perPage|results|limit] are\
+          \ also accepted.  Default is 15."
+          schema:
+            type: "string"
+        - name: "type_not"
+          in: "query"
+          description: "Returns document without these types"
+          schema:
+            type: "string"
+        - name: "query"
+          in: "query"
+          description: "free text search, all words are searched for in all fields,\
+          \ only documents containing all words are returned."
+          schema:
+            type: "string"
+        - name: "sort"
+          in: "query"
+          description: "Sorts on the given field. Default sort order is on 'published_date'\
+          \ in ascending order."
+          schema:
+            type: "string"
+        - name: "collaboration_type_not"
+          in: "query"
+          description: "Returns document without enum."
+          schema:
+            type: "string"
+        - name: "id_not"
+          in: "query"
+          description: "Returns document without these identifiers (UUID)."
+          schema:
+            type: "string"
+        - name: "publication_year_since"
+          in: "query"
+          description: "Returns document with publication year starting from value."
+          schema:
+            type: "string"
+        - name: "created_date"
+          in: "query"
+          description: "Returns document with these created dates"
+          schema:
+            type: "string"
+        - name: "page"
+          in: "query"
+          description: "Page number, zero based, see from and size."
+          schema:
+            type: "string"
+        - name: "category_not"
+          in: "query"
+          description: "Returns documents without these category codes. Support list\
+          \ of Enums."
+          schema:
+            type: "string"
+        - name: "import_status_not"
+          in: "query"
+          description: "Returns document with this importStatus."
+          schema:
+            type: "string"
+        - name: "scopus_identifier"
+          in: "query"
+          description: "Returns documents with the cristin identifier."
+          schema:
+            type: "string"
+      responses:
+        "404":
+          description: "Not Found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedImportCandidateSearchResponse"
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /customer/resources:
+    get:
+      description: "Search for publications by customer"
+      parameters:
+        - name: "instance_type"
+          in: "query"
+          description: "Returns document with this instanceType."
+          schema:
+            type: "string"
+        - name: "status"
+          in: "query"
+          description: "Returns documents with given status."
+          schema:
+            type: "string"
+        - name: "title"
+          in: "query"
+          description: "Returns document with these words in the title."
+          schema:
+            type: "string"
+        - name: "publication_language"
+          in: "query"
+          description: "Returns document with these publication languages (URI)."
+          schema:
+            type: "string"
+        - name: "funding_source_should"
+          in: "query"
+          description: "Returns document with these funding source codes."
+          schema:
+            type: "string"
+        - name: "user_affiliation_should"
+          in: "query"
+          description: "Returns document with these owner affiliations."
+          schema:
+            type: "string"
+        - name: "institution"
+          in: "query"
+          description: "Returns document with this institution id (URI)."
+          schema:
+            type: "string"
+        - name: "funding_identifier_should"
+          in: "query"
+          description: "Returns documents with the funding identifiers, also known as\
+          \ grant identifiers."
+          schema:
+            type: "string"
+        - name: "doi_not"
+          in: "query"
+          description: "Returns document without these DOI ids."
+          schema:
+            type: "string"
+        - name: "instance_type_should"
+          in: "query"
+          description: "Returns document with these instanceTypes."
+          schema:
+            type: "string"
+        - name: "scientific_report_period_before"
+          in: "query"
+          description: "Returns document with scientific reporting year before this\
+          \ value."
+          schema:
+            type: "string"
+        - name: "user_not"
+          in: "query"
+          description: "Returns document without these resource owners (user id (URI))."
+          schema:
+            type: "string"
+        - name: "project_not"
+          in: "query"
+          description: "Returns document without these project ids (URI)."
+          schema:
+            type: "string"
+        - name: "published_between"
+          in: "query"
+          description: "Returns document with date between values."
+          schema:
+            type: "string"
+        - name: "publication_year_since"
+          in: "query"
+          description: "Returns document with publication year starting from value."
+          schema:
+            type: "string"
+        - name: "publisher_should"
+          in: "query"
+          description: "Returns document with these publishers."
+          schema:
+            type: "string"
+        - name: "institution_not"
+          in: "query"
+          description: "Returns document without Ids, names or acronyms of the institution\
+          \ the contributors belong to."
+          schema:
+            type: "string"
+        - name: "funding"
+          in: "query"
+          description: "Funding source code e.g: NFR, and project_code together separated\
+          \ by ':'."
+          schema:
+            type: "string"
+        - name: "publisher_id"
+          in: "query"
+          description: "Returns document with this Id."
+          schema:
+            type: "string"
+        - name: "course_not"
+          in: "query"
+          description: "Returns documents without this course code."
+          schema:
+            type: "string"
+        - name: "publisher"
+          in: "query"
+          description: "Returns document with this publisher."
+          schema:
+            type: "string"
+        - name: "user_should"
+          in: "query"
+          description: "Returns document with any of these resource owners (user id\
+          \ (URI))."
+          schema:
+            type: "string"
+        - name: "series_should"
+          in: "query"
+          description: "Returns document with these ID/name."
+          schema:
+            type: "string"
+        - name: "funding_source"
+          in: "query"
+          description: "Returns document with this funding source code or project code."
+          schema:
+            type: "string"
+        - name: "issn_should"
+          in: "query"
+          description: "Returns document with these issn."
+          schema:
+            type: "string"
+        - name: "title_not"
+          in: "query"
+          description: "Returns document without these words in the title."
+          schema:
+            type: "string"
+        - name: "publication_year_before"
+          in: "query"
+          description: "Returns document with publication year prior to value."
+          schema:
+            type: "string"
+        - name: "has_file"
+          in: "query"
+          description: "Returns documents with visibleForNonOwner=true/false."
+          schema:
+            type: "string"
+        - name: "publication_language_should"
+          in: "query"
+          description: "Returns document with these publication languages codes ()."
+          schema:
+            type: "string"
+        - name: "funding_identifier"
+          in: "query"
+          description: "Returns documents with the funding identifier, also known as\
+          \ grant identifier."
+          schema:
+            type: "string"
+        - name: "id_should"
+          in: "query"
+          description: "Returns document with these identifiers (UUID)."
+          schema:
+            type: "string"
+        - name: "top_level_organization"
+          in: "query"
+          description: "Returns documents with this reference."
+          schema:
+            type: "string"
+        - name: "contributor"
+          in: "query"
+          description: "Returns document with Author's id(URI)."
+          schema:
+            type: "string"
+        - name: "license"
+          in: "query"
+          description: "Returns document with this license key (without version)."
+          schema:
+            type: "string"
+        - name: "tags_not"
+          in: "query"
+          description: "Returns document without these tags."
+          schema:
+            type: "string"
+        - name: "published_before"
+          in: "query"
+          description: "Results published before and inclusive the given date, (yyyy-mm-dd)"
+          schema:
+            type: "string"
+        - name: "isbn_not"
+          in: "query"
+          description: "Returns document without these ISBN ids."
+          schema:
+            type: "string"
+        - name: "orcid"
+          in: "query"
+          description: "Returns document with this ORCID id."
+          schema:
+            type: "string"
+        - name: "publication_year"
+          in: "query"
+          description: "Returns document with this publication year."
+          schema:
+            type: "string"
+        - name: "unit"
+          in: "query"
+          description: "Returns document with these words in the Id."
+          schema:
+            type: "string"
+        - name: "abstract_should"
+          in: "query"
+          description: "Returns document with these words in the abstract."
+          schema:
+            type: "string"
+        - name: "cristin_identifier"
+          in: "query"
+          description: "Returns documents with the cristin identifier."
+          schema:
+            type: "string"
+        - name: "scientific_report_period_since"
+          in: "query"
+          description: "Returns document with scientific reporting year after this value."
+          schema:
+            type: "string"
+        - name: "funding_source_not"
+          in: "query"
+          description: "Returns document without these funding source codes."
+          schema:
+            type: "string"
+        - name: "publisher_id_should"
+          in: "query"
+          description: "Returns document with these Ids."
+          schema:
+            type: "string"
+        - name: "publication_language_not"
+          in: "query"
+          description: "Returns document without these publication languages (URI)."
+          schema:
+            type: "string"
+        - name: "query"
+          in: "query"
+          description: "free text search, all words are searched for in all fields,\
+          \ only documents containing all words are returned."
+          schema:
+            type: "string"
+        - name: "sort"
+          in: "query"
+          description: "Sorts on the given field. Default sort order is on 'published_date'\
+          \ in ascending order."
+          schema:
+            type: "string"
+        - name: "contributor_should"
+          in: "query"
+          description: "Returns document with Author's ids(URI)."
+          schema:
+            type: "string"
+        - name: "license_should"
+          in: "query"
+          description: "Returns document with these license key (without version)."
+          schema:
+            type: "string"
+        - name: "page"
+          in: "query"
+          description: "Page number, zero based, see from and size."
+          schema:
+            type: "string"
+        - name: "modified_since"
+          in: "query"
+          description: "Results modified since and inclusive the given date, (yyyy-mm-dd)."
+          schema:
+            type: "string"
+        - name: "status_should"
+          in: "query"
+          description: "Returns documents without any of the given statuses."
+          schema:
+            type: "string"
+        - name: "user_affiliation"
+          in: "query"
+          description: "Returns document with these owner affiliations."
+          schema:
+            type: "string"
+        - name: "unit_should"
+          in: "query"
+          description: "Returns document with any of these words in the Id."
+          schema:
+            type: "string"
+        - name: "category_should"
+          in: "query"
+          description: "Returns documents with these category codes. Support list of\
+          \ Enums."
+          schema:
+            type: "string"
+        - name: "contributor_not"
+          in: "query"
+          description: "Returns document without Author's ids(URI)."
+          schema:
+            type: "string"
+        - name: "license_not"
+          in: "query"
+          description: "Returns document without this license key (without version)."
+          schema:
+            type: "string"
+        - name: "user_affiliation_not"
+          in: "query"
+          description: "Returns document without these owner affiliations."
+          schema:
+            type: "string"
+        - name: "fields"
+          in: "query"
+          description: "'fields=all' will search all fields in documents, or you can\
+          \ specify a comma separated list of fields to search in."
+          schema:
+            type: "string"
+        - name: "from"
+          in: "query"
+          description: "Start result from item no. zero based [offset] is also accepted.\
+          \ Default is 0."
+          schema:
+            type: "string"
+        - name: "series_not"
+          in: "query"
+          description: "Returns document without this ID/name."
+          schema:
+            type: "string"
+        - name: "id"
+          in: "query"
+          description: "Returns document with the identifier (UUID)."
+          schema:
+            type: "string"
+        - name: "publisher_id_not"
+          in: "query"
+          description: "Returns document without this Id."
+          schema:
+            type: "string"
+        - name: "orcid_should"
+          in: "query"
+          description: "Returns document with these ORCID ids."
+          schema:
+            type: "string"
+        - name: "category"
+          in: "query"
+          description: "Returns documents with this category code, only one category\
+          \ code is allowed."
+          schema:
+            type: "string"
+        - name: "doi_should"
+          in: "query"
+          description: "Returns document with these DOI ids."
+          schema:
+            type: "string"
+        - name: "abstract"
+          in: "query"
+          description: "Returns document with these words in the abstract."
+          schema:
+            type: "string"
+        - name: "grant_id_should"
+          in: "query"
+          description: "Returns documents with the grant id, also known as funding identifiers."
+          schema:
+            type: "string"
+        - name: "contributor_name_should"
+          in: "query"
+          description: "Returns document with similar Author names."
+          schema:
+            type: "string"
+        - name: "contributor_name"
+          in: "query"
+          description: "Returns document with Author's name."
+          schema:
+            type: "string"
+        - name: "title_should"
+          in: "query"
+          description: "Returns document with any of these words in the title."
+          schema:
+            type: "string"
+        - name: "doi"
+          in: "query"
+          description: "Returns document with this DOI id."
+          schema:
+            type: "string"
+        - name: "instance_type_not"
+          in: "query"
+          description: "Returns document without this instanceType."
+          schema:
+            type: "string"
+        - name: "user"
+          in: "query"
+          description: "Returns document with this resource owner (user id (URI))."
+          schema:
+            type: "string"
+        - name: "project_should"
+          in: "query"
+          description: "Returns document with these project ids (URI)."
+          schema:
+            type: "string"
+        - name: "unit_not"
+          in: "query"
+          description: "Returns document without these words in the Id."
+          schema:
+            type: "string"
+        - name: "contributor_name_not"
+          in: "query"
+          description: "Returns document without Author's name."
+          schema:
+            type: "string"
+        - name: "created_before"
+          in: "query"
+          description: "Results created before and inclusive the given date, (yyyy-mm-dd)."
+          schema:
+            type: "string"
+        - name: "abstract_not"
+          in: "query"
+          description: "Returns document without these words in the abstract."
+          schema:
+            type: "string"
+        - name: "publisher_not"
+          in: "query"
+          description: "Returns document without this publisher."
+          schema:
+            type: "string"
+        - name: "project"
+          in: "query"
+          description: "Returns document with this project id (URI)."
+          schema:
+            type: "string"
+        - name: "parent_publication_should"
+          in: "query"
+          description: "Returns document with these parentPublications."
+          schema:
+            type: "string"
+        - name: "modified_before"
+          in: "query"
+          description: "Results modified before and inclusive the given date, (yyyy-mm-dd)."
+          schema:
+            type: "string"
+        - name: "course"
+          in: "query"
+          description: "Returns documents with this course code."
+          schema:
+            type: "string"
+        - name: "funding_identifier_not"
+          in: "query"
+          description: "Returns documents without the funding identifier, also known\
+          \ as grant identifier."
+          schema:
+            type: "string"
+        - name: "category_not"
+          in: "query"
+          description: "Returns documents without these category codes. Support list\
+          \ of Enums."
+          schema:
+            type: "string"
+        - name: "orcid_not"
+          in: "query"
+          description: "Returns document without these ORCID ids."
+          schema:
+            type: "string"
+        - name: "status_not"
+          in: "query"
+          description: "Returns documents without given status."
+          schema:
+            type: "string"
+        - name: "isbn_should"
+          in: "query"
+          description: "Returns document with these ISBN ids."
+          schema:
+            type: "string"
+        - name: "lang"
+          in: "query"
+          description: "Two letter language code. IGNORED, here to be compatible with\
+          \ CristinAPI."
+          schema:
+            type: "string"
+        - name: "grant_id"
+          in: "query"
+          description: "Returns documents with the grant id, also known as funding identifier."
+          schema:
+            type: "string"
+        - name: "grant_id_not"
+          in: "query"
+          description: "Returns documents without the grant id, also known as funding\
+          \ identifier."
+          schema:
+            type: "string"
+        - name: "order"
+          in: "query"
+          description: "SortOrder is either 'asc' or 'desc'. See Search and sort Default\
+          \ sort order is on 'cristin_result_id' in ascending order."
+          schema:
+            type: "string"
+        - name: "series"
+          in: "query"
+          description: "Returns document with this ID/name."
+          schema:
+            type: "string"
+        - name: "context_type_should"
+          in: "query"
+          description: "Returns document with these contextTypes."
+          schema:
+            type: "string"
+        - name: "tags_should"
+          in: "query"
+          description: "Returns document with these tags."
+          schema:
+            type: "string"
+        - name: "context_type"
+          in: "query"
+          description: "Returns document with these contextTypes."
+          schema:
+            type: "string"
+        - name: "isbn"
+          in: "query"
+          description: "Returns document with this ISBN id"
+          schema:
+            type: "string"
+        - name: "context_type_not"
+          in: "query"
+          description: "Returns document without these contextTypes."
+          schema:
+            type: "string"
+        - name: "issn"
+          in: "query"
+          description: "Returns document with this issn"
+          schema:
+            type: "string"
+        - name: "size"
+          in: "query"
+          description: "Number of items returned. [per_page|perPage|results|limit] are\
+          \ also accepted.  Default is 15."
+          schema:
+            type: "string"
+        - name: "created_since"
+          in: "query"
+          description: "Results created since and inclusive the given date, (yyyy-mm-dd)."
+          schema:
+            type: "string"
+        - name: "institution_should"
+          in: "query"
+          description: "Returns document with Ids, names or acronyms of the institution\
+          \ the contributors belong to."
+          schema:
+            type: "string"
+        - name: "id_not"
+          in: "query"
+          description: "Returns document without these identifiers (UUID)."
+          schema:
+            type: "string"
+        - name: "issn_not"
+          in: "query"
+          description: "Returns document without these issn."
+          schema:
+            type: "string"
+        - name: "tags"
+          in: "query"
+          description: "Returns document with these tags."
+          schema:
+            type: "string"
+        - name: "published_since"
+          in: "query"
+          description: "Results published since and inclusive the given date, (yyyy-mm-dd)."
+          schema:
+            type: "string"
+        - name: "parent_publication"
+          in: "query"
+          description: "Returns document with this parentPublication."
+          schema:
+            type: "string"
+        - name: "publication_year_should"
+          in: "query"
+          description: "Returns document with any of these publication years."
+          schema:
+            type: "string"
+        - name: "scopus_identifier"
+          in: "query"
+          description: "Returns documents with the cristin identifier."
+          schema:
+            type: "string"
+        - name: "course_should"
+          in: "query"
+          description: "Returns documents with these course codes."
+          schema:
+            type: "string"
+      responses:
+        "404":
+          description: "Not Found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedPublicationSearchResponse"
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "Internal Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /customer/tickets:
+    get:
+      description: "Search for Tickets by customer"
+      parameters:
+        - name: "publication_id_not"
+          in: "query"
+          description: "Returns document without these publication ids"
+          schema:
+            type: "string"
+        - name: "publication_type_not"
+          in: "query"
+          description: "Returns document without these types"
+          schema:
+            type: "string"
+        - name: "customer_id_not"
+          in: "query"
+          description: "Returns document without these customer ids"
+          schema:
+            type: "string"
+        - name: "status_not"
+          in: "query"
+          description: "Returns documents without given status."
+          schema:
+            type: "string"
+        - name: "messages_not"
+          in: "query"
+          description: "Returns document without these words in the message"
+          schema:
+            type: "string"
+        - name: "status"
+          in: "query"
+          description: "Returns documents with given status."
+          schema:
+            type: "string"
+        - name: "fields"
+          in: "query"
+          description: "'fields=all' will search all fields in documents, or you can\
+          \ specify a comma separated list of fields to search in."
+          schema:
+            type: "string"
+        - name: "publication_status_not"
+          in: "query"
+          description: "Returns document without these publication statuses"
+          schema:
+            type: "string"
+        - name: "organization_id_not"
+          in: "query"
+          description: "Returns document without these organization ids"
+          schema:
+            type: "string"
+        - name: "from"
+          in: "query"
+          description: "Start result from item no. zero based [offset] is also accepted.\
+          \ Default is 0."
+          schema:
+            type: "string"
+        - name: "organization_id"
+          in: "query"
+          description: "Returns document with these organization ids"
+          schema:
+            type: "string"
+        - name: "id"
+          in: "query"
+          description: "Returns document with the identifier (UUID)."
+          schema:
+            type: "string"
+        - name: "owner_not"
+          in: "query"
+          description: "Returns document without these owners"
+          schema:
+            type: "string"
+        - name: "order"
+          in: "query"
+          description: "SortOrder is either 'asc' or 'desc'. See Search and sort Default\
+          \ sort order is on 'cristin_result_id' in ascending order."
+          schema:
+            type: "string"
+        - name: "type"
+          in: "query"
+          description: "Returns document with these types"
+          schema:
+            type: "string"
+        - name: "publication_modified_date"
+          in: "query"
+          description: "Returns document with these publication modified dates"
+          schema:
+            type: "string"
+        - name: "assignee_not"
+          in: "query"
+          description: "Returns document without these assignees"
+          schema:
+            type: "string"
+        - name: "finalized_by"
+          in: "query"
+          description: "Returns document with these finalized by users"
+          schema:
+            type: "string"
+        - name: "publication_owner_not"
+          in: "query"
+          description: "Returns document without these publication owners"
+          schema:
+            type: "string"
+        - name: "finalized_by_not"
+          in: "query"
+          description: "Returns document without these finalized by users"
+          schema:
+            type: "string"
+        - name: "viewed_by_not"
+          in: "query"
+          description: "Returns document without these viewed by users"
+          schema:
+            type: "string"
+        - name: "publication_id"
+          in: "query"
+          description: "Returns document with these publication ids"
+          schema:
+            type: "string"
+        - name: "owner"
+          in: "query"
+          description: "Returns document with these owners"
+          schema:
+            type: "string"
+        - name: "messages"
+          in: "query"
+          description: "Returns document with these words in the message"
+          schema:
+            type: "string"
+        - name: "publication_title"
+          in: "query"
+          description: "Returns document with these publication titles"
+          schema:
+            type: "string"
+        - name: "type_not"
+          in: "query"
+          description: "Returns document without these types"
+          schema:
+            type: "string"
+        - name: "size"
+          in: "query"
+          description: "Number of items returned. [per_page|perPage|results|limit] are\
+          \ also accepted.  Default is 15."
+          schema:
+            type: "string"
+        - name: "assignee"
+          in: "query"
+          description: "Returns document with these assignees"
+          schema:
+            type: "string"
+        - name: "viewed_by"
+          in: "query"
+          description: "Returns document with these viewed by users"
+          schema:
+            type: "string"
+        - name: "query"
+          in: "query"
+          description: "free text search, all words are searched for in all fields,\
+          \ only documents containing all words are returned."
+          schema:
+            type: "string"
+        - name: "sort"
+          in: "query"
+          description: "Sorts on the given field. Default sort order is on 'published_date'\
+          \ in ascending order."
+          schema:
+            type: "string"
+        - name: "modified_date"
+          in: "query"
+          description: "Returns document with these modified dates"
+          schema:
+            type: "string"
+        - name: "publication_status"
+          in: "query"
+          description: "Returns document with these publication statuses"
+          schema:
+            type: "string"
+        - name: "id_not"
+          in: "query"
+          description: "Returns document without these identifiers (UUID)."
+          schema:
+            type: "string"
+        - name: "publication_owner"
+          in: "query"
+          description: "Returns document with these publication owners"
+          schema:
+            type: "string"
+        - name: "customer_id"
+          in: "query"
+          description: "Returns document with these customer ids"
+          schema:
+            type: "string"
+        - name: "created_date"
+          in: "query"
+          description: "Returns document with these created dates"
+          schema:
+            type: "string"
+        - name: "publication_type"
+          in: "query"
+          description: "Returns document with these types"
+          schema:
+            type: "string"
+        - name: "page"
+          in: "query"
+          description: "Page number, zero based, see from and size."
+          schema:
+            type: "string"
+      responses:
+        "404":
+          description: "Not Found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketSearchResponse"
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "Internal Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      security:
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
+    options:
+      summary: "CORS support"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /resources/export:
+    get:
+      tags:
+        - "external"
+      description: "<h3>Export for up to 10.000 public available publications by given\
+        \ criteria</h3> <p>All parameters documented with <code>snake_case</code>,\
+        \ but <code>camelCase</code> is also accepted. They accept more than one value,\
+        \ each value must be separated by a <code>comma</code>. If you use <code>space</code>\
+        \ between search phrases, it will usually be interpreted as words that should\
+        \ be found in the text. The more hits it gets, the closer to the top of search\
+        \ result an item will be.</p>"
+      parameters:
+        - name: "instance_type"
+          in: "query"
+          description: "Returns document with this instanceType."
+          schema:
+            type: "string"
+        - name: "status"
+          in: "query"
+          description: "Returns documents with given status."
+          schema:
+            type: "string"
+        - name: "title"
+          in: "query"
+          description: "Returns document with these words in the title."
+          schema:
+            type: "string"
+        - name: "publication_language"
+          in: "query"
+          description: "Returns document with these publication languages (URI)."
+          schema:
+            type: "string"
+        - name: "funding_source_should"
+          in: "query"
+          description: "Returns document with these funding source codes."
+          schema:
+            type: "string"
+        - name: "user_affiliation_should"
+          in: "query"
+          description: "Returns document with these owner affiliations."
+          schema:
+            type: "string"
+        - name: "institution"
+          in: "query"
+          description: "Returns document with this institution id (URI)."
+          schema:
+            type: "string"
+        - name: "funding_identifier_should"
+          in: "query"
+          description: "Returns documents with the funding identifiers, also known as\
+          \ grant identifiers."
+          schema:
+            type: "string"
+        - name: "doi_not"
+          in: "query"
+          description: "Returns document without these DOI ids."
+          schema:
+            type: "string"
+        - name: "instance_type_should"
+          in: "query"
+          description: "Returns document with these instanceTypes."
+          schema:
+            type: "string"
+        - name: "scientific_report_period_before"
+          in: "query"
+          description: "Returns document with scientific reporting year before this\
+          \ value."
+          schema:
+            type: "string"
+        - name: "user_not"
+          in: "query"
+          description: "Returns document without these resource owners (user id (URI))."
+          schema:
+            type: "string"
+        - name: "project_not"
+          in: "query"
+          description: "Returns document without these project ids (URI)."
+          schema:
+            type: "string"
+        - name: "published_between"
+          in: "query"
+          description: "Returns document with date between values."
+          schema:
+            type: "string"
+        - name: "publication_year_since"
+          in: "query"
+          description: "Returns document with publication year starting from value."
+          schema:
+            type: "string"
+        - name: "publisher_should"
+          in: "query"
+          description: "Returns document with these publishers."
+          schema:
+            type: "string"
+        - name: "institution_not"
+          in: "query"
+          description: "Returns document without Ids, names or acronyms of the institution\
+          \ the contributors belong to."
+          schema:
+            type: "string"
+        - name: "funding"
+          in: "query"
+          description: "Funding source code e.g: NFR, and project_code together separated\
+          \ by ':'."
+          schema:
+            type: "string"
+        - name: "publisher_id"
+          in: "query"
+          description: "Returns document with this Id."
+          schema:
+            type: "string"
+        - name: "course_not"
+          in: "query"
+          description: "Returns documents without this course code."
+          schema:
+            type: "string"
+        - name: "publisher"
+          in: "query"
+          description: "Returns document with this publisher."
+          schema:
+            type: "string"
+        - name: "user_should"
+          in: "query"
+          description: "Returns document with any of these resource owners (user id\
+          \ (URI))."
+          schema:
+            type: "string"
+        - name: "series_should"
+          in: "query"
+          description: "Returns document with these ID/name."
+          schema:
+            type: "string"
+        - name: "funding_source"
+          in: "query"
+          description: "Returns document with this funding source code or project code."
+          schema:
+            type: "string"
+        - name: "issn_should"
+          in: "query"
+          description: "Returns document with these issn."
+          schema:
+            type: "string"
+        - name: "title_not"
+          in: "query"
+          description: "Returns document without these words in the title."
+          schema:
+            type: "string"
+        - name: "publication_year_before"
+          in: "query"
+          description: "Returns document with publication year prior to value."
+          schema:
+            type: "string"
+        - name: "has_file"
+          in: "query"
+          description: "Returns documents with visibleForNonOwner=true/false."
+          schema:
+            type: "string"
+        - name: "publication_language_should"
+          in: "query"
+          description: "Returns document with these publication languages codes ()."
+          schema:
+            type: "string"
+        - name: "funding_identifier"
+          in: "query"
+          description: "Returns documents with the funding identifier, also known as\
+          \ grant identifier."
+          schema:
+            type: "string"
+        - name: "id_should"
+          in: "query"
+          description: "Returns document with these identifiers (UUID)."
+          schema:
+            type: "string"
+        - name: "top_level_organization"
+          in: "query"
+          description: "Returns documents with this reference."
+          schema:
+            type: "string"
+        - name: "contributor"
+          in: "query"
+          description: "Returns document with Author's id(URI)."
+          schema:
+            type: "string"
+        - name: "license"
+          in: "query"
+          description: "Returns document with this license key (without version)."
+          schema:
+            type: "string"
+        - name: "tags_not"
+          in: "query"
+          description: "Returns document without these tags."
+          schema:
+            type: "string"
+        - name: "published_before"
+          in: "query"
+          description: "Results published before and inclusive the given date, (yyyy-mm-dd)"
+          schema:
+            type: "string"
+        - name: "isbn_not"
+          in: "query"
+          description: "Returns document without these ISBN ids."
+          schema:
+            type: "string"
+        - name: "orcid"
+          in: "query"
+          description: "Returns document with this ORCID id."
+          schema:
+            type: "string"
+        - name: "publication_year"
+          in: "query"
+          description: "Returns document with this publication year."
+          schema:
+            type: "string"
+        - name: "unit"
+          in: "query"
+          description: "Returns document with these words in the Id."
+          schema:
+            type: "string"
+        - name: "abstract_should"
+          in: "query"
+          description: "Returns document with these words in the abstract."
+          schema:
+            type: "string"
+        - name: "cristin_identifier"
+          in: "query"
+          description: "Returns documents with the cristin identifier."
+          schema:
+            type: "string"
+        - name: "scientific_report_period_since"
+          in: "query"
+          description: "Returns document with scientific reporting year after this value."
+          schema:
+            type: "string"
+        - name: "funding_source_not"
+          in: "query"
+          description: "Returns document without these funding source codes."
+          schema:
+            type: "string"
+        - name: "publisher_id_should"
+          in: "query"
+          description: "Returns document with these Ids."
+          schema:
+            type: "string"
+        - name: "publication_language_not"
+          in: "query"
+          description: "Returns document without these publication languages (URI)."
+          schema:
+            type: "string"
+        - name: "query"
+          in: "query"
+          description: "free text search, all words are searched for in all fields,\
+          \ only documents containing all words are returned."
+          schema:
+            type: "string"
+        - name: "sort"
+          in: "query"
+          description: "Sorts on the given field. Default sort order is on 'published_date'\
+          \ in ascending order."
+          schema:
+            type: "string"
+        - name: "contributor_should"
+          in: "query"
+          description: "Returns document with Author's ids(URI)."
+          schema:
+            type: "string"
+        - name: "license_should"
+          in: "query"
+          description: "Returns document with these license key (without version)."
+          schema:
+            type: "string"
+        - name: "page"
+          in: "query"
+          description: "Page number, zero based, see from and size."
+          schema:
+            type: "string"
+        - name: "modified_since"
+          in: "query"
+          description: "Results modified since and inclusive the given date, (yyyy-mm-dd)."
+          schema:
+            type: "string"
+        - name: "status_should"
+          in: "query"
+          description: "Returns documents without any of the given statuses."
+          schema:
+            type: "string"
+        - name: "user_affiliation"
+          in: "query"
+          description: "Returns document with these owner affiliations."
+          schema:
+            type: "string"
+        - name: "unit_should"
+          in: "query"
+          description: "Returns document with any of these words in the Id."
+          schema:
+            type: "string"
+        - name: "category_should"
+          in: "query"
+          description: "Returns documents with these category codes. Support list of\
+          \ Enums."
+          schema:
+            type: "string"
+        - name: "contributor_not"
+          in: "query"
+          description: "Returns document without Author's ids(URI)."
+          schema:
+            type: "string"
+        - name: "license_not"
+          in: "query"
+          description: "Returns document without this license key (without version)."
+          schema:
+            type: "string"
+        - name: "user_affiliation_not"
+          in: "query"
+          description: "Returns document without these owner affiliations."
+          schema:
+            type: "string"
+        - name: "fields"
+          in: "query"
+          description: "'fields=all' will search all fields in documents, or you can\
+          \ specify a comma separated list of fields to search in."
+          schema:
+            type: "string"
+        - name: "series_not"
+          in: "query"
+          description: "Returns document without this ID/name."
+          schema:
+            type: "string"
+        - name: "id"
+          in: "query"
+          description: "Returns document with the identifier (UUID)."
+          schema:
+            type: "string"
+        - name: "publisher_id_not"
+          in: "query"
+          description: "Returns document without this Id."
+          schema:
+            type: "string"
+        - name: "orcid_should"
+          in: "query"
+          description: "Returns document with these ORCID ids."
+          schema:
+            type: "string"
+        - name: "category"
+          in: "query"
+          description: "Returns documents with this category code, only one category\
+          \ code is allowed."
+          schema:
+            type: "string"
+        - name: "doi_should"
+          in: "query"
+          description: "Returns document with these DOI ids."
+          schema:
+            type: "string"
+        - name: "abstract"
+          in: "query"
+          description: "Returns document with these words in the abstract."
+          schema:
+            type: "string"
+        - name: "grant_id_should"
+          in: "query"
+          description: "Returns documents with the grant id, also known as funding identifiers."
+          schema:
+            type: "string"
+        - name: "contributor_name_should"
+          in: "query"
+          description: "Returns document with similar Author names."
+          schema:
+            type: "string"
+        - name: "contributor_name"
+          in: "query"
+          description: "Returns document with Author's name."
+          schema:
+            type: "string"
+        - name: "title_should"
+          in: "query"
+          description: "Returns document with any of these words in the title."
+          schema:
+            type: "string"
+        - name: "doi"
+          in: "query"
+          description: "Returns document with this DOI id."
+          schema:
+            type: "string"
+        - name: "instance_type_not"
+          in: "query"
+          description: "Returns document without this instanceType."
+          schema:
+            type: "string"
+        - name: "user"
+          in: "query"
+          description: "Returns document with this resource owner (user id (URI))."
+          schema:
+            type: "string"
+        - name: "project_should"
+          in: "query"
+          description: "Returns document with these project ids (URI)."
+          schema:
+            type: "string"
+        - name: "unit_not"
+          in: "query"
+          description: "Returns document without these words in the Id."
+          schema:
+            type: "string"
+        - name: "contributor_name_not"
+          in: "query"
+          description: "Returns document without Author's name."
+          schema:
+            type: "string"
+        - name: "created_before"
+          in: "query"
+          description: "Results created before and inclusive the given date, (yyyy-mm-dd)."
+          schema:
+            type: "string"
+        - name: "abstract_not"
+          in: "query"
+          description: "Returns document without these words in the abstract."
+          schema:
+            type: "string"
+        - name: "publisher_not"
+          in: "query"
+          description: "Returns document without this publisher."
+          schema:
+            type: "string"
+        - name: "project"
+          in: "query"
+          description: "Returns document with this project id (URI)."
+          schema:
+            type: "string"
+        - name: "parent_publication_should"
+          in: "query"
+          description: "Returns document with these parentPublications."
+          schema:
+            type: "string"
+        - name: "modified_before"
+          in: "query"
+          description: "Results modified before and inclusive the given date, (yyyy-mm-dd)."
+          schema:
+            type: "string"
+        - name: "course"
+          in: "query"
+          description: "Returns documents with this course code."
+          schema:
+            type: "string"
+        - name: "scientific_value"
+          in: "query"
+          description: "Returns document with provided scientific values separated by\
+          \ comma."
+          schema:
+            type: "string"
+        - name: "funding_identifier_not"
+          in: "query"
+          description: "Returns documents without the funding identifier, also known\
+          \ as grant identifier."
+          schema:
+            type: "string"
+        - name: "category_not"
+          in: "query"
+          description: "Returns documents without these category codes. Support list\
+          \ of Enums."
+          schema:
+            type: "string"
+        - name: "orcid_not"
+          in: "query"
+          description: "Returns document without these ORCID ids."
+          schema:
+            type: "string"
+        - name: "status_not"
+          in: "query"
+          description: "Returns documents without given status."
+          schema:
+            type: "string"
+        - name: "isbn_should"
+          in: "query"
+          description: "Returns document with these ISBN ids."
+          schema:
+            type: "string"
+        - name: "lang"
+          in: "query"
+          description: "Two letter language code. IGNORED, here to be compatible with\
+          \ CristinAPI."
+          schema:
+            type: "string"
+        - name: "grant_id"
+          in: "query"
+          description: "Returns documents with the grant id, also known as funding identifier."
+          schema:
+            type: "string"
+        - name: "grant_id_not"
+          in: "query"
+          description: "Returns documents without the grant id, also known as funding\
+          \ identifier."
+          schema:
+            type: "string"
+        - name: "series"
+          in: "query"
+          description: "Returns document with this ID/name."
+          schema:
+            type: "string"
+        - name: "order"
+          in: "query"
+          description: "SortOrder is either 'asc' or 'desc'. See Search and sort Default\
+          \ sort order is on 'cristin_result_id' in ascending order."
+          schema:
+            type: "string"
+        - name: "context_type_should"
+          in: "query"
+          description: "Returns document with these contextTypes."
+          schema:
+            type: "string"
+        - name: "exclude_subunits"
+          in: "query"
+          description: "Exclude sub-units of the provided viewingScope"
+          schema:
+            type: "string"
+        - name: "tags_should"
+          in: "query"
+          description: "Returns document with these tags."
+          schema:
+            type: "string"
+        - name: "context_type"
+          in: "query"
+          description: "Returns document with these contextTypes."
+          schema:
+            type: "string"
+        - name: "isbn"
+          in: "query"
+          description: "Returns document with this ISBN id"
+          schema:
+            type: "string"
+        - name: "context_type_not"
+          in: "query"
+          description: "Returns document without these contextTypes."
+          schema:
+            type: "string"
+        - name: "issn"
+          in: "query"
+          description: "Returns document with this issn"
+          schema:
+            type: "string"
+        - name: "created_since"
+          in: "query"
+          description: "Results created since and inclusive the given date, (yyyy-mm-dd)."
+          schema:
+            type: "string"
+        - name: "institution_should"
+          in: "query"
+          description: "Returns document with Ids, names or acronyms of the institution\
+          \ the contributors belong to."
+          schema:
+            type: "string"
+        - name: "id_not"
+          in: "query"
+          description: "Returns document without these identifiers (UUID)."
+          schema:
+            type: "string"
+        - name: "issn_not"
+          in: "query"
+          description: "Returns document without these issn."
+          schema:
+            type: "string"
+        - name: "tags"
+          in: "query"
+          description: "Returns document with these tags."
+          schema:
+            type: "string"
+        - name: "published_since"
+          in: "query"
+          description: "Results published since and inclusive the given date, (yyyy-mm-dd)."
+          schema:
+            type: "string"
+        - name: "parent_publication"
+          in: "query"
+          description: "Returns document with this parentPublication."
+          schema:
+            type: "string"
+        - name: "publication_year_should"
+          in: "query"
+          description: "Returns document with any of these publication years."
+          schema:
+            type: "string"
+        - name: "scopus_identifier"
+          in: "query"
+          description: "Returns documents with the cristin identifier."
+          schema:
+            type: "string"
+        - name: "course_should"
+          in: "query"
+          description: "Returns documents with these course codes."
+          schema:
+            type: "string"
+      responses:
+        "404":
+          description: "Not Found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "302":
+          description: "Redirect to exported data"
+          content: {}
+        "500":
+          description: "Internal Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    options:
+      summary: "CORS support"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /import-candidates2:
+    get:
+      description: "Search for import candidates by given criteria"
+      parameters:
+        - name: "publisher"
+          in: "query"
+          description: "Returns document with this publisher."
+          schema:
+            type: "string"
+        - name: "contributor_not"
+          in: "query"
+          description: "Returns document without Author's ids(URI)."
+          schema:
+            type: "string"
+        - name: "title_not"
+          in: "query"
+          description: "Returns document without these words in the title."
+          schema:
+            type: "string"
+        - name: "lang"
+          in: "query"
+          description: "Two letter language code. IGNORED, here to be compatible with\
+          \ CristinAPI."
+          schema:
+            type: "string"
+        - name: "license_not"
+          in: "query"
+          description: "Returns document without this license key (without version)."
+          schema:
+            type: "string"
+        - name: "publication_year_before"
+          in: "query"
+          description: "Returns document with publication year prior to value."
+          schema:
+            type: "string"
+        - name: "has_file"
+          in: "query"
+          description: "Returns documents with visibleForNonOwner=true/false."
+          schema:
+            type: "string"
+        - name: "collaboration_type"
+          in: "query"
+          description: "Returns document with enum."
+          schema:
+            type: "string"
+        - name: "fields"
+          in: "query"
+          description: "'fields=all' will search all fields in documents, or you can\
+          \ specify a comma separated list of fields to search in."
+          schema:
+            type: "string"
+        - name: "from"
+          in: "query"
+          description: "Start result from item no. zero based [offset] is also accepted.\
+          \ Default is 0."
+          schema:
+            type: "string"
+        - name: "title"
+          in: "query"
+          description: "Returns document with these words in the title."
+          schema:
+            type: "string"
+        - name: "id"
+          in: "query"
+          description: "Returns document with the identifier (UUID)."
+          schema:
+            type: "string"
+        - name: "top_level_organization"
+          in: "query"
+          description: "Returns documents with this reference."
+          schema:
+            type: "string"
+        - name: "category"
+          in: "query"
+          description: "Returns documents with this category code, only one category\
+          \ code is allowed."
+          schema:
+            type: "string"
+        - name: "contributor"
+          in: "query"
+          description: "Returns document with Author's id(URI)."
+          schema:
+            type: "string"
+        - name: "license"
+          in: "query"
+          description: "Returns document with this license key (without version)."
+          schema:
+            type: "string"
+        - name: "order"
+          in: "query"
+          description: "SortOrder is either 'asc' or 'desc'. See Search and sort Default\
+          \ sort order is on 'cristin_result_id' in ascending order."
+          schema:
+            type: "string"
+        - name: "type"
+          in: "query"
+          description: "Returns document with these types"
+          schema:
+            type: "string"
+        - name: "additional_identifiers"
+          in: "query"
+          description: "Returns document with identifier value."
+          schema:
+            type: "string"
+        - name: "import_status"
+          in: "query"
+          description: "Returns document with this importStatus."
+          schema:
+            type: "string"
+        - name: "doi"
+          in: "query"
+          description: "Returns document with this DOI id."
+          schema:
+            type: "string"
+        - name: "doi_not"
+          in: "query"
+          description: "Returns document without these DOI ids."
+          schema:
+            type: "string"
+        - name: "top_level_organization_not"
+          in: "query"
+          description: "Returns documents without this reference."
+          schema:
+            type: "string"
+        - name: "publication_year"
+          in: "query"
+          description: "Returns document with this publication year."
+          schema:
+            type: "string"
+        - name: "publisher_not"
+          in: "query"
+          description: "Returns document without this publisher."
+          schema:
+            type: "string"
+        - name: "search_all"
+          in: "query"
+          description: "Returns document with this search phrase"
+          schema:
+            type: "string"
+        - name: "cristin_identifier"
+          in: "query"
+          description: "Returns documents with the cristin identifier."
+          schema:
+            type: "string"
+        - name: "size"
+          in: "query"
+          description: "Number of items returned. [per_page|perPage|results|limit] are\
+          \ also accepted.  Default is 15."
+          schema:
+            type: "string"
+        - name: "type_not"
+          in: "query"
+          description: "Returns document without these types"
+          schema:
+            type: "string"
+        - name: "query"
+          in: "query"
+          description: "free text search, all words are searched for in all fields,\
+          \ only documents containing all words are returned."
+          schema:
+            type: "string"
+        - name: "sort"
+          in: "query"
+          description: "Sorts on the given field. Default sort order is on 'published_date'\
+          \ in ascending order."
+          schema:
+            type: "string"
+        - name: "collaboration_type_not"
+          in: "query"
+          description: "Returns document without enum."
+          schema:
+            type: "string"
+        - name: "id_not"
+          in: "query"
+          description: "Returns document without these identifiers (UUID)."
+          schema:
+            type: "string"
+        - name: "publication_year_since"
+          in: "query"
+          description: "Returns document with publication year starting from value."
+          schema:
+            type: "string"
+        - name: "created_date"
+          in: "query"
+          description: "Returns document with these created dates"
+          schema:
+            type: "string"
+        - name: "page"
+          in: "query"
+          description: "Page number, zero based, see from and size."
+          schema:
+            type: "string"
+        - name: "category_not"
+          in: "query"
+          description: "Returns documents without these category codes. Support list\
+          \ of Enums."
+          schema:
+            type: "string"
+        - name: "import_status_not"
+          in: "query"
+          description: "Returns document with this importStatus."
+          schema:
+            type: "string"
+        - name: "scopus_identifier"
+          in: "query"
+          description: "Returns documents with the cristin identifier."
+          schema:
+            type: "string"
+      responses:
+        "404":
+          description: "Not Found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedImportCandidateSearchResponse"
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    options:
+      summary: "CORS support"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+  /resources:
+    get:
+      tags:
+        - "external"
+      description: "<h3>Search for public available publications by given criteria</h3>\
+        \ <p>All parameters documented with <code>snake_case</code>, but <code>camelCase</code>\
+        \ is also accepted. They accept more than one value, each value must be separated\
+        \ by a <code>comma</code>. If you use <code>space</code> between search phrases,\
+        \ it will usually be interpreted as words that should be found in the text.\
+        \ The more hits it gets, the closer to the top of search result an item will\
+        \ be.</p>"
+      parameters:
+        - name: "instance_type"
+          in: "query"
+          description: "Returns document with this instanceType."
+          schema:
+            type: "string"
+        - name: "status"
+          in: "query"
+          description: "Returns documents with given status."
+          schema:
+            type: "string"
+        - name: "title"
+          in: "query"
+          description: "Returns document with these words in the title."
+          schema:
+            type: "string"
+        - name: "publication_language"
+          in: "query"
+          description: "Returns document with these publication languages (URI)."
+          schema:
+            type: "string"
+        - name: "funding_source_should"
+          in: "query"
+          description: "Returns document with these funding source codes."
+          schema:
+            type: "string"
+        - name: "user_affiliation_should"
+          in: "query"
+          description: "Returns document with these owner affiliations."
+          schema:
+            type: "string"
+        - name: "institution"
+          in: "query"
+          description: "Returns document with this institution id (URI)."
+          schema:
+            type: "string"
+        - name: "funding_identifier_should"
+          in: "query"
+          description: "Returns documents with the funding identifiers, also known as\
+          \ grant identifiers."
+          schema:
+            type: "string"
+        - name: "doi_not"
+          in: "query"
+          description: "Returns document without these DOI ids."
+          schema:
+            type: "string"
+        - name: "instance_type_should"
+          in: "query"
+          description: "Returns document with these instanceTypes."
+          schema:
+            type: "string"
+        - name: "scientific_report_period_before"
+          in: "query"
+          description: "Returns document with scientific reporting year before this\
+          \ value."
+          schema:
+            type: "string"
+        - name: "user_not"
+          in: "query"
+          description: "Returns document without these resource owners (user id (URI))."
+          schema:
+            type: "string"
+        - name: "project_not"
+          in: "query"
+          description: "Returns document without these project ids (URI)."
+          schema:
+            type: "string"
+        - name: "published_between"
+          in: "query"
+          description: "Returns document with date between values."
+          schema:
+            type: "string"
+        - name: "publication_year_since"
+          in: "query"
+          description: "Returns document with publication year starting from value."
+          schema:
+            type: "string"
+        - name: "publisher_should"
+          in: "query"
+          description: "Returns document with these publishers."
+          schema:
+            type: "string"
+        - name: "institution_not"
+          in: "query"
+          description: "Returns document without Ids, names or acronyms of the institution\
+          \ the contributors belong to."
+          schema:
+            type: "string"
+        - name: "funding"
+          in: "query"
+          description: "Funding source code e.g: NFR, and project_code together separated\
+          \ by ':'."
+          schema:
+            type: "string"
+        - name: "publisher_id"
+          in: "query"
+          description: "Returns document with this Id."
+          schema:
+            type: "string"
+        - name: "course_not"
+          in: "query"
+          description: "Returns documents without this course code."
+          schema:
+            type: "string"
+        - name: "publisher"
+          in: "query"
+          description: "Returns document with this publisher."
+          schema:
+            type: "string"
+        - name: "user_should"
+          in: "query"
+          description: "Returns document with any of these resource owners (user id\
+          \ (URI))."
+          schema:
+            type: "string"
+        - name: "series_should"
+          in: "query"
+          description: "Returns document with these ID/name."
+          schema:
+            type: "string"
+        - name: "funding_source"
+          in: "query"
+          description: "Returns document with this funding source code or project code."
+          schema:
+            type: "string"
+        - name: "issn_should"
+          in: "query"
+          description: "Returns document with these issn."
+          schema:
+            type: "string"
+        - name: "title_not"
+          in: "query"
+          description: "Returns document without these words in the title."
+          schema:
+            type: "string"
+        - name: "publication_year_before"
+          in: "query"
+          description: "Returns document with publication year prior to value."
+          schema:
+            type: "string"
+        - name: "has_file"
+          in: "query"
+          description: "Returns documents with visibleForNonOwner=true/false."
+          schema:
+            type: "string"
+        - name: "publication_language_should"
+          in: "query"
+          description: "Returns document with these publication languages codes ()."
+          schema:
+            type: "string"
+        - name: "aggregation"
+          in: "query"
+          description: "Aggregations to include in the search."
+          schema:
+            type: "string"
+        - name: "funding_identifier"
+          in: "query"
+          description: "Returns documents with the funding identifier, also known as\
+          \ grant identifier."
+          schema:
+            type: "string"
+        - name: "id_should"
+          in: "query"
+          description: "Returns document with these identifiers (UUID)."
+          schema:
+            type: "string"
+        - name: "top_level_organization"
+          in: "query"
+          description: "Returns documents with this reference."
+          schema:
+            type: "string"
+        - name: "contributor"
+          in: "query"
+          description: "Returns document with Author's id(URI)."
+          schema:
+            type: "string"
+        - name: "license"
+          in: "query"
+          description: "Returns document with this license key (without version)."
+          schema:
+            type: "string"
+        - name: "tags_not"
+          in: "query"
+          description: "Returns document without these tags."
+          schema:
+            type: "string"
+        - name: "published_before"
+          in: "query"
+          description: "Results published before and inclusive the given date, (yyyy-mm-dd)"
+          schema:
+            type: "string"
+        - name: "isbn_not"
+          in: "query"
+          description: "Returns document without these ISBN ids."
+          schema:
+            type: "string"
+        - name: "orcid"
+          in: "query"
+          description: "Returns document with this ORCID id."
+          schema:
+            type: "string"
+        - name: "publication_year"
+          in: "query"
+          description: "Returns document with this publication year."
+          schema:
+            type: "string"
+        - name: "unit"
+          in: "query"
+          description: "Returns document with these words in the Id."
+          schema:
+            type: "string"
+        - name: "abstract_should"
+          in: "query"
+          description: "Returns document with these words in the abstract."
+          schema:
+            type: "string"
+        - name: "cristin_identifier"
+          in: "query"
+          description: "Returns documents with the cristin identifier."
+          schema:
+            type: "string"
+        - name: "scientific_report_period_since"
+          in: "query"
+          description: "Returns document with scientific reporting year after this value."
+          schema:
+            type: "string"
+        - name: "funding_source_not"
+          in: "query"
+          description: "Returns document without these funding source codes."
+          schema:
+            type: "string"
+        - name: "publisher_id_should"
+          in: "query"
+          description: "Returns document with these Ids."
+          schema:
+            type: "string"
+        - name: "publication_language_not"
+          in: "query"
+          description: "Returns document without these publication languages (URI)."
+          schema:
+            type: "string"
+        - name: "query"
+          in: "query"
+          description: "free text search, all words are searched for in all fields,\
+          \ only documents containing all words are returned."
+          schema:
+            type: "string"
+        - name: "sort"
+          in: "query"
+          description: "Sorts on the given field. Default sort order is on 'published_date'\
+          \ in ascending order."
+          schema:
+            type: "string"
+        - name: "contributor_should"
+          in: "query"
+          description: "Returns document with Author's ids(URI)."
+          schema:
+            type: "string"
+        - name: "license_should"
+          in: "query"
+          description: "Returns document with these license key (without version)."
+          schema:
+            type: "string"
+        - name: "page"
+          in: "query"
+          description: "Page number, zero based, see from and size."
+          schema:
+            type: "string"
+        - name: "modified_since"
+          in: "query"
+          description: "Results modified since and inclusive the given date, (yyyy-mm-dd)."
+          schema:
+            type: "string"
+        - name: "status_should"
+          in: "query"
+          description: "Returns documents without any of the given statuses."
+          schema:
+            type: "string"
+        - name: "user_affiliation"
+          in: "query"
+          description: "Returns document with these owner affiliations."
+          schema:
+            type: "string"
+        - name: "unit_should"
+          in: "query"
+          description: "Returns document with any of these words in the Id."
+          schema:
+            type: "string"
+        - name: "category_should"
+          in: "query"
+          description: "Returns documents with these category codes. Support list of\
+          \ Enums."
+          schema:
+            type: "string"
+        - name: "contributor_not"
+          in: "query"
+          description: "Returns document without Author's ids(URI)."
+          schema:
+            type: "string"
+        - name: "license_not"
+          in: "query"
+          description: "Returns document without this license key (without version)."
+          schema:
+            type: "string"
+        - name: "user_affiliation_not"
+          in: "query"
+          description: "Returns document without these owner affiliations."
+          schema:
+            type: "string"
+        - name: "fields"
+          in: "query"
+          description: "'fields=all' will search all fields in documents, or you can\
+          \ specify a comma separated list of fields to search in."
+          schema:
+            type: "string"
+        - name: "from"
+          in: "query"
+          description: "Start result from item no. zero based [offset] is also accepted.\
+          \ Default is 0."
+          schema:
+            type: "string"
+        - name: "series_not"
+          in: "query"
+          description: "Returns document without this ID/name."
+          schema:
+            type: "string"
+        - name: "id"
+          in: "query"
+          description: "Returns document with the identifier (UUID)."
+          schema:
+            type: "string"
+        - name: "publisher_id_not"
+          in: "query"
+          description: "Returns document without this Id."
+          schema:
+            type: "string"
+        - name: "orcid_should"
+          in: "query"
+          description: "Returns document with these ORCID ids."
+          schema:
+            type: "string"
+        - name: "category"
+          in: "query"
+          description: "Returns documents with this category code, only one category\
+          \ code is allowed."
+          schema:
+            type: "string"
+        - name: "doi_should"
+          in: "query"
+          description: "Returns document with these DOI ids."
+          schema:
+            type: "string"
+        - name: "abstract"
+          in: "query"
+          description: "Returns document with these words in the abstract."
+          schema:
+            type: "string"
+        - name: "grant_id_should"
+          in: "query"
+          description: "Returns documents with the grant id, also known as funding identifiers."
+          schema:
+            type: "string"
+        - name: "contributor_name_should"
+          in: "query"
+          description: "Returns document with similar Author names."
+          schema:
+            type: "string"
+        - name: "contributor_name"
+          in: "query"
+          description: "Returns document with Author's name."
+          schema:
+            type: "string"
+        - name: "title_should"
+          in: "query"
+          description: "Returns document with any of these words in the title."
+          schema:
+            type: "string"
+        - name: "doi"
+          in: "query"
+          description: "Returns document with this DOI id."
+          schema:
+            type: "string"
+        - name: "instance_type_not"
+          in: "query"
+          description: "Returns document without this instanceType."
+          schema:
+            type: "string"
+        - name: "user"
+          in: "query"
+          description: "Returns document with this resource owner (user id (URI))."
+          schema:
+            type: "string"
+        - name: "project_should"
+          in: "query"
+          description: "Returns document with these project ids (URI)."
+          schema:
+            type: "string"
+        - name: "unit_not"
+          in: "query"
+          description: "Returns document without these words in the Id."
+          schema:
+            type: "string"
+        - name: "contributor_name_not"
+          in: "query"
+          description: "Returns document without Author's name."
+          schema:
+            type: "string"
+        - name: "created_before"
+          in: "query"
+          description: "Results created before and inclusive the given date, (yyyy-mm-dd)."
+          schema:
+            type: "string"
+        - name: "abstract_not"
+          in: "query"
+          description: "Returns document without these words in the abstract."
+          schema:
+            type: "string"
+        - name: "publisher_not"
+          in: "query"
+          description: "Returns document without this publisher."
+          schema:
+            type: "string"
+        - name: "project"
+          in: "query"
+          description: "Returns document with this project id (URI)."
+          schema:
+            type: "string"
+        - name: "parent_publication_should"
+          in: "query"
+          description: "Returns document with these parentPublications."
+          schema:
+            type: "string"
+        - name: "modified_before"
+          in: "query"
+          description: "Results modified before and inclusive the given date, (yyyy-mm-dd)."
+          schema:
+            type: "string"
+        - name: "course"
+          in: "query"
+          description: "Returns documents with this course code."
+          schema:
+            type: "string"
+        - name: "scientific_value"
+          in: "query"
+          description: "Returns document with provided scientific values separated by\
+          \ comma."
+          schema:
+            type: "string"
+        - name: "funding_identifier_not"
+          in: "query"
+          description: "Returns documents without the funding identifier, also known\
+          \ as grant identifier."
+          schema:
+            type: "string"
+        - name: "category_not"
+          in: "query"
+          description: "Returns documents without these category codes. Support list\
+          \ of Enums."
+          schema:
+            type: "string"
+        - name: "orcid_not"
+          in: "query"
+          description: "Returns document without these ORCID ids."
+          schema:
+            type: "string"
+        - name: "status_not"
+          in: "query"
+          description: "Returns documents without given status."
+          schema:
+            type: "string"
+        - name: "isbn_should"
+          in: "query"
+          description: "Returns document with these ISBN ids."
+          schema:
+            type: "string"
+        - name: "lang"
+          in: "query"
+          description: "Two letter language code. IGNORED, here to be compatible with\
+          \ CristinAPI."
+          schema:
+            type: "string"
+        - name: "grant_id"
+          in: "query"
+          description: "Returns documents with the grant id, also known as funding identifier."
+          schema:
+            type: "string"
+        - name: "grant_id_not"
+          in: "query"
+          description: "Returns documents without the grant id, also known as funding\
+          \ identifier."
+          schema:
+            type: "string"
+        - name: "series"
+          in: "query"
+          description: "Returns document with this ID/name."
+          schema:
+            type: "string"
+        - name: "order"
+          in: "query"
+          description: "SortOrder is either 'asc' or 'desc'. See Search and sort Default\
+          \ sort order is on 'cristin_result_id' in ascending order."
+          schema:
+            type: "string"
+        - name: "context_type_should"
+          in: "query"
+          description: "Returns document with these contextTypes."
+          schema:
+            type: "string"
+        - name: "exclude_subunits"
+          in: "query"
+          description: "Exclude sub-units of the provided viewingScope"
+          schema:
+            type: "string"
+        - name: "tags_should"
+          in: "query"
+          description: "Returns document with these tags."
+          schema:
+            type: "string"
+        - name: "context_type"
+          in: "query"
+          description: "Returns document with these contextTypes."
+          schema:
+            type: "string"
+        - name: "isbn"
+          in: "query"
+          description: "Returns document with this ISBN id"
+          schema:
+            type: "string"
+        - name: "context_type_not"
+          in: "query"
+          description: "Returns document without these contextTypes."
+          schema:
+            type: "string"
+        - name: "issn"
+          in: "query"
+          description: "Returns document with this issn"
+          schema:
+            type: "string"
+        - name: "size"
+          in: "query"
+          description: "Number of items returned. [per_page|perPage|results|limit] are\
+          \ also accepted.  Default is 15."
+          schema:
+            type: "string"
+        - name: "created_since"
+          in: "query"
+          description: "Results created since and inclusive the given date, (yyyy-mm-dd)."
+          schema:
+            type: "string"
+        - name: "institution_should"
+          in: "query"
+          description: "Returns document with Ids, names or acronyms of the institution\
+          \ the contributors belong to."
+          schema:
+            type: "string"
+        - name: "id_not"
+          in: "query"
+          description: "Returns document without these identifiers (UUID)."
+          schema:
+            type: "string"
+        - name: "issn_not"
+          in: "query"
+          description: "Returns document without these issn."
+          schema:
+            type: "string"
+        - name: "tags"
+          in: "query"
+          description: "Returns document with these tags."
+          schema:
+            type: "string"
+        - name: "published_since"
+          in: "query"
+          description: "Results published since and inclusive the given date, (yyyy-mm-dd)."
+          schema:
+            type: "string"
+        - name: "parent_publication"
+          in: "query"
+          description: "Returns document with this parentPublication."
+          schema:
+            type: "string"
+        - name: "publication_year_should"
+          in: "query"
+          description: "Returns document with any of these publication years."
+          schema:
+            type: "string"
+        - name: "scopus_identifier"
+          in: "query"
+          description: "Returns documents with the cristin identifier."
+          schema:
+            type: "string"
+        - name: "course_should"
+          in: "query"
+          description: "Returns documents with these course codes."
+          schema:
+            type: "string"
+      responses:
+        "404":
+          description: "Not Found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedPublicationSearchResponse"
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: "Internal Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    options:
+      summary: "CORS support"
+      responses:
+        "200":
+          description: "Default response for CORS method"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+components:
+  schemas:
+    PagedPublicationSearchResponse:
+      properties:
+        hits:
+          type: "array"
+          description: "Publication search results (numberOf = [size])"
+          items:
+            $ref: "#/components/schemas/Publication"
+      allOf:
+        - $ref: "#/components/schemas/PagedSearchResponse"
+        - required:
+            - "hits"
+          type: "object"
+    Context:
+      pattern: "https:\\/\\/.*$"
+      type: "string"
+      description: "The JSON-LD context object for the data, which describes the object\
+        \ in the data and allows machine processing of the data at a semantic level"
+    TicketSearchResponse:
+      allOf:
+        - $ref: "#/components/schemas/SearchResponse"
+        - required:
+            - "hits"
+          type: "object"
+          properties:
+            hits:
+              type: "array"
+              description: "Ticket search results (numberOf = [size])"
+              items:
+                $ref: "#/components/schemas/Ticket"
+    Ticket:
+      type: "object"
+      properties:
+        viewedBy:
+          type: "array"
+          items:
+            type: "string"
+        type:
+          type: "string"
+          enum:
+            - "DoiRequest"
+            - "PublishingRequest"
+            - "GeneralSupportCase"
+        status:
+          type: "string"
+          enum:
+            - "Pending"
+            - "Completed"
+            - "Closed"
+    ImportCandidate:
+      type: "object"
+      properties:
+        importStatus:
+          type: "string"
+          enum:
+            - "IMPORTED"
+            - "NOT_IMPORTED"
+            - "NOT_APPLICABLE"
+        journal:
+          type: "object"
+          properties:
+            id:
+              type: "string"
+        totalVerifiedContributors:
+          type: "integer"
+          format: "int32"
+        mainTitle:
+          type: "string"
+        organization:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              id:
+                type: "string"
+              labels:
+                type: "object"
+                additionalProperties:
+                  type: "string"
+        additionalIdentifiers:
+          type: "array"
+          description: "Additional identifiers as cristinId and scopusId"
+          items:
+            type: "string"
+        publisher:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            id:
+              type: "string"
+        publicationYear:
+          type: "string"
+        id:
+          type: "string"
+        publicationInstance:
+          type: "object"
+          properties:
+            volume:
+              type: "string"
+            pages:
+              type: "object"
+              properties:
+                illustrated:
+                  type: "boolean"
+                pages:
+                  type: "string"
+                end:
+                  type: "string"
+                type:
+                  type: "string"
+                begin:
+                  type: "string"
+            issue:
+              type: "string"
+            articleNumber:
+              type: "string"
+            textbookContent:
+              type: "boolean"
+            peerReviewed:
+              type: "boolean"
+            type:
+              type: "string"
+        doi:
+          type: "string"
+        totalContributors:
+          type: "integer"
+          format: "int32"
+      description: "Complete ImportCandidate entity"
+    PagedImportCandidateSearchResponse:
+      allOf:
+        - $ref: "#/components/schemas/PagedSearchResponse"
+        - required:
+            - "hits"
+          type: "object"
+          properties:
+            hits:
+              type: "array"
+              description: "ImportCandidate search results (numberOf = [size])"
+              items:
+                $ref: "#/components/schemas/ImportCandidate"
+    PagedSearchResponse:
+      required:
+        - "@context"
+        - "id"
+        - "totalHits"
+      type: "object"
+      properties:
+        hits:
+          type: "object"
+        nextSearchAfterResults:
+          pattern: "https:\\/\\/.*$"
+          type: "string"
+          description: "Link to next page of results, based on the sort key, null\
+            \ if this is the last page"
+        previousResults:
+          pattern: "https:\\/\\/.*$"
+          type: "string"
+          description: "Link to previous page of results, null if this is the first\
+            \ page"
+        totalHits:
+          type: "integer"
+          description: "Total number of results from query"
+          format: "int32"
+        id:
+          $ref: "#/components/schemas/Id"
+        nextResults:
+          pattern: "https:\\/\\/.*$"
+          type: "string"
+          description: "Link to next page of results, null if this is the last page"
+        aggregations:
+          type: "object"
+          additionalProperties:
+            type: "array"
+            items:
+              $ref: "#/components/schemas/Facet"
+          description: "a (key, List<Facet>) map. "
+        '@context':
+          $ref: "#/components/schemas/Context"
+      description: "Search meta information, with results"
+    Publication:
+      type: "object"
+      properties:
+        owner:
+          type: "string"
+        publicationType:
+          type: "string"
+        description:
+          type: "string"
+        abstract:
+          type: "string"
+          description: "short abstract of content"
+        title:
+          type: "string"
+        tags:
+          type: "array"
+          items:
+            type: "string"
+        reference:
+          type: "object"
+          properties:
+            publicationInstance:
+              type: "object"
+              properties:
+                volume:
+                  type: "string"
+                pages:
+                  type: "object"
+                  properties:
+                    illustrated:
+                      type: "boolean"
+                    pages:
+                      type: "string"
+                    end:
+                      type: "string"
+                    type:
+                      type: "string"
+                    begin:
+                      type: "string"
+                issue:
+                  type: "string"
+                articleNumber:
+                  type: "string"
+                textbookContent:
+                  type: "boolean"
+                peerReviewed:
+                  type: "boolean"
+                type:
+                  type: "string"
+            type:
+              type: "string"
+            publicationContext:
+              type: "object"
+              properties:
+                level:
+                  type: "string"
+                openAccess:
+                  type: "boolean"
+                peerReviewed:
+                  type: "boolean"
+                publisher:
+                  type: "string"
+                linkedContext:
+                  type: "string"
+                title:
+                  type: "string"
+                onlineIssn:
+                  type: "string"
+                type:
+                  type: "string"
+                printIssn:
+                  type: "string"
+                url:
+                  type: "string"
+                seriesTitle:
+                  type: "string"
+            doi:
+              type: "string"
+        modifiedDate:
+          type: "string"
+          format: "date"
+        publisher:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            id:
+              type: "string"
+        publishedDate:
+          type: "string"
+          format: "date"
+        contributors:
+          type: "array"
+          description: "List of contributing people"
+          items:
+            type: "object"
+            properties:
+              name:
+                type: "string"
+              id:
+                type: "string"
+        id:
+          type: "string"
+        publicationDate:
+          type: "object"
+          properties:
+            month:
+              type: "string"
+            year:
+              type: "string"
+            type:
+              type: "string"
+            day:
+              type: "string"
+        alternativeTitles:
+          type: "array"
+          description: "short abstract of content"
+          items:
+            type: "string"
+        doi:
+          type: "string"
+      description: "Complete Publication entity"
+    Problem:
+      required:
+        - "detail"
+        - "status"
+        - "title"
+      type: "object"
+      properties:
+        instance:
+          type: "string"
+          description: "The requested path associated with the error"
+        requestId:
+          type: "string"
+          description: "Identifier of the request causing the problem"
+        detail:
+          type: "string"
+          description: "A more detailed error message describing the error and potential\
+            \ mitigations"
+        title:
+          type: "string"
+          description: "Human-readable description of the error status"
+        type:
+          type: "string"
+          description: "A URI describing the error and mitigations, in generic cases,\
+            \ this is about:blank"
+        status:
+          type: "integer"
+          description: "The HTTP status code associated with the problem"
+          format: "int32"
+      description: "NVA error reporting object"
+    Id:
+      pattern: "https:\\/\\/.*$"
+      type: "string"
+      description: "The URI of the object ID"
+    Facet:
+      type: "object"
+      properties:
+        count:
+          type: "integer"
+          description: "The number of documents in the bucket"
+          format: "int32"
+        id:
+          type: "string"
+          description: "The URI of the object ID"
+        key:
+          type: "string"
+          description: "The key of the bucket"
+        labels:
+          type: "object"
+          additionalProperties:
+            type: "string"
+          description: "The labels of the bucket"
+    SearchResponse:
+      type: "object"
+      properties:
+        took:
+          type: "integer"
+          description: "Time consumed on server in ms."
+          format: "int32"
+        total:
+          type: "integer"
+          description: "Total number of results from query"
+          format: "int32"
+        size:
+          type: "integer"
+          description: "Number of results returned from query"
+          format: "int32"
+        id:
+          $ref: "#/components/schemas/Id"
+        aggregations:
+          type: "object"
+          description: "Entity containing the different facets hit by the search."
+        '@context':
+          $ref: "#/components/schemas/Context"
+        processingTime:
+          type: "integer"
+          description: "time consumed on server in ms."
+          format: "int32"
+      description: "Search meta information, with results"
+  securitySchemes:
+    CognitoUserPool:
+      type: "apiKey"
+      name: "Authorization"
+      in: "header"
+      x-amazon-apigateway-authtype: "cognito_user_pools"
