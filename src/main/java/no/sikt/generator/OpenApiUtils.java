@@ -11,6 +11,7 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.tags.Tag;
@@ -134,6 +135,21 @@ public final class OpenApiUtils {
                    .distinct();
     }
 
+    public static Stream<String> getRefsFromParameters(OpenAPI openAPI) {
+        return Optional.ofNullable(openAPI.getPaths())
+                   .orElseGet(Paths::new)
+                   .values()
+                   .stream()
+                   .map(PathItem::readOperations)
+                   .flatMap(Collection::stream)
+                   .map(Operation::getParameters)
+                   .filter(Objects::nonNull)
+                   .flatMap(Collection::stream)
+                   .map(Parameter::get$ref)
+                   .filter(Objects::nonNull)
+                   .distinct();
+    }
+
     public static Stream<String> getResponseRefsFromPaths(OpenAPI openAPI) {
         return Optional.ofNullable(openAPI.getPaths())
                     .orElseGet(Paths::new)
@@ -185,10 +201,20 @@ public final class OpenApiUtils {
                    .distinct();
     }
 
+    public static Set<String> getAllRefsFromPaths(OpenAPI openAPI) {
+        return Stream.of(
+                getResponseRefsFromPaths(openAPI),
+                getRefsFromRequestBodies(openAPI),
+                getRefsFromParameters(openAPI)
+            ).flatMap(stream -> stream)
+                   .collect(toSet());
+    }
+
     public static Set<String> getAllRefs(OpenAPI openAPI) {
         return Stream.of(
                 getResponseRefsFromPaths(openAPI),
                 getRefsFromRequestBodies(openAPI),
+                getRefsFromParameters(openAPI),
                 getSchemaItemsRefs(openAPI),
                 getSchemaPropertyRefs(openAPI),
                 getSchemaPropertyItemRefs(openAPI)
@@ -197,10 +223,7 @@ public final class OpenApiUtils {
     }
 
     public static Set<String> getAllUsedSchemas(OpenAPI openAPI) {
-        var responseRefs = OpenApiUtils.getResponseRefsFromPaths(openAPI).collect(toSet());
-        var requestRefs = OpenApiUtils.getRefsFromRequestBodies(openAPI).collect(toSet());
-        var reffed = concat(responseRefs.stream(), requestRefs.stream())
-                                   .collect(toSet());
+        var reffed = getAllRefsFromPaths(openAPI);
 
         var directUsedSchemas = openAPI.getComponents().getSchemas()
                                     .entrySet()

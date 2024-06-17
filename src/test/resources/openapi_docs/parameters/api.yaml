@@ -1,0 +1,39 @@
+openapi: "3.0.1"
+info:
+  title: "NVA Public Search API"
+  description: "Public search API for resources in NVA. The API is backed by Amazon\
+    \ OpenSearch and uses [OpenSearch query syntax](https://opensearch.org/docs/latest/opensearch/query-dsl/full-text/)."
+  version: "0.2.0"
+servers:
+  - url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+    variables:
+      basePath:
+        default: "search"
+paths:
+  /resources:
+    get:
+      tags:
+        - "external"
+      parameters:
+        - name: "category"
+          in: "query"
+          description: "Returns documents with this category code, only one category\
+          \ code is allowed."
+          schema:
+            type: "string"
+      responses:
+
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: object
+components:
+  schemas:
+  securitySchemes:
+    CognitoUserPool:
+      type: "apiKey"
+      name: "Authorization"
+      in: "header"
+      x-amazon-apigateway-authtype: "cognito_user_pools"

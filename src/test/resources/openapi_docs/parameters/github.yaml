@@ -1,0 +1,59 @@
+openapi: 3.0.3
+info:
+  title: NVA Public Search API
+  version: '0.2.0'
+  description: Public search API for resources in NVA. The API is backed by Amazon OpenSearch and uses [OpenSearch query syntax](https://opensearch.org/docs/latest/opensearch/query-dsl/full-text/).
+paths:
+
+  /resources:
+    get:
+      tags:
+        - external
+      parameters:
+        - $ref: '#/components/parameters/categoryParam'
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SearchResourcesFunction.Arn}:live/invocations
+        responses: { }
+        httpMethod: POST
+        type: AWS_PROXY
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+               type: object
+
+components:
+  parameters:
+    categoryParam:
+      name: category
+      in: query
+      description: "Returns documents with this category code, only one category code is allowed."
+      example: JournalArticle
+      required: false
+      style: form
+      explode: true
+      schema:
+        $ref: "#/components/schemas/CategoryEnum"
+  schemas:
+    CategoryEnum:
+      type: string
+      enum: [ AcademicArticle,AcademicChapter,AcademicLiteratureReview,AcademicMonograph,Architecture,ArtisticDesign,BookAbstracts,BookAnthology,BookMonograph,CaseReport,ChapterArticle,
+              ChapterConferenceAbstract,ChapterInReport,ConferenceAbstract,ConferenceLecture,ConferencePoster,ConferenceReport,DataManagementPlan,DataSet,DegreeBachelor,DegreeLicentiate,
+              DegreeMaster,DegreePhd,Encyclopedia,EncyclopediaChapter,ExhibitionCatalog,ExhibitionCatalogChapter,ExhibitionProduction,FeatureArticle,Introduction,JournalArticle,JournalCorrigendum,
+              JournalInterview,JournalIssue,JournalLeader,JournalLetter,JournalReview,Lecture,LiteraryArts,MediaBlogPost,MediaFeatureArticle,MediaInterview,MediaParticipationInRadioOrTv,
+              MediaReaderOpinion,MovingPicture,MusicPerformance,NonFictionChapter,NonFictionMonograph,OtherPresentation,OtherStudentWork,PerformingArts,PopularScienceArticle,PopularScienceChapter,
+              PopularScienceMonograph,ProfessionalArticle,ReportBasic,ReportBookOfAbstract,ReportPolicy,ReportResearch,ReportWorkingPaper,StudyProtocol,Textbook,TextbookChapter,VisualArts ]
+  securitySchemes:
+    CognitoUserPool:
+      type: apiKey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: cognito_user_pools
+      x-amazon-apigateway-authorizer:
+        type: cognito_user_pools
+        providerARNs:
+          - Ref:
+              CognitoAuthorizerArn

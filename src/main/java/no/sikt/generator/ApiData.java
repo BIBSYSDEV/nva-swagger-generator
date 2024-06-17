@@ -1,8 +1,12 @@
 package no.sikt.generator;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static no.sikt.generator.ApplicationConstants.DOMAIN;
 import static no.sikt.generator.ApplicationConstants.EXCLUDED_APIS;
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -77,11 +81,21 @@ public class ApiData {
 ;
     }
 
+    public ApiData setEmptySchemasIfNull() {
+        if (isNull(this.openapiApiGateway.getComponents())) {
+            this.openapiApiGateway.setComponents(new Components());
+        }
+        if (isNull(this.openapiApiGateway.getComponents().getSchemas())) {
+            this.openapiApiGateway.getComponents().setSchemas(new HashMap<>());
+        }
+        return this;
+    }
+
     public ApiData overridePropsFromGithub() {
         if (this.openapiApiGithub.isPresent()) {
             this.openapiApiGateway.getPaths().forEach((pathKey, pathItem) -> {
                 pathItem.readOperationsMap().forEach((httpMethod, operation) -> {
-                    if (Objects.nonNull(operation.getParameters())) {
+                    if (nonNull(operation.getParameters())) {
                         operation.getParameters().forEach(parameter -> {
                             var operationInGithub = Optional.ofNullable(openapiApiGithub.get().getPaths().get(pathKey).readOperationsMap()
                                                                              .get(httpMethod));
@@ -90,6 +104,17 @@ public class ApiData {
                     }
                 });
             });
+            if (nonNull(this.openapiApiGithub.get().getComponents())
+                && nonNull(this.openapiApiGithub.get().getComponents().getSchemas())
+            ) {
+                this.openapiApiGithub.get().getComponents().getSchemas().forEach(((key,value) -> {
+                    if (isNull(this.openapiApiGateway.getComponents().getSchemas().get(key))) {
+                        logger.info("Adding schema " + key + " from github");
+                        this.openapiApiGateway.getComponents().getSchemas().put(key, value);
+                    }
+                }));
+            }
+
         }
         return this;
     }

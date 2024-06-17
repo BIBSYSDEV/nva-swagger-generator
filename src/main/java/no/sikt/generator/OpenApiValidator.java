@@ -1,5 +1,6 @@
 package no.sikt.generator;
 
+import static java.util.Objects.nonNull;
 import io.swagger.v3.oas.models.OpenAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,8 +13,10 @@ public class OpenApiValidator {
     }
 
     public void validateOpenApi(OpenAPI openAPI) {
-        openAPI.getComponents().getSchemas().keySet()
-            .forEach(schemaName -> validateSchemaName(openAPI.getInfo().getTitle(), schemaName));
+        if (nonNull(openAPI.getComponents()) && nonNull(openAPI.getComponents().getSchemas())) {
+            openAPI.getComponents().getSchemas().keySet()
+                .forEach(schemaName -> validateSchemaName(openAPI.getInfo().getTitle(), schemaName));
+        }
     }
 
     public void validateSchemaName(String apiName, String schemaName) {
