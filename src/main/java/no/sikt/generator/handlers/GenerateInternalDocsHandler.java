@@ -72,6 +72,7 @@ public class GenerateInternalDocsHandler extends GenerateDocsHandler {
                    .filter(Objects::nonNull)
                    .peek(apiData -> openApiValidator.validateOpenApi(apiData.getOpenapi()))
                    .peek(apiData -> apiData.setMatchingGithubOpenapi(templateOpenapiDocs))
+                   .map(ApiData::setEmptySchemasIfNull)
                    .map(ApiData::overridePropsFromGithub)
                    .sorted(ApiData::sortByDate)
                    .sorted(ApiData::sortByDashes)
