@@ -4,6 +4,7 @@ import static no.sikt.generator.ApplicationConstants.EXTERNAL_BUCKET_NAME;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -23,6 +24,7 @@ import nva.commons.core.paths.UnixPath;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -45,14 +47,13 @@ class GenerateExternalDocsHandlerTest {
 
     @BeforeEach
     public void setup() {
-        var fakeS3ClientInput = new FakeS3Client();
         var fakeS3ClientOutput = new FakeS3Client();
         this.inputS3client = new FakeS3Client();
         this.s3Driver = new S3Driver(fakeS3ClientOutput, EXTERNAL_BUCKET_NAME);
         this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(apiGatewayAsyncClient);
         this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(cloudFrontClient);
         handler = new GenerateExternalDocsHandler(apiGatewayHighLevelClient, cloudFrontHighLevelClient,
-                                                  fakeS3ClientOutput, fakeS3ClientInput);
+                                                  fakeS3ClientOutput, inputS3client);
     }
 
     private void setupTestCasesFromFiles(String folder, List<String> filenames) {
@@ -144,6 +145,19 @@ class GenerateExternalDocsHandlerTest {
 
         assertThat(openApi.getPaths().values(), hasSize(1));
         assertThat(openApi.getPaths().values().stream().findFirst().get().readOperations(), hasSize(1));
+    }
+
+    @Test
+    public void shouldIncludeParameteredSchemas() {
+        setupTestCasesFromFilesWithGithubOpenapi("parameters", List.of(Pair.of("api.yaml", Optional.of(
+            "github"
+            + ".yaml"))));
+
+        handler.handleRequest(null, null, null);
+        var openApi = readGeneratedOpenApi();
+        var categoryEnum = openApi.getComponents().getSchemas().get("CategoryEnum");
+
+        assertThat(categoryEnum,is(notNullValue()));
     }
 
     @Test
@@ -240,6 +254,11 @@ class GenerateExternalDocsHandlerTest {
         return openApiParser
                           .readContents(yaml)
                           .getOpenAPI();
+    }
+
+    private void setupTestCasesFromFilesWithGithubOpenapi(String folder,
+                                                          List<Pair<String, Optional<String>>> filenames) {
+        TestUtils.setupTestcasesFromFiles(inputS3client, apiGatewayAsyncClient, cloudFrontClient, folder, filenames);
     }
 
 

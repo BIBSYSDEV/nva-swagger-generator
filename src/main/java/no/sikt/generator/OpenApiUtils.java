@@ -150,6 +150,23 @@ public final class OpenApiUtils {
                    .distinct();
     }
 
+    public static Stream<String> getRefsFromParametersSchemas(OpenAPI openAPI) {
+        return Optional.ofNullable(openAPI.getPaths())
+                   .orElseGet(Paths::new)
+                   .values()
+                   .stream()
+                   .map(PathItem::readOperations)
+                   .flatMap(Collection::stream)
+                   .map(Operation::getParameters)
+                   .filter(Objects::nonNull)
+                   .flatMap(Collection::stream)
+                   .map(Parameter::getSchema)
+                   .filter(Objects::nonNull)
+                   .map(Schema::get$ref)
+                   .filter(Objects::nonNull)
+                   .distinct();
+    }
+
     public static Stream<String> getResponseRefsFromPaths(OpenAPI openAPI) {
         return Optional.ofNullable(openAPI.getPaths())
                     .orElseGet(Paths::new)
@@ -205,6 +222,7 @@ public final class OpenApiUtils {
         return Stream.of(
                 getResponseRefsFromPaths(openAPI),
                 getRefsFromRequestBodies(openAPI),
+                getRefsFromParametersSchemas(openAPI),
                 getRefsFromParameters(openAPI)
             ).flatMap(stream -> stream)
                    .collect(toSet());
@@ -215,6 +233,7 @@ public final class OpenApiUtils {
                 getResponseRefsFromPaths(openAPI),
                 getRefsFromRequestBodies(openAPI),
                 getRefsFromParameters(openAPI),
+                getRefsFromParametersSchemas(openAPI),
                 getSchemaItemsRefs(openAPI),
                 getSchemaPropertyRefs(openAPI),
                 getSchemaPropertyItemRefs(openAPI)
