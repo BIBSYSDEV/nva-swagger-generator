@@ -70,13 +70,13 @@ public class GenerateInternalDocsHandler extends GenerateDocsHandler {
         return apis.items().stream()
                    .map(this::fetchProdApiData)
                    .filter(Objects::nonNull)
+                   .filter(this::apiShouldBeIncluded)
                    .peek(apiData -> openApiValidator.validateOpenApi(apiData.getOpenapi()))
                    .peek(apiData -> apiData.setMatchingGithubOpenapi(templateOpenapiDocs))
                    .map(ApiData::setEmptySchemasIfNull)
                    .map(ApiData::overridePropsFromGithub)
                    .sorted(ApiData::sortByDate)
                    .sorted(ApiData::sortByDashes)
-                   .filter(this::apiShouldBeIncluded)
                    .filter(distinctByKey(ApiData::getName))
                    .sorted(ApiData::sortByName);
     }

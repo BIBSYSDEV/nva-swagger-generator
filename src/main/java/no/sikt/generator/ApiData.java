@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import nva.commons.core.JacocoGenerated;
 import nva.commons.core.attempt.Failure;
 import nva.commons.core.attempt.Try;
 import org.apache.commons.lang3.tuple.Pair;
@@ -119,6 +120,7 @@ public class ApiData {
         return this;
     }
 
+    @JacocoGenerated
     private int handleGetDashesFailure(Failure failure) {
         logger.info("Using default dashes 0");
         logger.info(failure.getException().toString());
