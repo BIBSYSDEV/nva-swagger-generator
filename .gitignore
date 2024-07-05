@@ -304,3 +304,8 @@ build
 /.aws-sam/
 /log.txt
 /setup_local_env.sh
+
+# Ignore script artifacts
+/scripts/openapi
+/scripts/generated
+/scripts/tests
