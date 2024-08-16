@@ -60,6 +60,10 @@ public final class OpenApiUtils {
         return nonNull(schema.getAnyOf()) ? schema.getAnyOf().stream() : Stream.of();
     }
 
+    public static Stream<Schema> getNestedOneOfSchemas(Schema schema) {
+        return nonNull(schema.getAnyOf()) ? schema.getOneOf().stream() : Stream.of();
+    }
+
     public static Stream<Schema> getNestedPropertiesSchemas(Schema schema) {
         Map<String, Schema> properties = schema.getProperties();
         return nonNull(properties) ? properties.values().stream() : Stream.of();
@@ -95,6 +99,7 @@ public final class OpenApiUtils {
             OpenApiUtils.getReffedSchema(openAPI, schema),
             OpenApiUtils.getNestedAllOfSchemas(schema),
             OpenApiUtils.getNestedAnyOfSchemas(schema),
+            OpenApiUtils.getNestedOneOfSchemas(schema),
             OpenApiUtils.getNestedPropertiesSchemas(schema),
             OpenApiUtils.getAdditionalPropertiesSchemas(schema)
         ).flatMap(stream -> stream).filter(Objects::nonNull).toList();
