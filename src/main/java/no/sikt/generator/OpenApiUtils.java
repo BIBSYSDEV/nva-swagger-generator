@@ -61,7 +61,7 @@ public final class OpenApiUtils {
     }
 
     public static Stream<Schema> getNestedOneOfSchemas(Schema schema) {
-        return nonNull(schema.getAnyOf()) ? schema.getOneOf().stream() : Stream.of();
+        return nonNull(schema.getOneOf()) ? schema.getOneOf().stream() : Stream.of();
     }
 
     public static Stream<Schema> getNestedPropertiesSchemas(Schema schema) {
