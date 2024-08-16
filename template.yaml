@@ -368,7 +368,6 @@ Resources:
 
   CustomDomainCloudfrontDistribution:
     Type: AWS::CloudFront::Distribution
-    DependsOn: ExternalSwaggerUiBucket
     Properties:
       DistributionConfig:
         CustomErrorResponses:
@@ -412,7 +411,6 @@ Resources:
 
   InternalCloudfrontDistribution:
     Type: AWS::CloudFront::Distribution
-    DependsOn: InternalSwaggerUiBucket
     Properties:
       DistributionConfig:
         CustomErrorResponses:

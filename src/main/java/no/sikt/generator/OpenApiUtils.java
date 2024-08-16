@@ -15,9 +15,9 @@ import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.tags.Tag;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -60,6 +60,10 @@ public final class OpenApiUtils {
         return nonNull(schema.getAnyOf()) ? schema.getAnyOf().stream() : Stream.of();
     }
 
+    public static Stream<Schema> getNestedOneOfSchemas(Schema schema) {
+        return nonNull(schema.getOneOf()) ? schema.getOneOf().stream() : Stream.of();
+    }
+
     public static Stream<Schema> getNestedPropertiesSchemas(Schema schema) {
         Map<String, Schema> properties = schema.getProperties();
         return nonNull(properties) ? properties.values().stream() : Stream.of();
@@ -85,20 +89,20 @@ public final class OpenApiUtils {
         return mediaType.getSchema().get$ref();
     }
 
-    public static Set<Schema> getNestedSchemas(OpenAPI openAPI, Schema schema) {
-        return getNestedSchemas(openAPI, new HashSet<>(Arrays.asList()), schema);
-
+    public static List<Schema> getNestedSchemas(OpenAPI openAPI, Schema schema) {
+        return getNestedSchemas(openAPI, new ArrayList<>(), schema);
     }
 
-    public static Set<Schema> getNestedSchemas(OpenAPI openAPI, Set<Schema> visited, Schema schema) {
+    public static List<Schema> getNestedSchemas(OpenAPI openAPI, List<Schema> visited, Schema schema) {
         var nestedSchemas = Stream.of(
             Stream.of(schema.getItems()),
             OpenApiUtils.getReffedSchema(openAPI, schema),
             OpenApiUtils.getNestedAllOfSchemas(schema),
             OpenApiUtils.getNestedAnyOfSchemas(schema),
+            OpenApiUtils.getNestedOneOfSchemas(schema),
             OpenApiUtils.getNestedPropertiesSchemas(schema),
             OpenApiUtils.getAdditionalPropertiesSchemas(schema)
-        ).flatMap(stream -> stream).filter(Objects::nonNull).collect(toSet());
+        ).flatMap(stream -> stream).filter(Objects::nonNull).toList();
 
         var newSchemas = nestedSchemas.stream().filter(ns -> !visited.contains(ns)).collect(toSet());
 
