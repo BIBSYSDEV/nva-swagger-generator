@@ -1,21 +1,21 @@
 [versions]
 
-awsSdk          = { strictly = '1.12.220' }
-awsSdk2         = { strictly = '2.17.191' }
-guava           = { strictly = '31.0.1-jre' }
-hamcrest        = { strictly = '2.2' }
+awsSdk          = { strictly = '1.12.772' }
+awsSdk2         = { strictly = '2.27.24' }
+guava           = { strictly = '33.3.0-jre' }
+hamcrest        = { strictly = '3.0' }
 hamcrestJackson = { strictly = '1.2.0' }
-jackson         = { strictly = '2.16.0' }
+jackson         = { strictly = '2.17.2' }
 jacksonFormat   = { strictly = '1.0.6'}
 jacoco          = { strictly = '0.8.7' }
 json            = { strictly = '20220320'}
 jsonld          = { strictly = '0.13.3' }
-junit           = { strictly = '5.8.2' }
-log4j           = { strictly = '2.17.2' }
-mockito         = { strictly = '3.12.4' }
-nvaCommons      = { strictly = '1.37.1' }
+junit           = { strictly = '5.11.0' }
+log4j           = { strictly = '2.24.0' }
+mockito         = { strictly = '5.13.0' }
+nvaCommons      = { strictly = '1.40.20' }
 nebula          = { strictly = '16.23.0' }
-slf4j           = { strictly = '1.8.0-beta4' }
+slf4j           = { strictly = '2.0.16' }
 zalandoProblem  = { strictly = '0.27.1' }
 swagger-parser  = { strictly = '2.1.20' }
 swagger-core    = { strictly = '2.2.20' }
@@ -53,7 +53,6 @@ junit-jupiter-params            = { group = 'org.junit.jupiter',        name = '
 
 log4j-api                       = { group = 'org.apache.logging.log4j', name = 'log4j-api',                 version.ref = 'log4j' }
 log4j-core                      = { group = 'org.apache.logging.log4j', name = 'log4j-core',                version.ref = 'log4j' }
-log4j-slf4j18-impl              = { group = 'org.apache.logging.log4j', name = 'log4j-slf4j18-impl',        version.ref = 'log4j' }
 
 mockito-core                    = { group = 'org.mockito',              name = 'mockito-core',              version.ref = 'mockito' }
 
@@ -82,8 +81,7 @@ testing = ['junit-jupiter-params', 'junit-jupiter-api',
     'hamcrest-core', 'hamcrest-jackson',
     'nva-testutils', 'zalando','nva-logutils']
 
-logging = ['log4j-core', 'log4j-api',
-    'log4j-slf4j18-impl', 'slf4j-api']
+logging = ['log4j-core', 'log4j-api', 'slf4j-api']
 
 jackson = ['jackson-core', 'jackson-databind', 'jackson-annotations',
     'jackson-datatype-jsr310', 'jackson-datatype-jdk8','jackson-dataformat']
