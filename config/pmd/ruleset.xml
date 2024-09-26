@@ -10,13 +10,11 @@
   <exclude-pattern>.*/test/.*</exclude-pattern>
 
   <rule ref="category/java/errorprone.xml">
-    <exclude name="DataflowAnomalyAnalysis"/>
     <exclude name="MissingSerialVersionUID"/>
-    <exclude name="BeanMembersShouldSerialize"/>
   </rule>
 
   <rule ref="category/java/multithreading.xml">
-    <!-- Because it complains for the Map interface in the Resource class.-->
+    <!-- Because it complains about the Map interface in the Resource class.-->
     <exclude name="UseConcurrentHashMap"/>
   </rule>
 
@@ -42,12 +40,8 @@
     <exclude name="UnnecessaryConstructor"/>
     <!-- Conflicts with the rule category/java/codestyle.xml/AvoidProtectedMethodInFinalClassNotExtending -->
     <exclude name="CommentDefaultAccessModifier"/>
-    <!-- Conflicts with the rule category/java/codestyle.xml/AvoidProtectedMethodInFinalClassNotExtending -->
-    <exclude name="DefaultPackage"/>
-
-
-    <!--<exclude name="BeanMembersShouldSerialize"/>-->
-
+    <!-- We use vars! -->
+    <exclude name="UseExplicitTypes"/>
     <exclude name="ConfusingTernary"/>
 
     <!-- printStackTrace is used in the Default Amazon handler in a static clause

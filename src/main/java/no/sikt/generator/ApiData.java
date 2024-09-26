@@ -8,7 +8,6 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.attempt.Failure;
@@ -24,10 +23,10 @@ public class ApiData {
 
     private final RestApi awsRestApi;
     private final OpenAPI openapiApiGateway;
-    private Optional<OpenAPI> openapiApiGithub;
     private final String rawYaml;
     private final Stage stage;
     private static final Logger logger = LoggerFactory.getLogger(ApiData.class);
+    private OpenAPI openapiApiGithub;
 
     public ApiData(RestApi awsRestApi, OpenAPI openapiApiGateway, String rawYaml, Stage stage) {
         this.awsRestApi = awsRestApi;
@@ -64,6 +63,10 @@ public class ApiData {
         return Try.attempt(this::getNumberOfDashesInBasePath).orElse(this::handleGetDashesFailure);
     }
 
+    private Optional<OpenAPI> getOpenapiApiGithub() {
+        return Optional.ofNullable(openapiApiGithub);
+    }
+
     public void setMatchingGithubOpenapi(List<Pair<S3Object, OpenAPI>> templateOpenapiDocs) {
         var title = this.openapiApiGateway.getInfo().getTitle();
         var matchingGithubOpenApi = templateOpenapiDocs.stream()
@@ -73,16 +76,15 @@ public class ApiData {
                                                                           .equals(title))
                                         .findFirst();
         if (matchingGithubOpenApi.isPresent()) {
-            logger.info("Using matching github openapi at " + matchingGithubOpenApi.get().getLeft().key()+ " for " + title);
-            this.openapiApiGithub = Optional.of(matchingGithubOpenApi.get().getRight());
+            logger.info("Using matching github openapi at "
+                        + matchingGithubOpenApi.get().getLeft().key()+ " for " + title);
+            this.openapiApiGithub = matchingGithubOpenApi.get().getRight();
         } else {
             logger.warn("No matching github openapi found for " + title);
-            this.openapiApiGithub = Optional.empty();
         }
-;
     }
 
-    public ApiData setEmptySchemasIfNull() {
+    public ApiData applyEmptySchemasIfNull() {
         if (isNull(this.openapiApiGateway.getComponents())) {
             this.openapiApiGateway.setComponents(new Components());
         }
@@ -93,27 +95,29 @@ public class ApiData {
     }
 
     public ApiData overridePropsFromGithub() {
-        if (this.openapiApiGithub.isPresent()) {
+        var openApiGithub = getOpenapiApiGithub();
+        if (openApiGithub.isPresent()) {
             this.openapiApiGateway.getPaths().forEach((pathKey, pathItem) -> {
                 pathItem.readOperationsMap().forEach((httpMethod, operation) -> {
                     if (nonNull(operation.getParameters())) {
                         operation.getParameters().forEach(parameter -> {
-                            var operationInGithub = Optional.ofNullable(openapiApiGithub.get().getPaths().get(pathKey).readOperationsMap()
+                            var operationInGithub =
+                                Optional.ofNullable(openApiGithub.get().getPaths().get(pathKey).readOperationsMap()
                                                                              .get(httpMethod));
                             operationInGithub.ifPresent(value -> operation.setParameters(value.getParameters()));
                         });
                     }
                 });
             });
-            if (nonNull(this.openapiApiGithub.get().getComponents())
-                && nonNull(this.openapiApiGithub.get().getComponents().getSchemas())
+            if (nonNull(openApiGithub.get().getComponents())
+                && nonNull(openApiGithub.get().getComponents().getSchemas())
             ) {
-                this.openapiApiGithub.get().getComponents().getSchemas().forEach(((key,value) -> {
+                openApiGithub.get().getComponents().getSchemas().forEach((key,value) -> {
                     if (isNull(this.openapiApiGateway.getComponents().getSchemas().get(key))) {
                         logger.info("Adding schema " + key + " from github");
                         this.openapiApiGateway.getComponents().getSchemas().put(key, value);
                     }
-                }));
+                });
             }
 
         }

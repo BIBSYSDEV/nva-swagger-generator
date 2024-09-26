@@ -284,7 +284,8 @@ class GenerateInternalDocsHandlerTest {
         handler.handleRequest(null, null, null);
         var openApi = readGeneratedOpenApi();
         var parameter =
-            openApi.getPaths().get("/publication/{publicationIdentifier}").getGet().getParameters().stream().filter(param -> param.getName().equals("doNotRedirect")).findFirst().get();
+            openApi.getPaths().get("/publication/{publicationIdentifier}").getGet().getParameters().stream()
+                .filter(param -> param.getName().equals("doNotRedirect")).findFirst().get();
 
         assertThat(parameter.getStyle(), is(equalTo(StyleEnum.FORM)));
         assertThat(parameter.getExplode(), is(equalTo(false)));

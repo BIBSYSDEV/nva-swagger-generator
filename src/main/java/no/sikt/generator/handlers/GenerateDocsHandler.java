@@ -54,15 +54,18 @@ public abstract class GenerateDocsHandler implements RequestStreamHandler {
                                               .retryPolicy(retryPolicy)
                                               .build();
 
-        var apiGatewayClient =
-            ApiGatewayAsyncClient.builder().overrideConfiguration(clientOverrideConfiguration).build();
-        var cloudFrontClient = CloudFrontClient.builder()
+        try (
+            var apiGatewayClient =
+                ApiGatewayAsyncClient.builder().overrideConfiguration(clientOverrideConfiguration).build()) {
+            this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(apiGatewayClient);
+        }
+
+        try (var cloudFrontClient = CloudFrontClient.builder()
                                    .httpClient(UrlConnectionHttpClient.builder().build())
                                    .region(AWS_GLOBAL)
-                                   .build();
-
-        this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(apiGatewayClient);
-        this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(cloudFrontClient);
+                                   .build()) {
+            this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(cloudFrontClient);
+        }
         this.s3ClientInput = S3Driver.defaultS3Client().build();
         this.s3ClientOutput = S3Driver.defaultS3Client().build();
     }

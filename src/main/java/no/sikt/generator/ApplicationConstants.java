@@ -32,7 +32,10 @@ public final class ApplicationConstants {
     private static String readInternalBucketName()  {
         return ENVIRONMENT.readEnv("INTERNAL_BUCKET_NAME");
     }
-    public static String readOpenApiBucketName() { return ENVIRONMENT.readEnv("OPEN_API_DOCS_BUCKET_NAME");}
+
+    public static String readOpenApiBucketName() {
+        return ENVIRONMENT.readEnv("OPEN_API_DOCS_BUCKET_NAME");
+    }
 
     private static String readExternalCloudFrontDistributionId() {
         return ENVIRONMENT.readEnv("EXTERNAL_CLOUD_FRONT_DISTRIBUTION");
