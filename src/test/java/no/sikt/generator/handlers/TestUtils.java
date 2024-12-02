@@ -74,8 +74,8 @@ public class TestUtils {
     public static void loadGithubOpenapiFile(S3Driver s3Driver, TestCase testCase) {
         if (testCase.getContentGithub().isPresent()) {
             Try.attempt(() ->
-                            s3Driver.insertFile(UnixPath.of(String.valueOf(Path.of(testCase.getId() + ".yaml"))),
-                                                testCase.getContentGithub().get())
+                            s3Driver.insertFile(UnixPath.of(String.valueOf(Path.of(testCase.getId() + ".yaml")))
+                                , testCase.getContentGithub().get())
             );
         }
     }
@@ -87,8 +87,7 @@ public class TestUtils {
                                                List<Pair<String, Optional<String>>> fileNames) {
         var filePrefix = "openapi_docs/" + ((isNull(folder)) ? "" : folder + "/");
         var testCases = fileNames.stream().map(fileName -> loadTestCase(filePrefix + fileName.getLeft(),
-                                                                        fileName.getRight()
-                                                                            .map(fn -> filePrefix + fn))).toList();
+                                                                        fileName.getRight().map(fn -> filePrefix + fn)) ).toList();
 
         var s3driver = new S3Driver(s3Client, readOpenApiBucketName());
         testCases.forEach(tc -> loadGithubOpenapiFile(s3driver, tc));

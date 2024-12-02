@@ -7,6 +7,7 @@ import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.media.Schema;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -33,7 +34,7 @@ public class OpenApiExtractor {
         var usedSchemas = getUsedSchemas(openAPI);
         var allSchemas = schemas.keySet();
 
-        var newSchemas = new HashMap<String, Schema>();
+        Map<String, Schema> newSchemas = new HashMap();
 
         allSchemas.forEach(key -> {
             var value = schemas.get(key);

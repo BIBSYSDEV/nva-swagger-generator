@@ -12,6 +12,7 @@ import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import java.util.Collection;
@@ -117,8 +118,8 @@ public class OpenApiCombiner {
 
     private void mergeSecurity(OpenAPI api) {
         if (nonNull(api.getSecurity())) {
-            for (var securityRequirement : api.getSecurity()) {
-                logger.info("adding security req {}", securityRequirement);
+            for (SecurityRequirement securityRequirement : api.getSecurity()) {
+                logger.info("adding security req {}", securityRequirement.toString());
                 this.baseTemplate.addSecurityItem(securityRequirement);
             }
         }

@@ -2,6 +2,7 @@ package no.sikt.generator;
 
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Stream.concat;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
@@ -95,12 +96,12 @@ public final class OpenApiUtils {
     public static List<Schema> getNestedSchemas(OpenAPI openAPI, List<Schema> visited, Schema schema) {
         var nestedSchemas = Stream.of(
             Stream.of(schema.getItems()),
-            getReffedSchema(openAPI, schema),       
-            getNestedAllOfSchemas(schema),
-            getNestedAnyOfSchemas(schema),
-            getNestedOneOfSchemas(schema),
-            getNestedPropertiesSchemas(schema),
-            getAdditionalPropertiesSchemas(schema)
+            OpenApiUtils.getReffedSchema(openAPI, schema),
+            OpenApiUtils.getNestedAllOfSchemas(schema),
+            OpenApiUtils.getNestedAnyOfSchemas(schema),
+            OpenApiUtils.getNestedOneOfSchemas(schema),
+            OpenApiUtils.getNestedPropertiesSchemas(schema),
+            OpenApiUtils.getAdditionalPropertiesSchemas(schema)
         ).flatMap(stream -> stream).filter(Objects::nonNull).toList();
 
         var newSchemas = nestedSchemas.stream().filter(ns -> !visited.contains(ns)).collect(toSet());
@@ -115,8 +116,7 @@ public final class OpenApiUtils {
 
     private static Stream<Schema> getReffedSchema(OpenAPI openAPI, Schema schema) {
         if (nonNull(schema.get$ref()) && schema.get$ref().startsWith(COMPONENTS_SCHEMAS)) {
-            return Stream.of(openAPI.getComponents()
-                                 .getSchemas().get(StringUtils.stripStart(schema.get$ref(), COMPONENTS_SCHEMAS)));
+            return Stream.of(openAPI.getComponents().getSchemas().get(StringUtils.stripStart(schema.get$ref(), COMPONENTS_SCHEMAS)));
         } else {
             return Stream.of();
         }

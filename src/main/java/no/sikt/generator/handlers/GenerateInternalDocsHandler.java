@@ -66,15 +66,14 @@ public class GenerateInternalDocsHandler extends GenerateDocsHandler {
         cloudFrontHighLevelClient.invalidateAll(INTERNAL_CLOUD_FRONT_DISTRIBUTION);
     }
 
-    private Stream<ApiData> validateAndFilterApis(GetRestApisResponse apis,
-                                                  List<Pair<S3Object, OpenAPI>> templateOpenapiDocs) {
+    private Stream<ApiData> validateAndFilterApis(GetRestApisResponse apis, List<Pair<S3Object, OpenAPI>> templateOpenapiDocs) {
         return apis.items().stream()
                    .map(this::fetchProdApiData)
                    .filter(Objects::nonNull)
                    .filter(this::apiShouldBeIncluded)
                    .peek(apiData -> openApiValidator.validateOpenApi(apiData.getOpenapi()))
                    .peek(apiData -> apiData.setMatchingGithubOpenapi(templateOpenapiDocs))
-                   .map(ApiData::applyEmptySchemasIfNull)
+                   .map(ApiData::setEmptySchemasIfNull)
                    .map(ApiData::overridePropsFromGithub)
                    .sorted(ApiData::sortByDate)
                    .sorted(ApiData::sortByDashes)

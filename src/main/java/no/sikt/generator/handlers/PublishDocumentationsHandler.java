@@ -41,11 +41,10 @@ public class PublishDocumentationsHandler implements RequestStreamHandler {
                          .retryPolicy(retryPolicy)
                          .build();
 
-        try (var apiGatewayClient =
-                 ApiGatewayAsyncClient.builder().overrideConfiguration(clientOverrideConfiguration).build()) {
+        var apiGatewayClient =
+            ApiGatewayAsyncClient.builder().overrideConfiguration(clientOverrideConfiguration).build();
 
-            this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(apiGatewayClient);
-        }
+        this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(apiGatewayClient);
     }
 
     public PublishDocumentationsHandler(ApiGatewayHighLevelClient apiGatewayHighLevelClient) {
