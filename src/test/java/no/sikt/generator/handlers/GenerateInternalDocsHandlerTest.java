@@ -22,6 +22,7 @@ import io.swagger.v3.oas.models.parameters.Parameter.StyleEnum;
 import io.swagger.v3.oas.models.tags.Tag;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
@@ -340,6 +341,20 @@ class GenerateInternalDocsHandlerTest {
         handler.handleRequest(null, null, null);
 
         verify(cloudFrontClient).createInvalidation(any(CreateInvalidationRequest.class));
+    }
+
+    @Test
+    public void shouldNotAddExplodeAndStyle() {
+        setupTestCasesFromFiles("",List.of("api-without-style.yaml"));
+
+        handler.handleRequest(null, null, null);
+
+        var openApi = readGeneratedOpenApi();
+        var allParameters = openApi.getPaths().values()
+                                .stream().map(p -> p.getGet().getParameters()).flatMap(Collection::stream);
+
+        allParameters.forEach(p -> assertThat(p.getStyle(),is(equalTo(null))));
+        allParameters.forEach(p -> assertThat(p.getExplode(),is(equalTo(null))));
     }
 
     private OpenAPI readGeneratedOpenApi() {
