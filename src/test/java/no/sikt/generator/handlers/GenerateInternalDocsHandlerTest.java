@@ -41,7 +41,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
-import org.mockito.Mockito;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
 import software.amazon.awssdk.services.cloudfront.model.CreateInvalidationRequest;
@@ -49,26 +48,31 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 class GenerateInternalDocsHandlerTest {
 
-    private final CloudFrontClient cloudFrontClient = Mockito.mock(CloudFrontClient.class);
     private CloudFrontHighLevelClient cloudFrontHighLevelClient;
     private GenerateInternalDocsHandler handler;
     private S3Driver outputS3Driver;
     private OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
     private S3Client inputS3client;
     private ApiGatewayAsyncClient apiGatewayAsyncClient;
+    private CloudFrontClient cloudFrontClient;
 
     @SuppressWarnings("unchecked")
     @BeforeEach
     public void setup() {
-        Supplier<ApiGatewayAsyncClient> mockSupplier = mock(Supplier.class);
+        Supplier<ApiGatewayAsyncClient> mockApiGatewaySupplier = mock(Supplier.class);
         apiGatewayAsyncClient = mock(ApiGatewayAsyncClient.class);
-        when(mockSupplier.get()).thenReturn(apiGatewayAsyncClient);
+        when(mockApiGatewaySupplier.get()).thenReturn(apiGatewayAsyncClient);
 
         var outputS3client = new FakeS3Client();
         this.inputS3client = new FakeS3Client();
         this.outputS3Driver = new S3Driver(outputS3client, INTERNAL_BUCKET_NAME);
-        this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(cloudFrontClient);
-        handler = new GenerateInternalDocsHandler(mockSupplier, cloudFrontHighLevelClient,
+
+        Supplier<CloudFrontClient> mockCloudFrontSupplier = mock(Supplier.class);
+        cloudFrontClient = mock(CloudFrontClient.class);
+        when(mockCloudFrontSupplier.get()).thenReturn(cloudFrontClient);
+
+        this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(mockCloudFrontSupplier);
+        handler = new GenerateInternalDocsHandler(mockApiGatewaySupplier, cloudFrontHighLevelClient,
                                                   outputS3client, inputS3client);
     }
 

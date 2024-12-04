@@ -3,7 +3,6 @@ package no.sikt.generator.handlers;
 import static no.sikt.generator.ApplicationConstants.EXPORT_STAGE_PROD;
 import static no.sikt.generator.ApplicationConstants.readOpenApiBucketName;
 import static nva.commons.core.attempt.Try.attempt;
-import static software.amazon.awssdk.regions.Region.AWS_GLOBAL;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
@@ -13,6 +12,7 @@ import java.util.function.Supplier;
 import no.sikt.generator.ApiData;
 import no.sikt.generator.ApiGatewayAsyncClientSupplier;
 import no.sikt.generator.ApiGatewayHighLevelClient;
+import no.sikt.generator.CloudFrontClientSupplier;
 import no.sikt.generator.CloudFrontHighLevelClient;
 import no.sikt.generator.OpenApiValidator;
 import no.unit.nva.s3.S3Driver;
@@ -22,10 +22,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
-import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.apigateway.model.RestApi;
-import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
@@ -45,13 +43,7 @@ public abstract class GenerateDocsHandler implements RequestStreamHandler {
     @JacocoGenerated
     protected GenerateDocsHandler() {
         this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(ApiGatewayAsyncClientSupplier.getSupplier());
-
-        try (var cloudFrontClient = CloudFrontClient.builder()
-                                        .httpClient(UrlConnectionHttpClient.builder().build())
-                                        .region(AWS_GLOBAL)
-                                        .build()) {
-            this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(cloudFrontClient);
-        }
+        this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(CloudFrontClientSupplier.getSupplier());
         this.s3ClientInput = S3Driver.defaultS3Client().build();
         this.s3ClientOutput = S3Driver.defaultS3Client().build();
     }

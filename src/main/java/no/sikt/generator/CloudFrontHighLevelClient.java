@@ -1,30 +1,30 @@
 package no.sikt.generator;
 
+import java.util.function.Supplier;
 import javax.validation.constraints.NotNull;
 import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
 import software.amazon.awssdk.services.cloudfront.model.CreateInvalidationRequest;
-import software.amazon.awssdk.services.cloudfront.model.InvalidationBatch;
-import software.amazon.awssdk.services.cloudfront.model.Paths;
 
 public class CloudFrontHighLevelClient {
 
     public static final String ALL_FILES = "/*";
-    private final CloudFrontClient cloudFrontClient;
+    private final Supplier<CloudFrontClient> cloudFrontClientSupplier;
 
-    public CloudFrontHighLevelClient(CloudFrontClient cloudFrontClient) {
-        this.cloudFrontClient = cloudFrontClient;
+    public CloudFrontHighLevelClient(Supplier<CloudFrontClient> cloudFrontClientSupplier) {
+        this.cloudFrontClientSupplier = cloudFrontClientSupplier;
     }
 
     public void invalidateAll(String distributionId) {
-        var batch = InvalidationBatch.builder()
-                        .paths(Paths.builder().items(ALL_FILES).quantity(1).build())
-                        .callerReference(getCallerReference())
-                        .build();
-        var request = CreateInvalidationRequest.builder()
-                          .distributionId(distributionId)
-                          .invalidationBatch(batch)
-                          .build();
-        this.cloudFrontClient.createInvalidation(request);
+        try (var cloudFrontClient = cloudFrontClientSupplier.get()) {
+            var request = CreateInvalidationRequest.builder()
+                              .distributionId(distributionId)
+                              .invalidationBatch(b -> b
+                                                          .paths(p -> p.items(ALL_FILES).quantity(1))
+                                                          .callerReference(getCallerReference())
+                              )
+                              .build();
+            cloudFrontClient.createInvalidation(request);
+        }
     }
 
     @NotNull
@@ -32,7 +32,3 @@ public class CloudFrontHighLevelClient {
         return "swagger-generator-" + System.currentTimeMillis();
     }
 }
-
-
-
-
