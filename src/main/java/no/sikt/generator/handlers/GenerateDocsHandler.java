@@ -3,14 +3,16 @@ package no.sikt.generator.handlers;
 import static no.sikt.generator.ApplicationConstants.EXPORT_STAGE_PROD;
 import static no.sikt.generator.ApplicationConstants.readOpenApiBucketName;
 import static nva.commons.core.attempt.Try.attempt;
-import static software.amazon.awssdk.regions.Region.AWS_GLOBAL;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Supplier;
 import no.sikt.generator.ApiData;
+import no.sikt.generator.ApiGatewayAsyncClientSupplier;
 import no.sikt.generator.ApiGatewayHighLevelClient;
+import no.sikt.generator.CloudFrontClientSupplier;
 import no.sikt.generator.CloudFrontHighLevelClient;
 import no.sikt.generator.OpenApiValidator;
 import no.unit.nva.s3.S3Driver;
@@ -19,20 +21,16 @@ import nva.commons.core.paths.UnixPath;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
-import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.apigateway.model.RestApi;
-import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
 public abstract class GenerateDocsHandler implements RequestStreamHandler {
+
     private static final Logger logger = LoggerFactory.getLogger(GenerateDocsHandler.class);
     ApiGatewayHighLevelClient apiGatewayHighLevelClient;
     CloudFrontHighLevelClient cloudFrontHighLevelClient;
@@ -43,38 +41,18 @@ public abstract class GenerateDocsHandler implements RequestStreamHandler {
     final String openApiBucketName = readOpenApiBucketName();
 
     @JacocoGenerated
-    public GenerateDocsHandler() {
-        var retryPolicy = RetryPolicy.builder()
-                              .backoffStrategy(BackoffStrategy.defaultThrottlingStrategy())
-                              .throttlingBackoffStrategy(BackoffStrategy.defaultThrottlingStrategy())
-                              .numRetries(10)
-                              .build();
-
-        var clientOverrideConfiguration = ClientOverrideConfiguration.builder()
-                                              .retryPolicy(retryPolicy)
-                                              .build();
-
-        try (
-            var apiGatewayClient =
-                ApiGatewayAsyncClient.builder().overrideConfiguration(clientOverrideConfiguration).build()) {
-            this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(apiGatewayClient);
-        }
-
-        try (var cloudFrontClient = CloudFrontClient.builder()
-                                   .httpClient(UrlConnectionHttpClient.builder().build())
-                                   .region(AWS_GLOBAL)
-                                   .build()) {
-            this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(cloudFrontClient);
-        }
+    protected GenerateDocsHandler() {
+        this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(ApiGatewayAsyncClientSupplier.getSupplier());
+        this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(CloudFrontClientSupplier.getSupplier());
         this.s3ClientInput = S3Driver.defaultS3Client().build();
         this.s3ClientOutput = S3Driver.defaultS3Client().build();
     }
 
-    public GenerateDocsHandler(ApiGatewayHighLevelClient apiGatewayHighLevelClient,
-                                       CloudFrontHighLevelClient cloudFrontHighLevelClient,
-                                       S3Client s3ClientOutput,
-                                       S3Client s3ClientInput) {
-        this.apiGatewayHighLevelClient = apiGatewayHighLevelClient;
+    protected GenerateDocsHandler(Supplier<ApiGatewayAsyncClient> apiGatewayAsyncClientSupplier,
+                               CloudFrontHighLevelClient cloudFrontHighLevelClient,
+                               S3Client s3ClientOutput,
+                               S3Client s3ClientInput) {
+        this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(apiGatewayAsyncClientSupplier);
         this.cloudFrontHighLevelClient = cloudFrontHighLevelClient;
         this.s3ClientOutput = s3ClientOutput;
         this.s3ClientInput = s3ClientInput;
@@ -101,7 +79,6 @@ public abstract class GenerateDocsHandler implements RequestStreamHandler {
         var s3Driver = new S3Driver(s3ClientOutput, bucket);
         attempt(() -> s3Driver.insertFile(UnixPath.of(filename), content)).orElseThrow();
     }
-
 
     ApiData fetchProdApiData(RestApi restApi) {
         return apiGatewayHighLevelClient.fetchApiDataForStage(restApi, EXPORT_STAGE_PROD, openApiParser);

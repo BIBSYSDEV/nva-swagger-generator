@@ -12,14 +12,12 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import no.sikt.generator.ApiData;
 import no.sikt.generator.ApiGatewayHighLevelClient;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.apigateway.model.GetRestApisResponse;
 import software.amazon.awssdk.services.apigateway.model.RestApi;
@@ -30,26 +28,8 @@ public class PublishDocumentationsHandler implements RequestStreamHandler {
     private final OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
 
     @JacocoGenerated
-    public PublishDocumentationsHandler() {
-        var retryPolicy = RetryPolicy.builder()
-                               .backoffStrategy(BackoffStrategy.defaultThrottlingStrategy())
-                               .throttlingBackoffStrategy(BackoffStrategy.defaultThrottlingStrategy())
-                               .numRetries(10)
-                               .build();
-
-        var clientOverrideConfiguration = ClientOverrideConfiguration.builder()
-                         .retryPolicy(retryPolicy)
-                         .build();
-
-        try (var apiGatewayClient =
-                 ApiGatewayAsyncClient.builder().overrideConfiguration(clientOverrideConfiguration).build()) {
-
-            this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(apiGatewayClient);
-        }
-    }
-
-    public PublishDocumentationsHandler(ApiGatewayHighLevelClient apiGatewayHighLevelClient) {
-        this.apiGatewayHighLevelClient = apiGatewayHighLevelClient;
+    public PublishDocumentationsHandler(Supplier<ApiGatewayAsyncClient> clientSupplier) {
+        this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(clientSupplier);
     }
 
     @Override

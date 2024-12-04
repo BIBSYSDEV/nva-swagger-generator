@@ -3,7 +3,6 @@ package no.sikt.generator.handlers;
 import static no.sikt.generator.ApplicationConstants.INTERNAL_BUCKET_NAME;
 import static no.sikt.generator.Utils.readResource;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -14,7 +13,9 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.parameters.Parameter.StyleEnum;
@@ -25,8 +26,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import no.sikt.generator.ApiGatewayHighLevelClient;
 import no.sikt.generator.CloudFrontHighLevelClient;
 import no.sikt.generator.OpenApiUtils;
 import no.unit.nva.s3.S3Driver;
@@ -40,7 +41,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
-import org.mockito.Mockito;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
 import software.amazon.awssdk.services.cloudfront.model.CreateInvalidationRequest;
@@ -48,24 +48,31 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 class GenerateInternalDocsHandlerTest {
 
-    private final ApiGatewayAsyncClient apiGatewayAsyncClient = Mockito.mock(ApiGatewayAsyncClient.class);
-    private final CloudFrontClient cloudFrontClient = Mockito.mock(CloudFrontClient.class);
-    private ApiGatewayHighLevelClient apiGatewayHighLevelClient;
     private CloudFrontHighLevelClient cloudFrontHighLevelClient;
     private GenerateInternalDocsHandler handler;
     private S3Driver outputS3Driver;
-    private S3Driver inputS3Driver;
     private OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
     private S3Client inputS3client;
+    private ApiGatewayAsyncClient apiGatewayAsyncClient;
+    private CloudFrontClient cloudFrontClient;
 
+    @SuppressWarnings("unchecked")
     @BeforeEach
     public void setup() {
+        Supplier<ApiGatewayAsyncClient> mockApiGatewaySupplier = mock(Supplier.class);
+        apiGatewayAsyncClient = mock(ApiGatewayAsyncClient.class);
+        when(mockApiGatewaySupplier.get()).thenReturn(apiGatewayAsyncClient);
+
         var outputS3client = new FakeS3Client();
         this.inputS3client = new FakeS3Client();
         this.outputS3Driver = new S3Driver(outputS3client, INTERNAL_BUCKET_NAME);
-        this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(apiGatewayAsyncClient);
-        this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(cloudFrontClient);
-        handler = new GenerateInternalDocsHandler(apiGatewayHighLevelClient, cloudFrontHighLevelClient,
+
+        Supplier<CloudFrontClient> mockCloudFrontSupplier = mock(Supplier.class);
+        cloudFrontClient = mock(CloudFrontClient.class);
+        when(mockCloudFrontSupplier.get()).thenReturn(cloudFrontClient);
+
+        this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(mockCloudFrontSupplier);
+        handler = new GenerateInternalDocsHandler(mockApiGatewaySupplier, cloudFrontHighLevelClient,
                                                   outputS3client, inputS3client);
     }
 
@@ -110,12 +117,12 @@ class GenerateInternalDocsHandlerTest {
     }
 
     @Test
-    public void shouldHaveConstructorWithNoArgument() {
+    void shouldHaveConstructorWithNoArgument() {
         Executable action = () -> new GenerateInternalDocsHandler();
     }
 
     @Test
-    public void shouldLogAPIsWhenInvoked() {
+    void shouldLogAPIsWhenInvoked() {
         setupSimpleMocks();
         TestAppender logger = LogUtils.getTestingAppenderForRootLogger();
         handler.handleRequest(null, null, null);
@@ -123,7 +130,7 @@ class GenerateInternalDocsHandlerTest {
     }
 
     @Test
-    public void shouldLogSchemasWithNumbersInName() {
+    void shouldLogSchemasWithNumbersInName() {
         setupSimpleMocks();
         TestAppender logger = LogUtils.getTestingAppenderForRootLogger();
         handler.handleRequest(null, null, null);
@@ -131,7 +138,7 @@ class GenerateInternalDocsHandlerTest {
     }
 
     @Test
-    public void shouldWriteFilesToS3() {
+    void shouldWriteFilesToS3() {
         setupSimpleMocks();
         handler.handleRequest(null, null, null);
 
@@ -144,7 +151,7 @@ class GenerateInternalDocsHandlerTest {
     }
 
     @Test
-    public void shouldRemoveOptionOperations() {
+    void shouldRemoveOptionOperations() {
         var fileNames = List.of(
             "api-with-options.yaml"
         );
@@ -160,7 +167,7 @@ class GenerateInternalDocsHandlerTest {
     }
 
     @Test
-    public void shouldRemoveExternalTags() {
+    void shouldRemoveExternalTags() {
         var fileNames = List.of(
             "api-with-external.yaml"
         );
@@ -175,7 +182,7 @@ class GenerateInternalDocsHandlerTest {
     }
 
     @Test
-    public void shouldMergeFiles() {
+    void shouldMergeFiles() {
         setupSimpleMocks();
         handler.handleRequest(null, null, null);
 
@@ -195,7 +202,7 @@ class GenerateInternalDocsHandlerTest {
     }
 
     @Test
-    public void shouldHandleRealNvaFiles() {
+    void shouldHandleRealNvaFiles() {
         setupNvaMocks();
         handler.handleRequest(null, null, null);
 
@@ -219,7 +226,7 @@ class GenerateInternalDocsHandlerTest {
     }
 
     @Test
-    public void shouldExcludeFilesWhenEnviormentVariableIsSet() {
+    void shouldExcludeFilesWhenEnviormentVariableIsSet() {
         setupTestCasesFromFiles(null, List.of("api-exluded.yaml"));
 
         handler.handleRequest(null, null, null);
@@ -231,7 +238,7 @@ class GenerateInternalDocsHandlerTest {
     }
 
     @Test
-    public void shouldRenameRefsWhenTheyHaveSameNameAndAreNested() {
+    void shouldRenameRefsWhenTheyHaveSameNameAndAreNested() {
         setupTestCasesFromFiles("same-schema-name", List.of("api-a.yaml", "api-b.yaml"));
 
         handler.handleRequest(null, null, null);
@@ -246,14 +253,14 @@ class GenerateInternalDocsHandlerTest {
     }
 
     @Test
-    public void shouldNotThrowWhenApiSpecsMissServer() {
+    void shouldNotThrowWhenApiSpecsMissServer() {
         setupTestCasesFromFiles("server", List.of("api-without-server.yaml", "api-without-server.yaml"));
 
         handler.handleRequest(null, null, null);
     }
 
     @Test
-    public void shouldOnlyIncludeSpecsForApiWithSingleDashInServerBasePathIfMultipleApisWithSameNamePresent() {
+    void shouldOnlyIncludeSpecsForApiWithSingleDashInServerBasePathIfMultipleApisWithSameNamePresent() {
         setupTestCasesFromFiles("server", List.of("api-with-basepath-with-1-dashes.yaml",
                                                   "api-with-basepath-with-2-dashes.yaml"));
 
@@ -264,19 +271,19 @@ class GenerateInternalDocsHandlerTest {
     }
 
     @Test
-    public void shouldSortApisAlphabetically() {
+    void shouldSortApisAlphabetically() {
         setupNvaMocks();
 
         handler.handleRequest(null, null, null);
         var openApi = readGeneratedOpenApi();
-        var tags = openApi.getTags().stream().map(Tag::getName).collect(Collectors.toList());
+        var tags = openApi.getTags().stream().map(Tag::getName).toList();
         ArrayList<String> sortedTags = new ArrayList<>(tags);
         Collections.sort(sortedTags);
         assertThat(tags, is(equalTo(sortedTags)));
     }
 
     @Test
-    public void shouldOverrideStyleIfSetInGithubOpenapi() {
+    void shouldOverrideStyleIfSetInGithubOpenapi() {
         setupTestCasesFromFilesWithGithubOpenapi("nva/publication-api", List.of(Pair.of("apigateway.yaml", Optional.of(
             "github"
             + ".yaml"))));
@@ -292,7 +299,7 @@ class GenerateInternalDocsHandlerTest {
     }
 
     @Test
-    public void shouldIncludeParameteredSchemas() {
+    void shouldIncludeParameteredSchemas() {
         setupTestCasesFromFilesWithGithubOpenapi("parameters", List.of(Pair.of("api.yaml", Optional.of(
             "github"
             + ".yaml"))));
@@ -305,7 +312,7 @@ class GenerateInternalDocsHandlerTest {
     }
 
     @Test
-    public void shouldSortSchemasAlphabetically() {
+    void shouldSortSchemasAlphabetically() {
         setupNvaMocks();
 
         handler.handleRequest(null, null, null);
@@ -317,7 +324,7 @@ class GenerateInternalDocsHandlerTest {
     }
 
     @Test
-    public void shouldParseFile() {
+    void shouldParseFile() {
         setupNvaMocks();
 
         handler.handleRequest(null, null, null);
@@ -327,7 +334,7 @@ class GenerateInternalDocsHandlerTest {
     }
 
     @Test
-    public void shouldCallCloudFrontInvalidation() {
+    void shouldCallCloudFrontInvalidation() {
         setupSingleFile();
 
         handler.handleRequest(null, null, null);

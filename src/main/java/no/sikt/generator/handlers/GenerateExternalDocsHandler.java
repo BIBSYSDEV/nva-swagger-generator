@@ -11,10 +11,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import no.sikt.generator.ApiData;
-import no.sikt.generator.ApiGatewayHighLevelClient;
 import no.sikt.generator.CloudFrontHighLevelClient;
 import no.sikt.generator.OpenApiCombiner;
 import no.sikt.generator.OpenApiExtractor;
@@ -23,6 +23,7 @@ import nva.commons.core.JacocoGenerated;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.apigateway.model.GetRestApisResponse;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.S3Object;
@@ -36,36 +37,37 @@ public class GenerateExternalDocsHandler extends GenerateDocsHandler {
         super();
     }
 
-    public GenerateExternalDocsHandler(ApiGatewayHighLevelClient apiGatewayHighLevelClient,
+    public GenerateExternalDocsHandler(Supplier<ApiGatewayAsyncClient> apiGatewayAsyncClientSupplier,
                                        CloudFrontHighLevelClient cloudFrontHighLevelClient,
                                        S3Client s3ClientOutput,
                                        S3Client s3ClientInput) {
-        super(apiGatewayHighLevelClient, cloudFrontHighLevelClient, s3ClientOutput, s3ClientInput);
+        super(apiGatewayAsyncClientSupplier, cloudFrontHighLevelClient, s3ClientOutput, s3ClientInput);
     }
 
     @Override
     public void handleRequest(InputStream input, OutputStream output, Context context) {
-        var apis = apiGatewayHighLevelClient.getRestApis();
-        logger.info(apis.toString());
+            var apis = apiGatewayHighLevelClient.getRestApis();
 
-        var templateOpenapiDocs = getTemplateOpenApiDocs();
+            logger.info(apis.toString());
 
-        var template = openApiParser
-                           .readContents(Utils.readResource("external.yaml"))
-                           .getOpenAPI();
+            var templateOpenapiDocs = getTemplateOpenApiDocs();
 
-
-        var swaggers = validateAndFilterApis(apis, templateOpenapiDocs)
-            .map(ApiData::getOpenapi)
-            .collect(Collectors.toList());
+            var template = openApiParser
+                               .readContents(Utils.readResource("external.yaml"))
+                               .getOpenAPI();
 
 
-        var onlyExternals = new OpenApiExtractor(swaggers).extract();
-        var combined = new OpenApiCombiner(template, onlyExternals).combine();
+            var swaggers = validateAndFilterApis(apis, templateOpenapiDocs)
+                .map(ApiData::getOpenapi)
+                .collect(Collectors.toList());
 
-        String combinedYaml = attempt(() -> Yaml.pretty().writeValueAsString(combined)).orElseThrow();
-        writeToS3(EXTERNAL_BUCKET_NAME, "docs/openapi.yaml", combinedYaml);
-        cloudFrontHighLevelClient.invalidateAll(EXTERNAL_CLOUD_FRONT_DISTRIBUTION);
+
+            var onlyExternals = new OpenApiExtractor(swaggers).extract();
+            var combined = new OpenApiCombiner(template, onlyExternals).combine();
+
+            String combinedYaml = attempt(() -> Yaml.pretty().writeValueAsString(combined)).orElseThrow();
+            writeToS3(EXTERNAL_BUCKET_NAME, "docs/openapi.yaml", combinedYaml);
+            cloudFrontHighLevelClient.invalidateAll(EXTERNAL_CLOUD_FRONT_DISTRIBUTION);
     }
 
     private Stream<ApiData> validateAndFilterApis(GetRestApisResponse apis,
