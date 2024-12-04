@@ -7,6 +7,9 @@ import static nva.commons.core.attempt.Try.attempt;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
@@ -25,14 +28,15 @@ import software.amazon.awssdk.services.apigateway.model.Stage;
 import software.amazon.awssdk.services.apigateway.model.UpdateStageRequest;
 
 public class ApiGatewayHighLevelClient {
+
     private static final Logger logger = LoggerFactory.getLogger(ApiGatewayHighLevelClient.class);
     public static final String DOCUMENTATION_VERSION_PATH = "/documentationVersion";
     public static final int MAX_API_LIMIT = 500;
     public static final int LIMIT = 500;
-    private final ApiGatewayAsyncClient apiGatewayClient;
+    private final Supplier<ApiGatewayAsyncClient> clientSupplier;
 
-    public ApiGatewayHighLevelClient(ApiGatewayAsyncClient apiGatewayClient) {
-        this.apiGatewayClient = apiGatewayClient;
+    public ApiGatewayHighLevelClient(Supplier<ApiGatewayAsyncClient> clientSupplier) {
+        this.clientSupplier = clientSupplier;
     }
 
     public String fetchApiExport(String apiId, String stage, String contentType, String exportType) {
@@ -43,15 +47,14 @@ public class ApiGatewayHighLevelClient {
                                    .exportType(exportType)
                                    .build();
 
-        var export = attempt(() -> apiGatewayClient.getExport(getExportRequest).get())
-                         .orElseThrow();
+        var export = execute(client -> client.getExport(getExportRequest));
 
         return export.body().asString(StandardCharsets.UTF_8);
     }
 
     public List<Stage> fetchStages(String apiId) {
         var request = GetStagesRequest.builder().restApiId(apiId).build();
-        var stages = attempt(() -> apiGatewayClient.getStages(request).get()).orElseThrow();
+        var stages = execute(client -> client.getStages(request));
         return stages.item();
     }
 
@@ -59,7 +62,8 @@ public class ApiGatewayHighLevelClient {
         var request = UpdateStageRequest.builder().restApiId(apiId).stageName(stage).patchOperations(
             PatchOperation.builder().op(Op.REPLACE).path(DOCUMENTATION_VERSION_PATH).value(docVersion).build()
         ).build();
-        attempt(() -> apiGatewayClient.updateStage(request).get()).orElseThrow();
+
+        execute(client -> client.updateStage(request));
     }
 
     public ApiData fetchApiDataForStage(RestApi api, String stageName, OpenAPIV3Parser openApiParser) {
@@ -87,15 +91,20 @@ public class ApiGatewayHighLevelClient {
         var request = GetRestApisRequest.builder()
                           .limit(MAX_API_LIMIT)
                           .build();
-        return attempt(() -> apiGatewayClient.getRestApis(request).get()).orElseThrow();
+
+        return execute(client -> client.getRestApis(request));
+    }
+
+    private <T> T execute(Function<ApiGatewayAsyncClient, CompletableFuture<T>> call) {
+        try (var apiGatewayClient = clientSupplier.get()) {
+            return attempt(() -> call.apply(apiGatewayClient).get()).orElseThrow();
+        }
     }
 
     public GetDocumentationVersionsResponse fetchVersions(String id) {
         var listRequest = GetDocumentationVersionsRequest.builder().restApiId(id).limit(LIMIT).build();
 
-        var existingVersions
-            = attempt(() -> apiGatewayClient.getDocumentationVersions(listRequest).get()).orElseThrow();
-        return existingVersions;
+        return execute(client -> client.getDocumentationVersions(listRequest));
     }
 
     public int fetchDocumentationPartsHash(String apiId) {
@@ -105,7 +114,7 @@ public class ApiGatewayHighLevelClient {
                                                  .limit(LIMIT)
                                                  .build();
         var documentParts =
-            attempt(() -> apiGatewayClient.getDocumentationParts(getDocumentationVersionRequest).get()).orElseThrow();
+            execute(client -> client.getDocumentationParts(getDocumentationVersionRequest));
 
         return documentParts.items().hashCode();
     }
@@ -116,7 +125,8 @@ public class ApiGatewayHighLevelClient {
                                 .stageName(stage)
                                 .documentationVersion(version)
                                 .build();
-        attempt(() -> apiGatewayClient.createDocumentationVersion(createRequest).get()).orElseThrow();
+
+        execute(client -> client.createDocumentationVersion(createRequest));
     }
 }
 

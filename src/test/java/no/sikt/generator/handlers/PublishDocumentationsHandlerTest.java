@@ -2,12 +2,14 @@ package no.sikt.generator.handlers;
 
 import static no.sikt.generator.handlers.TestUtils.setupTestcasesFromFiles;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import no.sikt.generator.ApiGatewayHighLevelClient;
 import no.sikt.generator.ApplicationConstants;
 import no.unit.nva.stubs.FakeS3Client;
@@ -28,22 +30,26 @@ import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
 
 class PublishDocumentationsHandlerTest {
 
-    private final ApiGatewayAsyncClient apiGatewayAsyncClient = Mockito.mock(ApiGatewayAsyncClient.class);
     private final CloudFrontClient cloudFrontClient = Mockito.mock(CloudFrontClient.class);
     private PublishDocumentationsHandler handler;
     private ApiGatewayHighLevelClient apiGatewayHighLevelClient;
+    private ApiGatewayAsyncClient apiGatewayAsyncClient;
 
+    @SuppressWarnings("unchecked")
     @BeforeEach
     public void setup() {
-        this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(apiGatewayAsyncClient);
+        Supplier<ApiGatewayAsyncClient> mockSupplier = mock(Supplier.class);
+        apiGatewayAsyncClient = mock(ApiGatewayAsyncClient.class);
+        when(mockSupplier.get()).thenReturn(apiGatewayAsyncClient);
+        this.apiGatewayHighLevelClient = new ApiGatewayHighLevelClient(mockSupplier);
         setupTestcasesFromFiles(new FakeS3Client(), apiGatewayAsyncClient, cloudFrontClient, null, List.of(
             ImmutablePair.of("api-a.yaml", Optional.empty()), ImmutablePair.of("api-a.yaml", Optional.empty()))
         );
-        handler = new PublishDocumentationsHandler(apiGatewayHighLevelClient);
+        handler = new PublishDocumentationsHandler(mockSupplier);
     }
 
     @Test
-    public void shouldNotPerformCreateOrUpdateStageWhenDocVersionExistsAndItsAssociatedWithProdStage() {
+    void shouldNotPerformCreateOrUpdateStageWhenDocVersionExistsAndItsAssociatedWithProdStage() {
         var expectedHash = apiGatewayHighLevelClient.fetchDocumentationPartsHash("");
         var expectedVersion = ApplicationConstants.VERSION_NAME + "-" + expectedHash;
 
@@ -70,7 +76,7 @@ class PublishDocumentationsHandlerTest {
     }
 
     @Test
-    public void shouldPerformCreateWhenDocVersionDoesNotExists() {
+    void shouldPerformCreateWhenDocVersionDoesNotExists() {
         var listDocumentationVersionsResponse = GetDocumentationVersionsResponse.builder().build();
 
         when(apiGatewayAsyncClient.getDocumentationVersions(any(GetDocumentationVersionsRequest.class)))
@@ -82,7 +88,7 @@ class PublishDocumentationsHandlerTest {
     }
 
     @Test
-    public void shouldPerformUpdateStageWhenDocVersionExistsButItsNotAssociated() {
+    void shouldPerformUpdateStageWhenDocVersionExistsButItsNotAssociated() {
         var expectedHash = apiGatewayHighLevelClient.fetchDocumentationPartsHash("");
         var listDocumentationVersionsResponse = GetDocumentationVersionsResponse.builder().items(
             DocumentationVersion.builder().version(ApplicationConstants.VERSION_NAME + "-" + expectedHash).build()

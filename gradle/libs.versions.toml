@@ -14,7 +14,7 @@ junit           = { strictly = '5.11.0' }
 log4j           = { strictly = '2.24.0' }
 mockito         = { strictly = '5.13.0' }
 nvaCommons      = { strictly = '1.40.20' }
-nebula          = { strictly = '16.23.0' }
+nebula          = { strictly = '20.3.0' }
 slf4j           = { strictly = '2.0.16' }
 zalandoProblem  = { strictly = '0.27.1' }
 swagger-parser  = { strictly = '2.1.20' }

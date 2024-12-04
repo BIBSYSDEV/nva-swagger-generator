@@ -1,6 +1,6 @@
 package no.sikt.generator;
 
-import org.jetbrains.annotations.NotNull;
+import javax.validation.constraints.NotNull;
 import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
 import software.amazon.awssdk.services.cloudfront.model.CreateInvalidationRequest;
 import software.amazon.awssdk.services.cloudfront.model.InvalidationBatch;

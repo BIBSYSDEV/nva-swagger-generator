@@ -35,8 +35,8 @@ wrapper {
 
 dependencies {
     api 'org.apache.commons:commons-math3:3.6.1'
-    api 'org.apache.commons:commons-text:1.9'
-    api 'org.apache.commons:commons-compress:1.22'
+    api 'org.apache.commons:commons-text:1.12.0'
+    api 'org.apache.commons:commons-compress:1.27.1'
 
     implementation libs.aws.java.sdk.core
 
@@ -79,6 +79,7 @@ test {
     environment "INTERNAL_CLOUD_FRONT_DISTRIBUTION", "some_id1"
     environment "EXTERNAL_CLOUD_FRONT_DISTRIBUTION", "some_id2"
     environment "OPEN_API_DOCS_BUCKET_NAME", "docs-bucket"
+    environment "AWS_REGION", "eu-west-1"
 
     useJUnitPlatform {}
     failFast = false
