@@ -14,6 +14,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import no.sikt.generator.ApiData;
+import no.sikt.generator.ApiGatewayAsyncClientSupplier;
 import no.sikt.generator.ApiGatewayHighLevelClient;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
@@ -26,6 +27,11 @@ public class PublishDocumentationsHandler implements RequestStreamHandler {
     private static final Logger logger = LoggerFactory.getLogger(PublishDocumentationsHandler.class);
     private final ApiGatewayHighLevelClient apiGatewayHighLevelClient;
     private final OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
+
+    @JacocoGenerated
+    public PublishDocumentationsHandler() {
+        this(ApiGatewayAsyncClientSupplier.getSupplier());
+    }
 
     @JacocoGenerated
     public PublishDocumentationsHandler(Supplier<ApiGatewayAsyncClient> clientSupplier) {
