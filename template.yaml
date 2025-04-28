@@ -22,6 +22,9 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Description: The bucket for openapi docs
     Default: /NVA/OpenApiDocsBucket
+  CognitoAuthorizerUrls:
+    Type: AWS::SSM::Parameter::Value<CommaDelimitedList>
+    Default: CognitoAuthorizerUrls
 
 Globals:
   Function:
@@ -30,6 +33,8 @@ Globals:
     Environment:
       Variables:
         DOMAIN: !Ref CustomDomain
+        API_HOST: !Ref CustomDomain
+        COGNITO_AUTHORIZER_URLS: !Join [",", !Ref CognitoAuthorizerUrls]
         EXCLUDED_APIS: "NVA Courses API,DLR LaunchCanvas API,NVA Alma SRU Proxy,NVA Ontology Service"
         EXTERNAL_CLOUD_FRONT_DISTRIBUTION: !Ref CustomDomainCloudfrontDistribution
         INTERNAL_CLOUD_FRONT_DISTRIBUTION: !Ref InternalCloudfrontDistribution
