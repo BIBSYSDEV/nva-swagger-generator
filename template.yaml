@@ -25,6 +25,10 @@ Parameters:
   CognitoAuthorizerUrls:
     Type: AWS::SSM::Parameter::Value<CommaDelimitedList>
     Default: CognitoAuthorizerUrls
+  ApiDomain:
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Description: The Api domain
+    Default: /NVA/ApiDomain
 
 Globals:
   Function:
@@ -33,7 +37,7 @@ Globals:
     Environment:
       Variables:
         DOMAIN: !Ref CustomDomain
-        API_HOST: !Ref CustomDomain
+        API_HOST: !Ref ApiDomain
         COGNITO_AUTHORIZER_URLS: !Join [",", !Ref CognitoAuthorizerUrls]
         EXCLUDED_APIS: "NVA Courses API,DLR LaunchCanvas API,NVA Alma SRU Proxy,NVA Ontology Service"
         EXTERNAL_CLOUD_FRONT_DISTRIBUTION: !Ref CustomDomainCloudfrontDistribution
