@@ -13,7 +13,7 @@ jsonld          = { strictly = '0.13.3' }
 junit           = { strictly = '5.12.0' }
 log4j           = { strictly = '2.24.3' }
 mockito         = { strictly = '5.13.0' }
-nvaCommons      = { strictly = '2.2.4' }
+nvaCommons      = { strictly = '2.2.9' }
 nebula          = { strictly = '20.3.0' }
 slf4j           = { strictly = '2.0.17' }
 zalandoProblem  = { strictly = '0.27.1' }
