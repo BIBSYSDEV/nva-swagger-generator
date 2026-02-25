@@ -171,6 +171,19 @@ class GenerateExternalDocsHandlerTest {
     }
 
     @Test
+    void shouldOverrideExistingSchemasFromGithub() {
+        setupTestCasesFromFilesWithGithubOpenapi("schema-override", List.of(Pair.of("api.yaml", Optional.of(
+            "github.yaml"))));
+
+        handler.handleRequest(null, null, null);
+        var openApi = readGeneratedOpenApi();
+
+        var resourceResponse = openApi.getComponents().getSchemas().get("ResourceResponse");
+        var idProperty = (io.swagger.v3.oas.models.media.Schema<?>) resourceResponse.getProperties().get("id");
+        assertThat(idProperty.getExample(), is(equalTo("12345")));
+    }
+
+    @Test
     void shouldIncludeExternalSchemaWhenItsDirectlyReferencedFromResponse() {
         var openapi = generateOpenApiFromExternalSpecs();
 
