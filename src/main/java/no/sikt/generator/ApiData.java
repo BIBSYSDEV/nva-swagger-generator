@@ -113,7 +113,7 @@ public class ApiData {
                 && nonNull(openApiGithub.get().getComponents().getSchemas())
             ) {
                 openApiGithub.get().getComponents().getSchemas().forEach((key,value) -> {
-                    logger.info("Adding schema {} from github", key);
+                    logger.info("Setting schema {} from GitHub", key);
                     this.openapiApiGateway.getComponents().getSchemas().put(key, value);
                 });
             }
