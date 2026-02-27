@@ -9,6 +9,17 @@ paths:
       tags:
         - external
       summary: Get resource
+      parameters:
+        - name: "id"
+          in: "query"
+          example: "12345"
+          schema:
+            type: "string"
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/some-function
+        httpMethod: POST
+        type: AWS_PROXY
       responses:
         "200":
           description: "OK"
@@ -16,6 +27,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ResourceResponse"
+              examples:
+                sampleResource:
+                  summary: "A sample resource"
+                  value:
+                    id: "12345"
+                    name: "Test Resource"
 components:
   schemas:
     ResourceResponse:

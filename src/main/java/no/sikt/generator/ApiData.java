@@ -95,31 +95,62 @@ public class ApiData {
     }
 
     public ApiData overridePropsFromGithub() {
-        var openApiGithub = getOpenapiApiGithub();
-        if (openApiGithub.isPresent()) {
-            this.openapiApiGateway.getPaths().forEach((pathKey, pathItem) -> {
-                pathItem.readOperationsMap().forEach((httpMethod, operation) -> {
-                    if (nonNull(operation.getParameters())) {
-                        operation.getParameters().forEach(parameter -> {
-                            var operationInGithub =
-                                Optional.ofNullable(openApiGithub.get().getPaths().get(pathKey).readOperationsMap()
-                                                                             .get(httpMethod));
-                            operationInGithub.ifPresent(value -> operation.setParameters(value.getParameters()));
-                        });
-                    }
-                });
-            });
-            if (nonNull(openApiGithub.get().getComponents())
-                && nonNull(openApiGithub.get().getComponents().getSchemas())
-            ) {
-                openApiGithub.get().getComponents().getSchemas().forEach((key,value) -> {
-                    logger.info("Setting schema {} from GitHub", key);
-                    this.openapiApiGateway.getComponents().getSchemas().put(key, value);
-                });
-            }
-
-        }
+        getOpenapiApiGithub().ifPresent(this::applyGithubOverrides);
         return this;
+    }
+
+    private void applyGithubOverrides(OpenAPI github) {
+        overridePathsFrom(github);
+        overrideComponentsFrom(github);
+    }
+
+    private void overridePathsFrom(OpenAPI github) {
+        if (isNull(github.getPaths())) {
+            return;
+        }
+        this.openapiApiGateway.setPaths(github.getPaths());
+        stripAmazonExtensions();
+    }
+
+    private void overrideComponentsFrom(OpenAPI github) {
+        if (isNull(github.getComponents())) {
+            return;
+        }
+        overrideSchemasFrom(github.getComponents());
+        overrideParametersFrom(github.getComponents());
+    }
+
+    private void overrideSchemasFrom(Components githubComponents) {
+        if (isNull(githubComponents.getSchemas())) {
+            return;
+        }
+        githubComponents.getSchemas().forEach((key, value) -> {
+            logger.info("Setting schema {} from GitHub", key);
+            this.openapiApiGateway.getComponents().getSchemas().put(key, value);
+        });
+    }
+
+    private void overrideParametersFrom(Components githubComponents) {
+        if (isNull(githubComponents.getParameters())) {
+            return;
+        }
+        githubComponents.getParameters().forEach((key, value) ->
+            this.openapiApiGateway.getComponents().addParameters(key, value)
+        );
+    }
+
+    private void stripAmazonExtensions() {
+        if (isNull(this.openapiApiGateway.getPaths())) {
+            return;
+        }
+        this.openapiApiGateway.getPaths().values().forEach(pathItem ->
+            pathItem.readOperations().forEach(operation -> {
+                var extensions = operation.getExtensions();
+                if (nonNull(extensions)) {
+                    extensions.keySet().removeIf(key -> key.startsWith("x-amazon-apigateway-"));
+                }
+            })
+        );
     }
 
     @JacocoGenerated

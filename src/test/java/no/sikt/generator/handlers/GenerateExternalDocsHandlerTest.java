@@ -181,6 +181,35 @@ class GenerateExternalDocsHandlerTest {
         var resourceResponse = openApi.getComponents().getSchemas().get("ResourceResponse");
         var idProperty = (io.swagger.v3.oas.models.media.Schema<?>) resourceResponse.getProperties().get("id");
         assertThat(idProperty.getExample(), is(equalTo("12345")));
+
+        var getOperation = openApi.getPaths().get("/schema-override/resource").getGet();
+
+        var parameter = getOperation.getParameters().stream()
+            .filter(param -> param.getName().equals("id")).findFirst().get();
+        assertThat(parameter.getExample(), is(equalTo("12345")));
+
+        var responseContent = getOperation.getResponses().get("200").getContent().get("application/json");
+        assertThat(responseContent.getExamples(), is(notNullValue()));
+        assertThat(responseContent.getExamples().containsKey("sampleResource"), is(true));
+    }
+
+    @Test
+    void shouldStripAmazonApiGatewayExtensionsFromGithubPaths() {
+        setupTestCasesFromFilesWithGithubOpenapi("schema-override", List.of(Pair.of("api.yaml", Optional.of(
+            "github.yaml"))));
+
+        handler.handleRequest(null, null, null);
+        var openApi = readGeneratedOpenApi();
+
+        openApi.getPaths().values().forEach(pathItem ->
+            pathItem.readOperations().forEach(operation ->
+                Optional.ofNullable(operation.getExtensions()).ifPresent(extensions ->
+                    extensions.keySet().forEach(key ->
+                        assertThat(key, not(containsString("x-amazon-apigateway-")))
+                    )
+                )
+            )
+        );
     }
 
     @Test
