@@ -1,0 +1,20 @@
+name: Build
+permissions:
+  contents: write # To submit dependency graph
+  checks: write # To publish test results
+  pull-requests: write # To comment on PRs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  build:
+    uses: BIBSYSDEV/nva-github-workflows/.github/workflows/java.yml@v2
+    with:
+      code_coverage_report_path: "build/reports/jacoco/test/jacocoTestReport.xml"
+    secrets:
+      codacy_token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+
