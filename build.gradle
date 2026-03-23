@@ -111,6 +111,12 @@ checkstyle {
 }
 
 
+jacocoTestReport {
+    reports {
+        xml.required = true
+    }
+}
+
 check.dependsOn jacocoTestCoverageVerification
 jacocoTestCoverageVerification.dependsOn(jacocoTestReport)
 
