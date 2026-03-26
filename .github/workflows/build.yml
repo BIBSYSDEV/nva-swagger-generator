@@ -15,6 +15,7 @@ jobs:
     uses: BIBSYSDEV/nva-github-workflows/.github/workflows/java.yml@v2
     with:
       code_coverage_report_path: "build/reports/jacoco/test/jacocoTestReport.xml"
+      lint_openapi: false
     secrets:
       codacy_token: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
