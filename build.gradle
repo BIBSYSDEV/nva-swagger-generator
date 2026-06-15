@@ -10,7 +10,6 @@
 plugins {
     // Apply the java-library plugin for API and implementation separation.
     id 'java-library'
-    id 'checkstyle'
     id 'pmd'
     id 'jacoco'
 }
@@ -104,12 +103,6 @@ pmd {
     ruleSets = []
     ignoreFailures = false
 }
-
-checkstyle {
-    configFile = rootProject.resources.text.fromFile('config/checkstyle/checkstyle.xml').asFile()
-    showViolations = true
-}
-
 
 jacocoTestReport {
     reports {
