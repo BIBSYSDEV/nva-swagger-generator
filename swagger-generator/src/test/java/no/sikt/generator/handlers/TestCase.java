@@ -2,12 +2,13 @@ package no.sikt.generator.handlers;
 
 import java.util.Optional;
 
+@SuppressWarnings("PMD.TestClassWithoutTestCases")
 public class TestCase {
 
-  private String id;
-  private String name;
-  private String contentApiGateway;
-  private Optional<String> contentGithub;
+  private final String id;
+  private final String name;
+  private final String contentApiGateway;
+  private final Optional<String> contentGithub;
 
   public TestCase(
       String id, String name, String contentApiGateway, Optional<String> contentGithub) {

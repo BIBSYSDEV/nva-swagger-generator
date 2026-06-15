@@ -36,7 +36,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 @JacocoGenerated
 public class InstallSwaggerUiHandler implements RequestStreamHandler {
 
-  private static final Logger logger = LoggerFactory.getLogger(InstallSwaggerUiHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(InstallSwaggerUiHandler.class);
   public static final String SWAGGER_INITIALIZER_JS = "swagger-initializer.js";
   private final S3Client s3Client;
   ObjectMapper mapper = new ObjectMapper();
@@ -92,7 +92,7 @@ public class InstallSwaggerUiHandler implements RequestStreamHandler {
   @Override
   public void handleRequest(InputStream input, OutputStream output, Context context) {
     var downloadUri = fetchDownloadUri();
-    logger.info("Downloading from {}", downloadUri);
+    LOGGER.info("Downloading from {}", downloadUri);
 
     var downloadRequest = HttpRequest.newBuilder().uri(downloadUri).GET().build();
 
@@ -122,7 +122,7 @@ public class InstallSwaggerUiHandler implements RequestStreamHandler {
         if (filePath.contains("/dist/")
             && !zip.isDirectory()
             && !filePath.endsWith(SWAGGER_INITIALIZER_JS)) {
-          logger.info("Copying file {}", filePath);
+          LOGGER.info("Copying file {}", filePath);
 
           var content = readFromZipInputStream(zipStream);
           var fileName = filePath.substring(filePath.lastIndexOf('/') + 1);

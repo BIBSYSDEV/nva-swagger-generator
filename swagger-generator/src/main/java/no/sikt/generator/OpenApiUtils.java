@@ -240,8 +240,6 @@ public final class OpenApiUtils {
             .map(Schema::get$ref)
             .collect(toSet());
 
-    var combined = Stream.of(reffed, nestedSchemas).flatMap(Set::stream).collect(toSet());
-
-    return combined;
+    return Stream.of(reffed, nestedSchemas).flatMap(Set::stream).collect(toSet());
   }
 }

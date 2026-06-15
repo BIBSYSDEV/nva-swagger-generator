@@ -43,8 +43,3 @@ test {
     environment "OPEN_API_DOCS_BUCKET_NAME", "docs-bucket"
     environment "AWS_REGION", "eu-west-1"
 }
-
-
-pmd {
-    toolVersion = '7.11.0'
-}

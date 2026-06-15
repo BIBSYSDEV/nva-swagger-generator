@@ -17,7 +17,6 @@ import no.unit.nva.stubs.FakeS3Client;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.apigateway.model.CreateDocumentationVersionRequest;
 import software.amazon.awssdk.services.apigateway.model.DocumentationVersion;
@@ -31,14 +30,14 @@ import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
 
 class PublishDocumentationsHandlerTest {
 
-  private final CloudFrontClient cloudFrontClient = Mockito.mock(CloudFrontClient.class);
+  private final CloudFrontClient cloudFrontClient = mock(CloudFrontClient.class);
   private PublishDocumentationsHandler handler;
   private ApiGatewayHighLevelClient apiGatewayHighLevelClient;
   private ApiGatewayAsyncClient apiGatewayAsyncClient;
 
   @SuppressWarnings("unchecked")
   @BeforeEach
-  public void setup() {
+  void setup() {
     Supplier<ApiGatewayAsyncClient> mockSupplier = mock(Supplier.class);
     apiGatewayAsyncClient = mock(ApiGatewayAsyncClient.class);
     when(mockSupplier.get()).thenReturn(apiGatewayAsyncClient);

@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 public class OpenApiExtractor {
   private final List<OpenAPI> apis;
-  private static final Logger logger = LoggerFactory.getLogger(OpenApiExtractor.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(OpenApiExtractor.class);
 
   public OpenApiExtractor(List<OpenAPI> apis) {
     this.apis = apis;
@@ -41,7 +41,7 @@ public class OpenApiExtractor {
           if (usedSchemas.contains(COMPONENTS_SCHEMAS + key)) {
             newSchemas.put(key, value);
           } else {
-            logger.info("Removing schema " + key + " as no reference found");
+            LOGGER.info("Removing schema " + key + " as no reference found");
           }
         });
     openAPI.getComponents().setSchemas(newSchemas);
@@ -67,7 +67,7 @@ public class OpenApiExtractor {
             (httpMethod, operation) -> {
               if (isNull(operation.getTags())
                   || !operation.getTags().stream().anyMatch(this::anyTagIsExternal)) {
-                logger.info(
+                LOGGER.info(
                     "Removing operation {} {} because its not tagged as external",
                     httpMethod,
                     pathEntry.getKey());

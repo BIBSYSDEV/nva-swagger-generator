@@ -26,7 +26,7 @@ public class ApiData {
   private final OpenAPI openapiApiGateway;
   private final String rawYaml;
   private final Stage stage;
-  private static final Logger logger = LoggerFactory.getLogger(ApiData.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ApiData.class);
   private OpenAPI openapiApiGithub;
 
   public ApiData(RestApi awsRestApi, OpenAPI openapiApiGateway, String rawYaml, Stage stage) {
@@ -78,14 +78,14 @@ public class ApiData {
                     templateOpenapiDoc.getRight().getInfo().getTitle().equals(title))
             .findFirst();
     if (matchingGithubOpenApi.isPresent()) {
-      logger.info(
+      LOGGER.info(
           "Using matching github openapi at "
               + matchingGithubOpenApi.get().getLeft().key()
               + " for "
               + title);
       this.openapiApiGithub = matchingGithubOpenApi.get().getRight();
     } else {
-      logger.warn("No matching github openapi found for " + title);
+      LOGGER.warn("No matching github openapi found for " + title);
     }
   }
 
@@ -137,7 +137,7 @@ public class ApiData {
             .getSchemas()
             .forEach(
                 (key, value) -> {
-                  logger.info("Setting schema {} from GitHub", key);
+                  LOGGER.info("Setting schema {} from GitHub", key);
                   this.openapiApiGateway.getComponents().getSchemas().put(key, value);
                 });
       }
@@ -147,8 +147,8 @@ public class ApiData {
 
   @JacocoGenerated
   private int handleGetDashesFailure(Failure failure) {
-    logger.info("Using default dashes 0");
-    logger.info(failure.getException().toString());
+    LOGGER.info("Using default dashes 0");
+    LOGGER.info(failure.getException().toString());
     return 0;
   }
 
