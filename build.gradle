@@ -11,7 +11,7 @@ nva {
         minClassCoverage = 1.000
     }
     spotless {
-        enabled = false // FIXME
+        enabled = true
     }
 }
 
@@ -28,7 +28,7 @@ subprojects {
                 rulesetFile = rootProject.file('config/pmd/ruleset.xml')
             }
             spotless {
-                enabled = false // FIXME
+                enabled = true
             }
         }
         dependencies {
