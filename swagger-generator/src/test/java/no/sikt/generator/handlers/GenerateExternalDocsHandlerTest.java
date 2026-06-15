@@ -2,13 +2,14 @@ package no.sikt.generator.handlers;
 
 import static no.sikt.generator.ApplicationConstants.EXTERNAL_BUCKET_NAME;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -24,8 +25,7 @@ import no.sikt.generator.CloudFrontHighLevelClient;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeS3Client;
 import nva.commons.core.paths.UnixPath;
-import nva.commons.logutils.LogUtils;
-import nva.commons.logutils.TestAppender;
+import nva.commons.logutils.LogRecorder;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
@@ -97,18 +97,19 @@ class GenerateExternalDocsHandlerTest {
   @Test
   void shouldLogAPIsWhenInvoked() {
     setupSimpleMocks();
-    TestAppender logger = LogUtils.getTestingAppenderForRootLogger();
+    var logRecorder = LogRecorder.forRoot(GenerateExternalDocsHandlerTest.class);
     handler.handleRequest(null, null, null);
-    assertThat(logger.getMessages(), containsString("API A"));
+    assertThat(logRecorder.messages(), hasItem(containsString("API A")));
   }
 
   @Test
   void shouldLogSchemasWithNumbersInName() {
     setupSimpleMocks();
-    TestAppender logger = LogUtils.getTestingAppenderForRootLogger();
+    var logRecorder = LogRecorder.forRoot(GenerateExternalDocsHandlerTest.class);
     handler.handleRequest(null, null, null);
     assertThat(
-        logger.getMessages(), containsString("schema 'UniqueSchemaWithNumber1' contains numbers"));
+        logRecorder.messages(),
+        hasItem(containsString("schema 'UniqueSchemaWithNumber1' contains numbers")));
   }
 
   @Test
