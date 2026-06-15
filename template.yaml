@@ -265,7 +265,7 @@ Resources:
   PublishDocsHandler:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: .
+      CodeUri: swagger-generator
       Description: Published new documentation to all APIs in their production stage
       Policies:
         - AWSLambdaBasicExecutionRole
@@ -283,7 +283,7 @@ Resources:
   GenerateExternalDocsHandler:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: .
+      CodeUri: swagger-generator
       Description: Handler for generating external swagger documentation
       Policies:
         - AWSLambdaBasicExecutionRole
@@ -301,7 +301,7 @@ Resources:
   GenerateInternalDocsHandler:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: .
+      CodeUri: swagger-generator
       Description: Handler for generating internal swagger documentation
       Policies:
         - AWSLambdaBasicExecutionRole
@@ -319,7 +319,7 @@ Resources:
   InstallSwaggerUiHandler:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: .
+      CodeUri: swagger-generator
       Description: Handler for installing newest swagger-ui to swagger s3 bucket
       Policies:
         - AWSLambdaBasicExecutionRole
