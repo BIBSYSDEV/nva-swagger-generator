@@ -26,7 +26,6 @@ import no.unit.nva.s3.S3Driver;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UnixPath;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -37,7 +36,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 public class InstallSwaggerUiHandler implements RequestStreamHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(InstallSwaggerUiHandler.class);
-    public static final String CONTENT_TYPE = "Content-Type";
     public static final String SWAGGER_INITIALIZER_JS = "swagger-initializer.js";
     private final S3Client s3Client;
     ObjectMapper mapper = new ObjectMapper();
@@ -136,10 +134,9 @@ public class InstallSwaggerUiHandler implements RequestStreamHandler {
     }
 
     private static String readFromZipInputStream(ZipInputStream zis) throws IOException {
-        ByteArrayOutputStream fos = new ByteArrayOutputStream();
-        IOUtils.copy(zis, fos);
-        fos.close();
-        return fos.toString(StandardCharsets.UTF_8);
+        var outputStream = new ByteArrayOutputStream();
+        zis.transferTo(outputStream);
+        return outputStream.toString(StandardCharsets.UTF_8);
     }
 
     private URI fetchDownloadUri() {
