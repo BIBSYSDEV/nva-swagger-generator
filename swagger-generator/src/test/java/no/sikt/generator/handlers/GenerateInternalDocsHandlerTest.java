@@ -49,17 +49,16 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 class GenerateInternalDocsHandlerTest {
 
-  private CloudFrontHighLevelClient cloudFrontHighLevelClient;
+  private static final OpenAPIV3Parser PARSER = new OpenAPIV3Parser();
   private GenerateInternalDocsHandler handler;
   private S3Driver outputS3Driver;
-  private OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
   private S3Client inputS3client;
   private ApiGatewayAsyncClient apiGatewayAsyncClient;
   private CloudFrontClient cloudFrontClient;
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({"unchecked", "PMD.CloseResource"})
   @BeforeEach
-  public void setup() {
+  void setup() {
     Supplier<ApiGatewayAsyncClient> mockApiGatewaySupplier = mock(Supplier.class);
     apiGatewayAsyncClient = mock(ApiGatewayAsyncClient.class);
     when(mockApiGatewaySupplier.get()).thenReturn(apiGatewayAsyncClient);
@@ -72,7 +71,7 @@ class GenerateInternalDocsHandlerTest {
     cloudFrontClient = mock(CloudFrontClient.class);
     when(mockCloudFrontSupplier.get()).thenReturn(cloudFrontClient);
 
-    this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(mockCloudFrontSupplier);
+    var cloudFrontHighLevelClient = new CloudFrontHighLevelClient(mockCloudFrontSupplier);
     handler =
         new GenerateInternalDocsHandler(
             mockApiGatewaySupplier, cloudFrontHighLevelClient,
@@ -371,6 +370,6 @@ class GenerateInternalDocsHandlerTest {
     var yaml = outputS3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
     assertThat(yaml, notNullValue());
 
-    return openApiParser.readContents(yaml).getOpenAPI();
+    return PARSER.readContents(yaml).getOpenAPI();
   }
 }

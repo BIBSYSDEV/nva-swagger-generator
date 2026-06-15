@@ -7,7 +7,6 @@
   <description>
     PMD rules
   </description>
-  <exclude-pattern>.*/test/.*</exclude-pattern>
 
   <rule ref="category/java/errorprone.xml">
     <exclude name="MissingSerialVersionUID"/>
@@ -22,21 +21,11 @@
     <exclude name="LocalVariableCouldBeFinal"/>
     <exclude name="MethodArgumentCouldBeFinal"/>
     <exclude name="TooManyStaticImports"/>
-    <exclude name="ClassNamingConventions"/>
     <exclude name="UnnecessaryConstructor"/>
     <!-- Conflicts with the rule category/java/codestyle.xml/AvoidProtectedMethodInFinalClassNotExtending -->
     <exclude name="CommentDefaultAccessModifier"/>
     <!-- We use vars! -->
     <exclude name="UseExplicitTypes"/>
-
-    <!-- This rule does not allow us the following:
-            private static final Logger logger=...
-         It requires:
-            private static final Logger LOGGER=... -->
-    <exclude name="FieldNamingConventions"/>
-
-    <!-- Sometimes it is useful in debugging to assign the return value to a local variable  -->
-    <exclude name="UnnecessaryLocalBeforeReturn"/>
   </rule>
 
   <rule ref="category/java/design.xml">
@@ -46,7 +35,6 @@
     <exclude name="ExcessiveImports"/>
     <exclude name="AvoidCatchingGenericException"/>
     <exclude name="SignatureDeclareThrowsException"/>
-    <exclude name="UseUtilityClass"/>
     <exclude name="UseObjectForClearerAPI"/>
     <exclude name="TooManyMethods"/>
 

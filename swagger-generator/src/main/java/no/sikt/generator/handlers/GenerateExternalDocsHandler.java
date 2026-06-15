@@ -31,7 +31,7 @@ import software.amazon.awssdk.services.s3.model.S3Object;
 
 public class GenerateExternalDocsHandler extends GenerateDocsHandler {
 
-  private static final Logger logger = LoggerFactory.getLogger(GenerateExternalDocsHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(GenerateExternalDocsHandler.class);
 
   @JacocoGenerated
   public GenerateExternalDocsHandler() {
@@ -50,7 +50,7 @@ public class GenerateExternalDocsHandler extends GenerateDocsHandler {
   public void handleRequest(InputStream input, OutputStream output, Context context) {
     var apis = apiGatewayHighLevelClient.getRestApis();
 
-    logger.info(apis.toString());
+    LOGGER.info(apis.toString());
 
     var templateOpenapiDocs = getTemplateOpenApiDocs();
 

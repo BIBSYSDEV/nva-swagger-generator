@@ -40,7 +40,7 @@ public class OpenApiCombiner {
   private final OpenAPI baseTemplate;
   private final List<OpenAPI> others;
 
-  private static final Logger logger = LoggerFactory.getLogger(OpenApiCombiner.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(OpenApiCombiner.class);
 
   public OpenApiCombiner(OpenAPI baseTemplate, List<OpenAPI> others) {
     this.baseTemplate = baseTemplate;
@@ -120,7 +120,7 @@ public class OpenApiCombiner {
   private void mergeSecurity(OpenAPI api) {
     if (nonNull(api.getSecurity())) {
       for (var securityRequirement : api.getSecurity()) {
-        logger.info("adding security req {}", securityRequirement);
+        LOGGER.info("adding security req {}", securityRequirement);
         this.baseTemplate.addSecurityItem(securityRequirement);
       }
     }
@@ -198,7 +198,7 @@ public class OpenApiCombiner {
                   .forEach(
                       path -> {
                         if (nonNull(path.getValue().getOptions())) {
-                          logger.info(
+                          LOGGER.info(
                               "Removing options for {} {}",
                               api.getInfo().getTitle(),
                               path.getKey());
@@ -218,7 +218,7 @@ public class OpenApiCombiner {
       }
       duplicateSchemas = findDuplicateSchemaNames();
       if (!duplicateSchemas.isEmpty()) {
-        logger.info(DUPLICATES_FOUND, duplicateSchemas);
+        LOGGER.info(DUPLICATES_FOUND, duplicateSchemas);
       }
       renameSchemas(duplicateSchemas);
       renameNestedSchemaRefs(duplicateSchemas);
@@ -261,7 +261,7 @@ public class OpenApiCombiner {
                   var newName = CaseUtils.toCamelCase(api.getInfo().getTitle(), true) + oldName;
 
                   if (duplicateNames.contains(oldName)) {
-                    logger.info(
+                    LOGGER.info(
                         "API {}: Replacing {} with {}",
                         api.getInfo().getTitle(),
                         "/" + oldName,
@@ -335,7 +335,7 @@ public class OpenApiCombiner {
       var targetValue = this.baseTemplate.getComponents().getSchemas().get(newKey);
       var sourceValue = source.getValue();
       if (targetValue.equals(sourceValue)) {
-        logger.info("Ignoring equal schema for {}", newKey);
+        LOGGER.info("Ignoring equal schema for {}", newKey);
       } else {
         throw new IllegalStateException(
             "Schema " + newKey + " already exists and they are not equal");
@@ -353,10 +353,10 @@ public class OpenApiCombiner {
       var targetValue = this.baseTemplate.getComponents().getSecuritySchemes().get(newKey);
       var sourceValue = source.getValue();
       if (targetValue.equals(sourceValue)) {
-        logger.info("Ignoring equal securityScheme");
+        LOGGER.info("Ignoring equal securityScheme");
         return;
       } else {
-        logger.warn("Security schema " + newKey + " already exists and they are not equal");
+        LOGGER.warn("Security schema " + newKey + " already exists and they are not equal");
       }
     }
     target.getComponents().addSecuritySchemes(newKey, source.getValue());

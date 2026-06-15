@@ -32,7 +32,7 @@ import software.amazon.awssdk.services.s3.model.S3Object;
 
 public abstract class GenerateDocsHandler implements RequestStreamHandler {
 
-  private static final Logger logger = LoggerFactory.getLogger(GenerateDocsHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(GenerateDocsHandler.class);
   ApiGatewayHighLevelClient apiGatewayHighLevelClient;
   CloudFrontHighLevelClient cloudFrontHighLevelClient;
   S3Client s3ClientOutput;
@@ -72,7 +72,7 @@ public abstract class GenerateDocsHandler implements RequestStreamHandler {
             .filter(s3Object -> s3Object.key().endsWith(".yaml"))
             .sorted(Comparator.comparing(S3Object::lastModified))
             .toList();
-    logger.info("Found " + listing.size() + " .yaml files");
+    LOGGER.info("Found " + listing.size() + " .yaml files");
     return listing.stream()
         .map(s3Object -> Pair.of(s3Object, getOpenApiFromFilePath(s3Object)))
         .toList();

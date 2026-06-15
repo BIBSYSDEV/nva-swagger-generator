@@ -25,7 +25,7 @@ import software.amazon.awssdk.services.apigateway.model.GetRestApisResponse;
 import software.amazon.awssdk.services.apigateway.model.RestApi;
 
 public class PublishDocumentationsHandler implements RequestStreamHandler {
-  private static final Logger logger = LoggerFactory.getLogger(PublishDocumentationsHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(PublishDocumentationsHandler.class);
   private final ApiGatewayHighLevelClient apiGatewayHighLevelClient;
   private final OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
 
@@ -42,7 +42,7 @@ public class PublishDocumentationsHandler implements RequestStreamHandler {
   @Override
   public void handleRequest(InputStream input, OutputStream output, Context context) {
     var apis = apiGatewayHighLevelClient.getRestApis();
-    logger.info(apis.toString());
+    LOGGER.info(apis.toString());
 
     publishDocumentations(apis);
   }
@@ -66,25 +66,25 @@ public class PublishDocumentationsHandler implements RequestStreamHandler {
   private void publishDocumentation(ApiData apiData) {
     var name = apiData.getOpenapi().getInfo().getTitle();
     var apiId = apiData.getAwsRestApi().id();
-    logger.info("publishing {}", name);
+    LOGGER.info("publishing {}", name);
 
     var existingVersions = apiGatewayHighLevelClient.fetchVersions(apiId);
     var partsHash = apiGatewayHighLevelClient.fetchDocumentationPartsHash(apiId);
     var wantedDocVersion = VERSION_NAME + "-" + partsHash;
     var docVersionExists =
         existingVersions.items().stream().anyMatch(item -> wantedDocVersion.equals(item.version()));
-    logger.info("{} has parts-hash {}", name, partsHash);
+    LOGGER.info("{} has parts-hash {}", name, partsHash);
 
     if (docVersionExists && apiData.getCurrentDocVersion().equals(wantedDocVersion)) {
-      logger.info("{} has existing documentation and its set - ignoring", name);
+      LOGGER.info("{} has existing documentation and its set - ignoring", name);
     } else if (docVersionExists) {
-      logger.info(
+      LOGGER.info(
           "{} has existing documentation but its currently associated with {} - patching",
           name,
           apiData.getCurrentDocVersion());
       apiGatewayHighLevelClient.setStageDocVersion(apiId, EXPORT_STAGE_PROD, wantedDocVersion);
     } else {
-      logger.info("{} has no existing documentation - creating", name);
+      LOGGER.info("{} has no existing documentation - creating", name);
       apiGatewayHighLevelClient.createDocumentation(apiId, wantedDocVersion, EXPORT_STAGE_PROD);
     }
   }

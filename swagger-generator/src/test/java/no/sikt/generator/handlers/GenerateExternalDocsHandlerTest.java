@@ -38,17 +38,19 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 class GenerateExternalDocsHandlerTest {
 
-  private CloudFrontHighLevelClient cloudFrontHighLevelClient;
+  private static final String API_WITH_EXTERNAL_FILE = "api-with-external.yaml";
+  private static final String API_FILE = "api.yaml";
+  private static final OpenAPIV3Parser PARSER = new OpenAPIV3Parser();
+
   private GenerateExternalDocsHandler handler;
   private S3Driver s3Driver;
-  private OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
   private S3Client inputS3client;
   private ApiGatewayAsyncClient apiGatewayAsyncClient;
   private CloudFrontClient cloudFrontClient;
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({"unchecked", "PMD.CloseResource"})
   @BeforeEach
-  public void setup() {
+  void setup() {
     Supplier<ApiGatewayAsyncClient> mockApiGatewaySupplier = mock(Supplier.class);
     apiGatewayAsyncClient = mock(ApiGatewayAsyncClient.class);
     when(mockApiGatewaySupplier.get()).thenReturn(apiGatewayAsyncClient);
@@ -61,7 +63,7 @@ class GenerateExternalDocsHandlerTest {
     cloudFrontClient = mock(CloudFrontClient.class);
     when(mockCloudFrontSupplier.get()).thenReturn(cloudFrontClient);
 
-    this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(mockCloudFrontSupplier);
+    var cloudFrontHighLevelClient = new CloudFrontHighLevelClient(mockCloudFrontSupplier);
     handler =
         new GenerateExternalDocsHandler(
             mockApiGatewaySupplier, cloudFrontHighLevelClient,
@@ -120,7 +122,7 @@ class GenerateExternalDocsHandlerTest {
 
   @Test
   void shouldRemoveExternalTags() {
-    var fileNames = List.of("api-with-external.yaml");
+    var fileNames = List.of(API_WITH_EXTERNAL_FILE);
     setupTestCasesFromFiles(null, fileNames);
 
     handler.handleRequest(null, null, null);
@@ -146,7 +148,7 @@ class GenerateExternalDocsHandlerTest {
 
   @Test
   void shouldIncludeExternalPaths() {
-    var fileNames = List.of("api-with-external.yaml");
+    var fileNames = List.of(API_WITH_EXTERNAL_FILE);
     setupTestCasesFromFiles(null, fileNames);
 
     handler.handleRequest(null, null, null);
@@ -160,7 +162,7 @@ class GenerateExternalDocsHandlerTest {
   @Test
   void shouldIncludeParameteredSchemas() {
     setupTestCasesFromFilesWithGithubOpenapi(
-        "parameters", List.of(Pair.of("api.yaml", Optional.of("github" + ".yaml"))));
+        "parameters", List.of(Pair.of(API_FILE, Optional.of("github" + ".yaml"))));
 
     handler.handleRequest(null, null, null);
     var openApi = readGeneratedOpenApi();
@@ -172,7 +174,7 @@ class GenerateExternalDocsHandlerTest {
   @Test
   void shouldOverrideExistingSchemasFromGithub() {
     setupTestCasesFromFilesWithGithubOpenapi(
-        "schema-override", List.of(Pair.of("api.yaml", Optional.of("github.yaml"))));
+        "schema-override", List.of(Pair.of(API_FILE, Optional.of("github.yaml"))));
 
     handler.handleRequest(null, null, null);
     var openApi = readGeneratedOpenApi();
@@ -209,7 +211,7 @@ class GenerateExternalDocsHandlerTest {
 
   @Test
   void shouldIncludeFieldsThatAreNestedWithAllOf() {
-    setupTestCasesFromFiles("all-of", List.of("api.yaml", "api.yaml"));
+    setupTestCasesFromFiles("all-of", List.of(API_FILE, API_FILE));
 
     handler.handleRequest(null, null, null);
 
@@ -221,7 +223,7 @@ class GenerateExternalDocsHandlerTest {
 
   @Test
   void shouldIncludeFieldsThatAreNestedInAdditionalProperties() {
-    setupTestCasesFromFiles("additional-properties", List.of("api.yaml", "api.yaml"));
+    setupTestCasesFromFiles("additional-properties", List.of(API_FILE, API_FILE));
 
     handler.handleRequest(null, null, null);
 
@@ -232,7 +234,7 @@ class GenerateExternalDocsHandlerTest {
 
   @Test
   void shouldOnlyWriteTheCombinedOpenApiFileToS3() {
-    var fileNames = List.of("api-with-external.yaml");
+    var fileNames = List.of(API_WITH_EXTERNAL_FILE);
     setupTestCasesFromFiles(null, fileNames);
 
     handler.handleRequest(null, null, null);
@@ -259,7 +261,7 @@ class GenerateExternalDocsHandlerTest {
   }
 
   private OpenAPI generateOpenApiFromExternalSpecs() {
-    var fileNames = List.of("api-with-external.yaml");
+    var fileNames = List.of(API_WITH_EXTERNAL_FILE);
     setupTestCasesFromFiles(null, fileNames);
 
     handler.handleRequest(null, null, null);
@@ -271,7 +273,7 @@ class GenerateExternalDocsHandlerTest {
     var yaml = s3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
     assertThat(yaml, notNullValue());
 
-    return openApiParser.readContents(yaml).getOpenAPI();
+    return PARSER.readContents(yaml).getOpenAPI();
   }
 
   private void setupTestCasesFromFilesWithGithubOpenapi(

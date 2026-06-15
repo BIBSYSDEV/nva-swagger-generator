@@ -29,8 +29,9 @@ class InstallSwaggerUiHandlerTest {
   private S3Driver s3DriverExternal;
   private S3Driver s3DriverInternal;
 
+  @SuppressWarnings("PMD.CloseResource")
   @BeforeEach
-  public void setup() throws IOException, InterruptedException {
+  void setup() throws IOException, InterruptedException {
     var fakeS3Client = new FakeS3Client();
     this.s3DriverExternal = new S3Driver(fakeS3Client, EXTERNAL_BUCKET_NAME);
     this.s3DriverInternal = new S3Driver(fakeS3Client, INTERNAL_BUCKET_NAME);
@@ -50,12 +51,12 @@ class InstallSwaggerUiHandlerTest {
   }
 
   @Test
-  public void shouldHaveConstrcutorWithNoArgument() {
+  void shouldHaveConstructorWithNoArgument() {
     Executable action = () -> new InstallSwaggerUiHandler();
   }
 
   @Test
-  public void shouldFetchAndUnpackZipCorrectlyToExternalS3() {
+  void shouldFetchAndUnpackZipCorrectlyToExternalS3() {
     handler.handleRequest(null, null, null);
 
     assertThat(s3DriverExternal.getFile(UnixPath.of("file1.txt")), notNullValue());
@@ -65,7 +66,7 @@ class InstallSwaggerUiHandlerTest {
   }
 
   @Test
-  public void shouldFetchAndUnpackZipCorrectlyToInternalS3() {
+  void shouldFetchAndUnpackZipCorrectlyToInternalS3() {
     handler.handleRequest(null, null, null);
 
     assertThat(s3DriverInternal.getFile(UnixPath.of("file1.txt")), notNullValue());

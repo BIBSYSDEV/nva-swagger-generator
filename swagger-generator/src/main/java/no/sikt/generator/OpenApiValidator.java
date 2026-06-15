@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 public class OpenApiValidator {
 
-  private static final Logger logger = LoggerFactory.getLogger(OpenApiValidator.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(OpenApiValidator.class);
 
   public OpenApiValidator() {}
 
@@ -24,10 +24,10 @@ public class OpenApiValidator {
 
   public void validateSchemaName(String apiName, String schemaName) {
     if (schemaName.matches(".*\\d.*")) {
-      logger.warn("API {} schema '{}' contains numbers", apiName, schemaName);
+      LOGGER.warn("API {} schema '{}' contains numbers", apiName, schemaName);
     }
     if (schemaName.matches(".*\\s.*")) {
-      logger.warn("API {} schema '{}' contains whitespace", apiName, schemaName);
+      LOGGER.warn("API {} schema '{}' contains whitespace", apiName, schemaName);
     }
   }
 }

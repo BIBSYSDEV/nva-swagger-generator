@@ -48,9 +48,12 @@ import software.amazon.awssdk.services.cloudfront.model.CreateInvalidationReques
 import software.amazon.awssdk.services.cloudfront.model.CreateInvalidationResponse;
 import software.amazon.awssdk.services.s3.S3Client;
 
-public class TestUtils {
+@SuppressWarnings("PMD.TestClassWithoutTestCases")
+public final class TestUtils {
 
   private static OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
+
+  private TestUtils() {}
 
   private static TestCase loadTestCase(String filename, Optional<String> filenameGithub) {
     var id = filename.substring(filename.lastIndexOf('/') + 1).split(".yaml")[0];
@@ -82,7 +85,7 @@ public class TestUtils {
       CloudFrontClient cloudFrontClient,
       String folder,
       List<Pair<String, Optional<String>>> fileNames) {
-    var filePrefix = "openapi_docs/" + ((isNull(folder)) ? "" : folder + "/");
+    var filePrefix = "openapi_docs/" + (isNull(folder) ? "" : folder + "/");
     var testCases =
         fileNames.stream()
             .map(

@@ -31,7 +31,7 @@ import software.amazon.awssdk.services.s3.model.S3Object;
 
 public class GenerateInternalDocsHandler extends GenerateDocsHandler {
 
-  private static final Logger logger = LoggerFactory.getLogger(GenerateInternalDocsHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(GenerateInternalDocsHandler.class);
 
   @JacocoGenerated
   public GenerateInternalDocsHandler() {
@@ -49,7 +49,7 @@ public class GenerateInternalDocsHandler extends GenerateDocsHandler {
   @Override
   public void handleRequest(InputStream input, OutputStream output, Context context) {
     var apis = apiGatewayHighLevelClient.getRestApis();
-    logger.info(apis.toString());
+    LOGGER.info(apis.toString());
 
     var templateOpenapiDocs = getTemplateOpenApiDocs();
 

@@ -30,7 +30,7 @@ import software.amazon.awssdk.services.apigateway.model.UpdateStageRequest;
 
 public class ApiGatewayHighLevelClient {
 
-  private static final Logger logger = LoggerFactory.getLogger(ApiGatewayHighLevelClient.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ApiGatewayHighLevelClient.class);
   public static final String DOCUMENTATION_VERSION_PATH = "/documentationVersion";
   public static final int MAX_API_LIMIT = 500;
   public static final int LIMIT = 500;
@@ -87,7 +87,7 @@ public class ApiGatewayHighLevelClient {
       var parseResult = openApiParser.readContents(yaml);
       return new ApiData(api, parseResult.getOpenAPI(), yaml, productionStage);
     } else {
-      logger.warn(
+      LOGGER.warn(
           "API {} ({}) does not have stage {}. Stages found: {}",
           api.name(),
           api.id(),
