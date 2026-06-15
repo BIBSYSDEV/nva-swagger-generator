@@ -45,6 +45,8 @@ Globals:
         EXTERNAL_BUCKET_NAME: !Ref ExternalSwaggerUiBucket
         INTERNAL_BUCKET_NAME: !Ref InternalSwaggerUiBucket
         OPEN_API_DOCS_BUCKET_NAME: !Ref OpenApiDocsBucket
+        LOG_LEVEL: "info"
+        LOG4J_CONFIGURATION_FILE: classpath:nva-log4j2.xml
 
 Resources:
   InternalSwaggerUIBase64Auth:
