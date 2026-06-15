@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Schema Override API
   description: API for testing schema override from GitHub
-  version: '1.0.0'
+  version: "1.0.0"
 paths:
   /resource:
     get:

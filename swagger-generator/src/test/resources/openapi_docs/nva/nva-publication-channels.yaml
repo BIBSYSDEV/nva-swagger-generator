@@ -10,25 +10,25 @@ info:
     \ to RDF using this.\n"
   version: "1.0.0"
 servers:
-- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
-  variables:
-    basePath:
-      default: "/publication-channels"
+  - url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+    variables:
+      basePath:
+        default: "/publication-channels"
 paths:
   /journal:
     get:
       operationId: "getJournalsByQuery"
       parameters:
-      - name: "year"
-        in: "query"
-        required: true
-        schema:
-          type: "string"
-      - name: "query"
-        in: "query"
-        required: true
-        schema:
-          type: "string"
+        - name: "year"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+        - name: "query"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
           description: "200 response"
@@ -100,16 +100,16 @@ paths:
     get:
       operationId: "GetJournalById"
       parameters:
-      - name: "year"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "year"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
           description: "200 response"
@@ -164,16 +164,16 @@ paths:
                 $ref: "#/components/schemas/Problem"
     options:
       parameters:
-      - name: "year"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "year"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
           description: "200 response"
@@ -192,16 +192,16 @@ paths:
     get:
       operationId: "getPublisherById"
       parameters:
-      - name: "year"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "year"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
           description: "200 response"
@@ -256,16 +256,16 @@ paths:
                 $ref: "#/components/schemas/Problem"
     options:
       parameters:
-      - name: "year"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "year"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
           description: "200 response"
@@ -284,16 +284,16 @@ paths:
     get:
       operationId: "getPublisherByQuery"
       parameters:
-      - name: "year"
-        in: "query"
-        required: true
-        schema:
-          type: "string"
-      - name: "query"
-        in: "query"
-        required: true
-        schema:
-          type: "string"
+        - name: "year"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+        - name: "query"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
           description: "200 response"
@@ -372,9 +372,9 @@ components:
       type: "string"
       description: "The NPI level of the journal, either null, LEVEL_0, LEVEL_1, LEVEL_2"
       enum:
-      - "LEVEL_0"
-      - "LEVEL_1"
-      - "LEVEL_2"
+        - "LEVEL_0"
+        - "LEVEL_1"
+        - "LEVEL_2"
     Active:
       type: "boolean"
       description: "The activity status of the Publisher; true if it is currently\
@@ -402,7 +402,7 @@ components:
           pattern: "Journal"
           type: "string"
           description: "The type of the returned object, always Journal"
-        '@context':
+        "@context":
           $ref: "#/components/schemas/Context"
         scientificValue:
           $ref: "#/components/schemas/ScientificValue"
@@ -476,7 +476,7 @@ components:
           pattern: "^Publisher$"
           type: "string"
           description: "The type of the returned object"
-        '@context':
+        "@context":
           $ref: "#/components/schemas/Context"
         scientificValue:
           $ref: "#/components/schemas/ScientificValue"

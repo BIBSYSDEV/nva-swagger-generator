@@ -10,31 +10,31 @@ info:
     \ **results** - integer number of results returned"
   version: "0.2.0"
 servers:
-- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
-  variables:
-    basePath:
-      default: "/search"
+  - url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+    variables:
+      basePath:
+        default: "/search"
 paths:
   /tickets:
     get:
       parameters:
-      - name: "index"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      - name: "results"
-        in: "query"
-        schema:
-          type: "string"
-      - name: "from"
-        in: "query"
-        schema:
-          type: "string"
-      - name: "viewingScope"
-        in: "query"
-        schema:
-          type: "string"
+        - name: "index"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - name: "results"
+          in: "query"
+          schema:
+            type: "string"
+        - name: "from"
+          in: "query"
+          schema:
+            type: "string"
+        - name: "viewingScope"
+          in: "query"
+          schema:
+            type: "string"
       responses:
         "200":
           description: "200 response"
@@ -43,8 +43,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/MODEL6c9d8d"
       security:
-      - CognitoUserPool:
-        - "https://api.nva.unit.no/scopes/frontend"
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/frontend"
     options:
       responses:
         "200":
@@ -63,26 +63,26 @@ paths:
   /resources:
     get:
       parameters:
-      - name: "query"
-        in: "query"
-        schema:
-          type: "string"
-      - name: "sortOrder"
-        in: "query"
-        schema:
-          type: "string"
-      - name: "results"
-        in: "query"
-        schema:
-          type: "string"
-      - name: "orderBy"
-        in: "query"
-        schema:
-          type: "string"
-      - name: "from"
-        in: "query"
-        schema:
-          type: "string"
+        - name: "query"
+          in: "query"
+          schema:
+            type: "string"
+        - name: "sortOrder"
+          in: "query"
+          schema:
+            type: "string"
+        - name: "results"
+          in: "query"
+          schema:
+            type: "string"
+        - name: "orderBy"
+          in: "query"
+          schema:
+            type: "string"
+        - name: "from"
+          in: "query"
+          schema:
+            type: "string"
       responses:
         "404":
           description: "404 response"

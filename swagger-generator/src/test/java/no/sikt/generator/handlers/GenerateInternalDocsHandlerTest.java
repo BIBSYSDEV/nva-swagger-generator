@@ -16,6 +16,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.parameters.Parameter.StyleEnum;
@@ -48,58 +49,65 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 class GenerateInternalDocsHandlerTest {
 
-    private CloudFrontHighLevelClient cloudFrontHighLevelClient;
-    private GenerateInternalDocsHandler handler;
-    private S3Driver outputS3Driver;
-    private OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
-    private S3Client inputS3client;
-    private ApiGatewayAsyncClient apiGatewayAsyncClient;
-    private CloudFrontClient cloudFrontClient;
+  private CloudFrontHighLevelClient cloudFrontHighLevelClient;
+  private GenerateInternalDocsHandler handler;
+  private S3Driver outputS3Driver;
+  private OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
+  private S3Client inputS3client;
+  private ApiGatewayAsyncClient apiGatewayAsyncClient;
+  private CloudFrontClient cloudFrontClient;
 
-    @SuppressWarnings("unchecked")
-    @BeforeEach
-    public void setup() {
-        Supplier<ApiGatewayAsyncClient> mockApiGatewaySupplier = mock(Supplier.class);
-        apiGatewayAsyncClient = mock(ApiGatewayAsyncClient.class);
-        when(mockApiGatewaySupplier.get()).thenReturn(apiGatewayAsyncClient);
+  @SuppressWarnings("unchecked")
+  @BeforeEach
+  public void setup() {
+    Supplier<ApiGatewayAsyncClient> mockApiGatewaySupplier = mock(Supplier.class);
+    apiGatewayAsyncClient = mock(ApiGatewayAsyncClient.class);
+    when(mockApiGatewaySupplier.get()).thenReturn(apiGatewayAsyncClient);
 
-        var outputS3client = new FakeS3Client();
-        this.inputS3client = new FakeS3Client();
-        this.outputS3Driver = new S3Driver(outputS3client, INTERNAL_BUCKET_NAME);
+    var outputS3client = new FakeS3Client();
+    this.inputS3client = new FakeS3Client();
+    this.outputS3Driver = new S3Driver(outputS3client, INTERNAL_BUCKET_NAME);
 
-        Supplier<CloudFrontClient> mockCloudFrontSupplier = mock(Supplier.class);
-        cloudFrontClient = mock(CloudFrontClient.class);
-        when(mockCloudFrontSupplier.get()).thenReturn(cloudFrontClient);
+    Supplier<CloudFrontClient> mockCloudFrontSupplier = mock(Supplier.class);
+    cloudFrontClient = mock(CloudFrontClient.class);
+    when(mockCloudFrontSupplier.get()).thenReturn(cloudFrontClient);
 
-        this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(mockCloudFrontSupplier);
-        handler = new GenerateInternalDocsHandler(mockApiGatewaySupplier, cloudFrontHighLevelClient,
-                                                  outputS3client, inputS3client);
-    }
+    this.cloudFrontHighLevelClient = new CloudFrontHighLevelClient(mockCloudFrontSupplier);
+    handler =
+        new GenerateInternalDocsHandler(
+            mockApiGatewaySupplier, cloudFrontHighLevelClient,
+            outputS3client, inputS3client);
+  }
 
-    private void setupTestCasesFromFiles(String folder, List<String> filenames) {
-        TestUtils.setupTestcasesFromFiles(inputS3client, apiGatewayAsyncClient, cloudFrontClient, folder,
-                                          filenames.stream()
-                                              .map(fn -> new ImmutablePair<String, Optional<String>>(fn,
-                                                                                                     Optional.empty()))
-                                              .collect(
-                                                  Collectors.toList()));
-    }
+  private void setupTestCasesFromFiles(String folder, List<String> filenames) {
+    TestUtils.setupTestcasesFromFiles(
+        inputS3client,
+        apiGatewayAsyncClient,
+        cloudFrontClient,
+        folder,
+        filenames.stream()
+            .map(fn -> new ImmutablePair<String, Optional<String>>(fn, Optional.empty()))
+            .collect(Collectors.toList()));
+  }
 
-    private void setupTestCasesFromFilesWithGithubOpenapi(String folder,
-                                                          List<Pair<String, Optional<String>>> filenames) {
-        TestUtils.setupTestcasesFromFiles(inputS3client, apiGatewayAsyncClient, cloudFrontClient, folder, filenames);
-    }
+  private void setupTestCasesFromFilesWithGithubOpenapi(
+      String folder, List<Pair<String, Optional<String>>> filenames) {
+    TestUtils.setupTestcasesFromFiles(
+        inputS3client, apiGatewayAsyncClient, cloudFrontClient, folder, filenames);
+  }
 
-    private void setupSingleFile() {
-        setupTestCasesFromFiles(null, List.of("api-a.yaml"));
-    }
+  private void setupSingleFile() {
+    setupTestCasesFromFiles(null, List.of("api-a.yaml"));
+  }
 
-    private void setupSimpleMocks() {
-        setupTestCasesFromFiles(null, List.of("api-a.yaml", "api-b.yaml"));
-    }
+  private void setupSimpleMocks() {
+    setupTestCasesFromFiles(null, List.of("api-a.yaml", "api-b.yaml"));
+  }
 
-    private void setupNvaMocks() {
-        setupTestCasesFromFiles("nva", List.of(
+  private void setupNvaMocks() {
+    setupTestCasesFromFiles(
+        "nva",
+        List.of(
             "dlr-launchcanvas-api.yaml",
             "nva-courses-api.yaml",
             "nva-cristin-proxy-api.yaml",
@@ -112,258 +120,257 @@ class GenerateInternalDocsHandlerTest {
             "nva-publication-channels.yaml",
             "nva-roles-and-users-catalogue.yaml",
             "nva-verified-funding-sources-api.yaml",
-            "nva-s3-multipart-upload.yaml"
-        ));
+            "nva-s3-multipart-upload.yaml"));
+  }
+
+  @Test
+  void shouldHaveConstructorWithNoArgument() {
+    Executable action = () -> new GenerateInternalDocsHandler();
+  }
+
+  @Test
+  void shouldLogAPIsWhenInvoked() {
+    setupSimpleMocks();
+    TestAppender logger = LogUtils.getTestingAppenderForRootLogger();
+    handler.handleRequest(null, null, null);
+    assertThat(logger.getMessages(), containsString("API A"));
+  }
+
+  @Test
+  void shouldLogSchemasWithNumbersInName() {
+    setupSimpleMocks();
+    TestAppender logger = LogUtils.getTestingAppenderForRootLogger();
+    handler.handleRequest(null, null, null);
+    assertThat(
+        logger.getMessages(), containsString("schema 'UniqueSchemaWithNumber1' contains numbers"));
+  }
+
+  @Test
+  void shouldWriteFilesToS3() {
+    setupSimpleMocks();
+    handler.handleRequest(null, null, null);
+
+    var singleFile = outputS3Driver.getFile(UnixPath.of("docs/api-a.yaml"));
+    assertThat(singleFile, notNullValue());
+    assertThat(singleFile, is(equalTo(readResource("openapi_docs/api-a.yaml"))));
+
+    var combinedFile = outputS3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
+    assertThat(combinedFile, notNullValue());
+  }
+
+  @Test
+  void shouldRemoveOptionOperations() {
+    var fileNames = List.of("api-with-options.yaml");
+    setupTestCasesFromFiles(null, fileNames);
+
+    handler.handleRequest(null, null, null);
+
+    var openApi = readGeneratedOpenApi();
+
+    for (Entry<String, PathItem> path : openApi.getPaths().entrySet()) {
+      assertThat(path.getValue().getOptions(), nullValue());
     }
+  }
 
-    @Test
-    void shouldHaveConstructorWithNoArgument() {
-        Executable action = () -> new GenerateInternalDocsHandler();
+  @Test
+  void shouldRemoveExternalTags() {
+    var fileNames = List.of("api-with-external.yaml");
+    setupTestCasesFromFiles(null, fileNames);
+
+    handler.handleRequest(null, null, null);
+
+    var openApi = readGeneratedOpenApi();
+
+    assertThat(openApi.getTags(), hasSize(1));
+    assertThat(openApi.getTags().get(0).getName(), not(equalTo("external")));
+  }
+
+  @Test
+  void shouldMergeFiles() {
+    setupSimpleMocks();
+    handler.handleRequest(null, null, null);
+
+    var openApi = readGeneratedOpenApi();
+
+    assertThat(openApi.getInfo(), notNullValue());
+    assertThat(openApi.getInfo().getVersion(), notNullValue());
+    assertThat(openApi.getInfo().getTitle(), is(not(emptyString())));
+    assertThat(openApi.getInfo().getDescription(), is(not(emptyString())));
+    assertThat(openApi.getComponents().getSecuritySchemes().entrySet(), hasSize(1));
+    assertThat(openApi.getComponents().getSchemas().entrySet(), hasSize(4));
+    assertThat(openApi.getComponents().getSchemas().get("Error"), notNullValue());
+    assertThat(openApi.getComponents().getSchemas().get("ApiAResponse"), notNullValue());
+    assertThat(openApi.getComponents().getSchemas().get("ApiBResponse"), notNullValue());
+    assertThat(openApi.getServers(), notNullValue());
+    assertThat(openApi.getServers(), hasSize(1));
+  }
+
+  @Test
+  void shouldHandleRealNvaFiles() {
+    setupNvaMocks();
+    handler.handleRequest(null, null, null);
+
+    var openApi = readGeneratedOpenApi();
+
+    assertThatOpenApiIsValid(openApi);
+  }
+
+  private void assertThatOpenApiIsValid(OpenAPI openApi) {
+
+    var allRefs = OpenApiUtils.getAllRefs(openApi);
+    var schemas = openApi.getComponents().getSchemas().keySet();
+
+    for (String ref : allRefs) {
+      var expected = StringUtils.removeStart(ref, "#/components/schemas/");
+      assertThat(schemas, hasItem(expected));
     }
+  }
 
-    @Test
-    void shouldLogAPIsWhenInvoked() {
-        setupSimpleMocks();
-        TestAppender logger = LogUtils.getTestingAppenderForRootLogger();
-        handler.handleRequest(null, null, null);
-        assertThat(logger.getMessages(), containsString("API A"));
-    }
+  @Test
+  void shouldExcludeFilesWhenEnviormentVariableIsSet() {
+    setupTestCasesFromFiles(null, List.of("api-exluded.yaml"));
 
-    @Test
-    void shouldLogSchemasWithNumbersInName() {
-        setupSimpleMocks();
-        TestAppender logger = LogUtils.getTestingAppenderForRootLogger();
-        handler.handleRequest(null, null, null);
-        assertThat(logger.getMessages(), containsString("schema 'UniqueSchemaWithNumber1' contains numbers"));
-    }
+    handler.handleRequest(null, null, null);
 
-    @Test
-    void shouldWriteFilesToS3() {
-        setupSimpleMocks();
-        handler.handleRequest(null, null, null);
+    var openApi = readGeneratedOpenApi();
 
-        var singleFile = outputS3Driver.getFile(UnixPath.of("docs/api-a.yaml"));
-        assertThat(singleFile, notNullValue());
-        assertThat(singleFile, is(equalTo(readResource("openapi_docs/api-a.yaml"))));
+    assertThat(openApi.getPaths(), nullValue());
+    assertThat(openApi.getComponents().getSchemas(), nullValue());
+  }
 
-        var combinedFile = outputS3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
-        assertThat(combinedFile, notNullValue());
-    }
+  @Test
+  void shouldRenameRefsWhenTheyHaveSameNameAndAreNested() {
+    setupTestCasesFromFiles("same-schema-name", List.of("api-a.yaml", "api-b.yaml"));
 
-    @Test
-    void shouldRemoveOptionOperations() {
-        var fileNames = List.of(
-            "api-with-options.yaml"
-        );
-        setupTestCasesFromFiles(null, fileNames);
+    handler.handleRequest(null, null, null);
 
-        handler.handleRequest(null, null, null);
+    var openApi = readGeneratedOpenApi();
 
-        var openApi = readGeneratedOpenApi();
+    assertThat(openApi.getComponents().getSchemas().get("DuplicateSchema"), nullValue());
+    var responseSchema = openApi.getComponents().getSchemas().get("ApiAResponse");
+    var firstSchema = OpenApiUtils.getNestedPropertiesSchemas(responseSchema).findFirst().get();
+    var nestedSchemaRef = firstSchema.get$ref();
+    assertThat(nestedSchemaRef, not(equalTo("#/components/schemas/DuplicateSchema")));
+  }
 
-        for (Entry<String, PathItem> path : openApi.getPaths().entrySet()) {
-            assertThat(path.getValue().getOptions(), nullValue());
-        }
-    }
+  @Test
+  void shouldNotThrowWhenApiSpecsMissServer() {
+    setupTestCasesFromFiles(
+        "server", List.of("api-without-server.yaml", "api-without-server.yaml"));
 
-    @Test
-    void shouldRemoveExternalTags() {
-        var fileNames = List.of(
-            "api-with-external.yaml"
-        );
-        setupTestCasesFromFiles(null, fileNames);
+    handler.handleRequest(null, null, null);
+  }
 
-        handler.handleRequest(null, null, null);
+  @Test
+  void
+      shouldOnlyIncludeSpecsForApiWithSingleDashInServerBasePathIfMultipleApisWithSameNamePresent() {
+    setupTestCasesFromFiles(
+        "server",
+        List.of("api-with-basepath-with-1-dashes.yaml", "api-with-basepath-with-2-dashes.yaml"));
 
-        var openApi = readGeneratedOpenApi();
+    handler.handleRequest(null, null, null);
+    var openApi = readGeneratedOpenApi();
+    assertThat(openApi.getPaths().keySet().size(), equalTo(1));
+    assertThat(
+        openApi.getPaths().keySet().stream().findFirst().get(), equalTo("/pathA-something/path"));
+  }
 
-        assertThat(openApi.getTags(), hasSize(1));
-        assertThat(openApi.getTags().get(0).getName(), not(equalTo("external")));
-    }
+  @Test
+  void shouldSortApisAlphabetically() {
+    setupNvaMocks();
 
-    @Test
-    void shouldMergeFiles() {
-        setupSimpleMocks();
-        handler.handleRequest(null, null, null);
+    handler.handleRequest(null, null, null);
+    var openApi = readGeneratedOpenApi();
+    var tags = openApi.getTags().stream().map(Tag::getName).toList();
+    ArrayList<String> sortedTags = new ArrayList<>(tags);
+    Collections.sort(sortedTags);
+    assertThat(tags, is(equalTo(sortedTags)));
+  }
 
-        var openApi = readGeneratedOpenApi();
+  @Test
+  void shouldOverrideStyleIfSetInGithubOpenapi() {
+    setupTestCasesFromFilesWithGithubOpenapi(
+        "nva/publication-api",
+        List.of(Pair.of("apigateway.yaml", Optional.of("github" + ".yaml"))));
 
-        assertThat(openApi.getInfo(), notNullValue());
-        assertThat(openApi.getInfo().getVersion(), notNullValue());
-        assertThat(openApi.getInfo().getTitle(), is(not(emptyString())));
-        assertThat(openApi.getInfo().getDescription(), is(not(emptyString())));
-        assertThat(openApi.getComponents().getSecuritySchemes().entrySet(), hasSize(1));
-        assertThat(openApi.getComponents().getSchemas().entrySet(), hasSize(4));
-        assertThat(openApi.getComponents().getSchemas().get("Error"), notNullValue());
-        assertThat(openApi.getComponents().getSchemas().get("ApiAResponse"), notNullValue());
-        assertThat(openApi.getComponents().getSchemas().get("ApiBResponse"), notNullValue());
-        assertThat(openApi.getServers(), notNullValue());
-        assertThat(openApi.getServers(), hasSize(1));
-    }
+    handler.handleRequest(null, null, null);
+    var openApi = readGeneratedOpenApi();
+    var parameter =
+        openApi
+            .getPaths()
+            .get("/publication/{publicationIdentifier}")
+            .getGet()
+            .getParameters()
+            .stream()
+            .filter(param -> param.getName().equals("doNotRedirect"))
+            .findFirst()
+            .get();
 
-    @Test
-    void shouldHandleRealNvaFiles() {
-        setupNvaMocks();
-        handler.handleRequest(null, null, null);
+    assertThat(parameter.getStyle(), is(equalTo(StyleEnum.FORM)));
+    assertThat(parameter.getExplode(), is(equalTo(false)));
+  }
 
-        var openApi = readGeneratedOpenApi();
+  @Test
+  void shouldIncludeParameteredSchemas() {
+    setupTestCasesFromFilesWithGithubOpenapi(
+        "parameters", List.of(Pair.of("api.yaml", Optional.of("github" + ".yaml"))));
 
-        assertThatOpenApiIsValid(openApi);
-    }
+    handler.handleRequest(null, null, null);
+    var openApi = readGeneratedOpenApi();
+    var categoryEnum = openApi.getComponents().getSchemas().get("CategoryEnum");
 
-    private void assertThatOpenApiIsValid(OpenAPI openApi) {
+    assertThat(categoryEnum, is(notNullValue()));
+  }
 
-        var allRefs = OpenApiUtils.getAllRefs(openApi);
-        var schemas = openApi
-                          .getComponents()
-                          .getSchemas()
-                          .keySet();
+  @Test
+  void shouldOverrideExistingSchemasFromGithub() {
+    setupTestCasesFromFilesWithGithubOpenapi(
+        "schema-override", List.of(Pair.of("api.yaml", Optional.of("github.yaml"))));
 
-        for (String ref : allRefs) {
-            var expected = StringUtils.removeStart(ref, "#/components/schemas/");
-            assertThat(schemas, hasItem(expected));
-        }
-    }
+    handler.handleRequest(null, null, null);
+    var openApi = readGeneratedOpenApi();
 
-    @Test
-    void shouldExcludeFilesWhenEnviormentVariableIsSet() {
-        setupTestCasesFromFiles(null, List.of("api-exluded.yaml"));
+    var resourceResponse = openApi.getComponents().getSchemas().get("ResourceResponse");
+    var idProperty =
+        (io.swagger.v3.oas.models.media.Schema<?>) resourceResponse.getProperties().get("id");
+    assertThat(idProperty.getExample(), is(equalTo("12345")));
+  }
 
-        handler.handleRequest(null, null, null);
+  @Test
+  void shouldSortSchemasAlphabetically() {
+    setupNvaMocks();
 
-        var openApi = readGeneratedOpenApi();
+    handler.handleRequest(null, null, null);
+    var openApi = readGeneratedOpenApi();
+    var schemas = openApi.getComponents().getSchemas().keySet();
+    ArrayList<String> sortedSchemas = new ArrayList<>(schemas);
+    Collections.sort(sortedSchemas);
+    assertThat(new ArrayList<>(schemas), is(equalTo(sortedSchemas)));
+  }
 
-        assertThat(openApi.getPaths(), nullValue());
-        assertThat(openApi.getComponents().getSchemas(), nullValue());
-    }
+  @Test
+  void shouldParseFile() {
+    setupNvaMocks();
 
-    @Test
-    void shouldRenameRefsWhenTheyHaveSameNameAndAreNested() {
-        setupTestCasesFromFiles("same-schema-name", List.of("api-a.yaml", "api-b.yaml"));
+    handler.handleRequest(null, null, null);
 
-        handler.handleRequest(null, null, null);
+    var s3FileContent = outputS3Driver.getFile(UnixPath.of("docs/nva-publication-api.yaml"));
+    assertThat(s3FileContent, notNullValue());
+  }
 
-        var openApi = readGeneratedOpenApi();
+  @Test
+  void shouldCallCloudFrontInvalidation() {
+    setupSingleFile();
 
-        assertThat(openApi.getComponents().getSchemas().get("DuplicateSchema"), nullValue());
-        var responseSchema = openApi.getComponents().getSchemas().get("ApiAResponse");
-        var firstSchema = OpenApiUtils.getNestedPropertiesSchemas(responseSchema).findFirst().get();
-        var nestedSchemaRef = firstSchema.get$ref();
-        assertThat(nestedSchemaRef,not(equalTo("#/components/schemas/DuplicateSchema")));
-    }
+    handler.handleRequest(null, null, null);
 
-    @Test
-    void shouldNotThrowWhenApiSpecsMissServer() {
-        setupTestCasesFromFiles("server", List.of("api-without-server.yaml", "api-without-server.yaml"));
+    verify(cloudFrontClient).createInvalidation(any(CreateInvalidationRequest.class));
+  }
 
-        handler.handleRequest(null, null, null);
-    }
+  private OpenAPI readGeneratedOpenApi() {
+    var yaml = outputS3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
+    assertThat(yaml, notNullValue());
 
-    @Test
-    void shouldOnlyIncludeSpecsForApiWithSingleDashInServerBasePathIfMultipleApisWithSameNamePresent() {
-        setupTestCasesFromFiles("server", List.of("api-with-basepath-with-1-dashes.yaml",
-                                                  "api-with-basepath-with-2-dashes.yaml"));
-
-        handler.handleRequest(null, null, null);
-        var openApi = readGeneratedOpenApi();
-        assertThat(openApi.getPaths().keySet().size(), equalTo(1));
-        assertThat(openApi.getPaths().keySet().stream().findFirst().get(), equalTo("/pathA-something/path"));
-    }
-
-    @Test
-    void shouldSortApisAlphabetically() {
-        setupNvaMocks();
-
-        handler.handleRequest(null, null, null);
-        var openApi = readGeneratedOpenApi();
-        var tags = openApi.getTags().stream().map(Tag::getName).toList();
-        ArrayList<String> sortedTags = new ArrayList<>(tags);
-        Collections.sort(sortedTags);
-        assertThat(tags, is(equalTo(sortedTags)));
-    }
-
-    @Test
-    void shouldOverrideStyleIfSetInGithubOpenapi() {
-        setupTestCasesFromFilesWithGithubOpenapi("nva/publication-api", List.of(Pair.of("apigateway.yaml", Optional.of(
-            "github"
-            + ".yaml"))));
-
-        handler.handleRequest(null, null, null);
-        var openApi = readGeneratedOpenApi();
-        var parameter =
-            openApi.getPaths().get("/publication/{publicationIdentifier}").getGet().getParameters().stream()
-                .filter(param -> param.getName().equals("doNotRedirect")).findFirst().get();
-
-        assertThat(parameter.getStyle(), is(equalTo(StyleEnum.FORM)));
-        assertThat(parameter.getExplode(), is(equalTo(false)));
-    }
-
-    @Test
-    void shouldIncludeParameteredSchemas() {
-        setupTestCasesFromFilesWithGithubOpenapi("parameters", List.of(Pair.of("api.yaml", Optional.of(
-            "github"
-            + ".yaml"))));
-
-        handler.handleRequest(null, null, null);
-        var openApi = readGeneratedOpenApi();
-        var categoryEnum = openApi.getComponents().getSchemas().get("CategoryEnum");
-
-        assertThat(categoryEnum,is(notNullValue()));
-    }
-
-    @Test
-    void shouldOverrideExistingSchemasFromGithub() {
-        setupTestCasesFromFilesWithGithubOpenapi("schema-override", List.of(Pair.of("api.yaml", Optional.of(
-            "github.yaml"))));
-
-        handler.handleRequest(null, null, null);
-        var openApi = readGeneratedOpenApi();
-
-        var resourceResponse = openApi.getComponents().getSchemas().get("ResourceResponse");
-        var idProperty = (io.swagger.v3.oas.models.media.Schema<?>) resourceResponse.getProperties().get("id");
-        assertThat(idProperty.getExample(), is(equalTo("12345")));
-    }
-
-    @Test
-    void shouldSortSchemasAlphabetically() {
-        setupNvaMocks();
-
-        handler.handleRequest(null, null, null);
-        var openApi = readGeneratedOpenApi();
-        var schemas = openApi.getComponents().getSchemas().keySet();
-        ArrayList<String> sortedSchemas = new ArrayList<>(schemas);
-        Collections.sort(sortedSchemas);
-        assertThat(new ArrayList<>(schemas), is(equalTo(sortedSchemas)));
-    }
-
-    @Test
-    void shouldParseFile() {
-        setupNvaMocks();
-
-        handler.handleRequest(null, null, null);
-
-        var s3FileContent = outputS3Driver.getFile(UnixPath.of("docs/nva-publication-api.yaml"));
-        assertThat(s3FileContent, notNullValue());
-    }
-
-    @Test
-    void shouldCallCloudFrontInvalidation() {
-        setupSingleFile();
-
-        handler.handleRequest(null, null, null);
-
-        verify(cloudFrontClient).createInvalidation(any(CreateInvalidationRequest.class));
-    }
-
-    private OpenAPI readGeneratedOpenApi() {
-        var yaml = outputS3Driver.getFile(UnixPath.of("docs/openapi.yaml"));
-        assertThat(yaml, notNullValue());
-
-        return openApiParser
-                          .readContents(yaml)
-                          .getOpenAPI();
-    }
-
-
-
+    return openApiParser.readContents(yaml).getOpenAPI();
+  }
 }

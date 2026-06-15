@@ -14,39 +14,40 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Publication'
+              $ref: "#/components/schemas/Publication"
       security:
-        - CognitoUserPool: [
-          'https://api.nva.unit.no/scopes/backend',
-          'https://api.nva.unit.no/scopes/frontend',
-          'aws.cognito.signin.user.admin',
-          'https://api.nva.unit.no/scopes/third-party/publication-upsert'
-        ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+              "https://api.nva.unit.no/scopes/third-party/publication-upsert",
+            ]
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaCreatePublicationFunction.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
       responses:
-        '201':
+        "201":
           description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Publication'
-        '400':
+                $ref: "#/components/schemas/Publication"
+        "400":
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '502':
+                $ref: "#/components/schemas/Problem"
+        "502":
           description: Bad Gateway
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
   /{publicationIdentifier}:
     get:
       operationId: fetchPublicationByIdentifier
@@ -80,22 +81,22 @@ paths:
         httpMethod: POST
         type: AWS_PROXY
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PublicationResponse'
+                $ref: "#/components/schemas/PublicationResponse"
             application/ld+json:
               schema:
-                $ref: '#/components/schemas/PublicationResponse'
+                $ref: "#/components/schemas/PublicationResponse"
             application/vnd.datacite.datacite+xml:
               schema:
-                $ref: '#/components/schemas/PublicationDataCiteXml'
+                $ref: "#/components/schemas/PublicationDataCiteXml"
             application/vnd.schemaorg.ld+json:
               schema:
-                $ref: '#/components/schemas/PublicationSchemaOrg'
-        '301':
+                $ref: "#/components/schemas/PublicationSchemaOrg"
+        "301":
           description: MOVED PERMANENTLY
           headers:
             Location:
@@ -107,7 +108,7 @@ paths:
               description: Cache-Control header
               schema:
                 type: string
-        '410':
+        "410":
           description: Permanently gone
           content:
             application/json:
@@ -119,21 +120,22 @@ paths:
       tags:
         - external
       security:
-        - CognitoUserPool: [
-          'https://api.nva.unit.no/scopes/backend',
-          'https://api.nva.unit.no/scopes/frontend',
-          'aws.cognito.signin.user.admin',
-          'https://api.nva.unit.no/scopes/third-party/publication-upsert'
-        ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+              "https://api.nva.unit.no/scopes/third-party/publication-upsert",
+            ]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               oneOf:
-                - $ref: '#/components/schemas/Publication'
-                - $ref: '#/components/schemas/DeletePublicationRequest'
-                - $ref: '#/components/schemas/UnpublishPublicationRequest'
+                - $ref: "#/components/schemas/Publication"
+                - $ref: "#/components/schemas/DeletePublicationRequest"
+                - $ref: "#/components/schemas/UnpublishPublicationRequest"
       parameters:
         - in: path
           name: publicationIdentifier
@@ -146,7 +148,7 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaUpdatePublicationFunction.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
       responses:
@@ -155,13 +157,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PublicationResponse'
+                $ref: "#/components/schemas/PublicationResponse"
         202:
           description: Accepted
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PublicationResponse'
+                $ref: "#/components/schemas/PublicationResponse"
         400:
           description: Bad Request
           content:
@@ -186,11 +188,13 @@ paths:
       tags:
         - external
       security:
-        - CognitoUserPool: [
-          'https://api.nva.unit.no/scopes/backend',
-          'https://api.nva.unit.no/scopes/frontend',
-          'aws.cognito.signin.user.admin',
-          'https://api.nva.unit.no/scopes/third-party/publication-upsert' ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+              "https://api.nva.unit.no/scopes/third-party/publication-upsert",
+            ]
       parameters:
         - in: path
           name: publicationIdentifier
@@ -203,16 +207,16 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaDeletePublicationFunction.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
       responses:
-        '202':
+        "202":
           description: Accepted
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Publication'
+                $ref: "#/components/schemas/Publication"
   /by-owner:
     get:
       operationId: listPublicationsByOwner
@@ -220,27 +224,28 @@ paths:
       tags:
         - external
       security:
-        - CognitoUserPool: [
-          'https://api.nva.unit.no/scopes/backend',
-          'https://api.nva.unit.no/scopes/frontend',
-          'aws.cognito.signin.user.admin',
-          'https://api.nva.unit.no/scopes/third-party/publication-read'
-        ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+              "https://api.nva.unit.no/scopes/third-party/publication-read",
+            ]
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaPublicationsByOwnerFunction.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Publication'
+                  $ref: "#/components/schemas/Publication"
 
   /{publicationIdentifier}/doi:
     post:
@@ -253,56 +258,60 @@ paths:
             type: string
           required: true
           example:
-            doi: '10.3848/135f2cf8-b816-11ed-afa1-0242ac120002'
+            doi: "10.3848/135f2cf8-b816-11ed-afa1-0242ac120002"
           style: simple
           explode: false
           description: UUID identifier of the Publication to fetch.
       security:
-        - CognitoUserPool: [ 'https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend','aws.cognito.signin.user.admin' ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+            ]
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ReserveDoiHandler.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
       responses:
-        '200':
+        "200":
           description: OK, doi is already reserved
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Doi'
-        '201':
+                $ref: "#/components/schemas/Doi"
+        "201":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Doi'
-        '401':
+                $ref: "#/components/schemas/Doi"
+        "401":
           description: Unauthorized, no config found for users customer
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        '404':
+        "404":
           description: Publication not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        '405':
+        "405":
           description: Operation is not allowed, publication is not a draft
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        '502':
+        "502":
           description: Bad response from Datacite
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-
 
   /{publicationIdentifier}/ticket:
     parameters:
@@ -336,11 +345,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Ticket"
       security:
-        - CognitoUserPool: [ 'https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend','aws.cognito.signin.user.admin' ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+            ]
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateTicketFunction.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
 
@@ -370,7 +384,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateTicketRequest'
+              $ref: "#/components/schemas/UpdateTicketRequest"
       responses:
         202:
           description: Accepted
@@ -403,11 +417,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
       security:
-        - CognitoUserPool: [ 'https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend','aws.cognito.signin.user.admin' ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+            ]
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateTicketHandler.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
     delete:
@@ -441,11 +460,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
       security:
-        - CognitoUserPool: [ 'https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend','aws.cognito.signin.user.admin' ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+            ]
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DeleteTicketHandler.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
     get:
@@ -465,11 +489,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
       security:
-        - CognitoUserPool: [ 'https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend','aws.cognito.signin.user.admin' ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+            ]
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetTicketFunction.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
   /{publicationIdentifier}/ticket/{ticketIdentifier}/message:
@@ -497,9 +526,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Message'
+              $ref: "#/components/schemas/Message"
       responses:
-        '201':
+        "201":
           description: "Created"
           headers:
             "Location":
@@ -507,18 +536,23 @@ paths:
               schema:
                 type: string
                 format: uri
-        '403':
+        "403":
           description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
       security:
-        - CognitoUserPool: [ 'https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend','aws.cognito.signin.user.admin' ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+            ]
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaCreateMessageFunction.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
   /{publicationIdentifier}/ticket/{ticketIdentifier}/message/{messageIdentifier}:
@@ -551,7 +585,7 @@ paths:
       operationId: deleteMessageForTicket
       description: Deleting message
       responses:
-        '200':
+        "200":
           description: "Ok"
           headers:
             "Location":
@@ -564,24 +598,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        '404':
+        "404":
           description: Not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '502':
+                $ref: "#/components/schemas/Problem"
+        "502":
           description: Bad Gateway
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
       security:
-        - CognitoUserPool: [ 'https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend','aws.cognito.signin.user.admin' ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+            ]
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DeleteMessageHandler.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
 
@@ -598,11 +637,16 @@ paths:
                 $ref: "#/components/schemas/TicketCollection"
 
       security:
-        - CognitoUserPool: [ 'https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend','aws.cognito.signin.user.admin' ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+            ]
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ListTicketsHandler.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
   /{publicationIdentifier}/tickets:
@@ -639,11 +683,16 @@ paths:
                 $ref: "#/components/schemas/Problem"
 
       security:
-        - CognitoUserPool: [ 'https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend','aws.cognito.signin.user.admin' ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+            ]
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ListTicketsForPublicationHandler.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
 
@@ -656,11 +705,11 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaFetchPublicationContextFunction.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -669,7 +718,7 @@ paths:
             application/ld+json:
               schema:
                 $ref: "#/components/schemas/PublicationContext"
-        '415':
+        "415":
           description: Unsupported Media Type
           content:
             application/json:
@@ -692,28 +741,28 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaFetchImportCandidateFunction.Arn}:live/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ImportCandidate'
-        '404':
+                $ref: "#/components/schemas/ImportCandidate"
+        "404":
           description: Import candidate not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        '502':
+        "502":
           description: Bad Gateway
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
     post:
       operationId: createPublicationFromImportCandidate
       summary: Create Publication from Import candidate
@@ -731,38 +780,38 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ImportCandidate'
+              $ref: "#/components/schemas/ImportCandidate"
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreatePublicationFromImportCandidateFunction.Arn}:live/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
       responses:
-        '201':
+        "201":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Publication'
-        '400':
+                $ref: "#/components/schemas/Publication"
+        "400":
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '401':
+                $ref: "#/components/schemas/Problem"
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '502':
+                $ref: "#/components/schemas/Problem"
+        "502":
           description: Bad Gateway
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
     put:
       operationId: updateImportCandidate
       summary: Update import status
@@ -780,38 +829,38 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ImportStatus'
+              $ref: "#/components/schemas/ImportStatus"
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateImportStatusHandler.Arn}:live/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ImportCandidate'
-        '404':
+                $ref: "#/components/schemas/ImportCandidate"
+        "404":
           description: Not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '401':
+                $ref: "#/components/schemas/Problem"
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '502':
+                $ref: "#/components/schemas/Problem"
+        "502":
           description: Bad Gateway
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
   /import-candidate/{importCandidateIdentifier}/file/{fileIdentifier}:
     get:
       operationId: fetchPreSignedUrlForImportCandidateFile
@@ -836,34 +885,34 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ImportCandidatePresignedUrlHandler.Arn}:live/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PresignedUrl'
-        '404':
+                $ref: "#/components/schemas/PresignedUrl"
+        "404":
           description: File not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        '502':
+        "502":
           description: Bad Gateway
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
 
 components:
   schemas:
     PublicationResponse:
       allOf:
-        - $ref: '#/components/schemas/Publication'
+        - $ref: "#/components/schemas/Publication"
         - type: object
           properties:
             allowedOperations:
@@ -886,7 +935,7 @@ components:
       properties:
         type:
           type: string
-          enum: [ 'Publication' ]
+          enum: ["Publication"]
           description: Type of the request
         abstract:
           type: string
@@ -1018,7 +1067,7 @@ components:
       properties:
         type:
           type: string
-          enum: [ 'DeletePublicationRequest' ]
+          enum: ["DeletePublicationRequest"]
           description: Type of the request
     UnpublishPublicationRequest:
       type: object
@@ -1029,7 +1078,7 @@ components:
       properties:
         type:
           type: string
-          enum: [ 'UnpublishPublicationRequest' ]
+          enum: ["UnpublishPublicationRequest"]
           description: Type of the request
         duplicateOf:
           type: string

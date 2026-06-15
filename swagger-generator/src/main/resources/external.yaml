@@ -4,14 +4,14 @@ info:
   title: NVA API Dokumentasjon
   description: |-
     ## Om NVA
-    
+
     Nasjonalt vitenarkiv (NVA) samler informasjon om norsk forskning og gjør forskningsresultater og forskningsinformasjon åpent tilgjengelig.
 
     Med NVA får norske forskningsinstitusjoner en tjeneste for å:
 
     - Innfri krav om åpen tilgang til artikler og andre forskningsresultater gjennom deponering i et åpent vitenarkiv
     - Selv publisere rapporter, studentoppgaver og annet materiale produsert ved institusjonen
-    
+
     NVA utvikles også til bruk ved rapportering av vitenskapelig publisering til Kunnskapsdepartementet og Helse- og omsorgsdepartementet (NVI-rapportering), og for andre forskningsadministrative oppgaver.
 
     Sikt er databehandler. Den enkelte Institusjon er behandlingsansvarlig og registrerer og vedlikeholder eget innhold i tjenesten og konfigurerer distribusjonsregler for publiserte ressurser (artikler, rapporter, datasett etc.). Tjenesten får også overført innhold fra andre datakilder.
@@ -21,9 +21,9 @@ info:
     NVA vil tilgjengeliggjøre institusjonens åpne innhold via åpne grensesnitt, med hensikt å gjøre dette kjent og søkbart for omverdenen og fremme indeksering i søkemotorer og søkeportaler.
 
     Selv om NVA er etablert og i bruk av flere institusjoner, vil tjenesten være i kontinuerlig utvikling i hele sin levetid. Institusjoner som ikke har et vitenarkiv kan kontakte Sikt for å få ta i bruk NVA som pilotinstitusjon.
-    
+
     ## Bruk av APIet
-    
+
     Ta kontakt for å få tildelt API-bruker. En bruker består av en ID og en Secret ([Client Credentials](https://oauth.net/2/grant-types/client-credentials/)) som kan benyttes til å generere en token mot [https://nva-prod-ext.auth.eu-west-1.amazoncognito.com/oauth2/token](https://nva-prod-ext.auth.eu-west-1.amazoncognito.com/oauth2/token).
     Bruk Basic Auth med ID som username, Secret som password, og leg ved 'grant_type=client_credentials' i body. Eksempel på CURL:
     ```
@@ -33,23 +33,23 @@ info:
     --data-urlencode 'grant_type=client_credentials'
     ```
     En vil da få en JSON respons tilbake som inneholder en 'access_token'. Dette er en bearer token som varer i 15min
-    
+
     ## Dataformat
 
     The data is reformatted as JSON-LD with a schema defined in the [search ontology](https://bibsysdev.github.io/src/search-ontology.ttl) and the [publication channel ontology](https://bibsysdev.github.io/src/publication-channel-ontology.ttl).
 
     To understand the semantic layer, take a look at the @context URI returned by the API, the data is marked up according to this and may be interpreted directly to RDF using this.
-    
+
     ## Common usecases
     <details>
       <summary>Create publication with uploaded file</summary>
 
       ### Create publication with uploaded file
       To create a publication with a file we need to perform a series of steps. First we need to upload a file and get its identifier/location. Then we need to create a or update a publication that has the "associatedArtifacts" field referencing the file.
-    
+
       #### Uploading the file
       The file can be uploaded by using the "NVA multipart upload API". This is a flexible API that support uploading a file in multiple parts, but in our example we will only use 1 part. 
-    
+
       1. Create a Upload process by calling POST ../upload/create and store the returned  *uploadId* and *key*
             ```json 
             {
@@ -106,8 +106,8 @@ info:
             }
           }
           ```
-    
-    
+
+
     </details>
 
   termsOfService: https://nva.unit.no/terms/

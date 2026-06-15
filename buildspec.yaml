@@ -20,6 +20,6 @@ artifacts:
     - packaged.yaml
 cache:
   paths:
-    - '/root/venv/**/*'
-    - '/root/.cache/pip/**/*'
-    - '/root/.gradle/wrapper/**/*'
+    - "/root/venv/**/*"
+    - "/root/.cache/pip/**/*"
+    - "/root/.gradle/wrapper/**/*"

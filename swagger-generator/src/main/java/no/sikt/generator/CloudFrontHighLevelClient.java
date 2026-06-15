@@ -6,27 +6,29 @@ import software.amazon.awssdk.services.cloudfront.model.CreateInvalidationReques
 
 public class CloudFrontHighLevelClient {
 
-    public static final String ALL_FILES = "/*";
-    private final Supplier<CloudFrontClient> cloudFrontClientSupplier;
+  public static final String ALL_FILES = "/*";
+  private final Supplier<CloudFrontClient> cloudFrontClientSupplier;
 
-    public CloudFrontHighLevelClient(Supplier<CloudFrontClient> cloudFrontClientSupplier) {
-        this.cloudFrontClientSupplier = cloudFrontClientSupplier;
-    }
+  public CloudFrontHighLevelClient(Supplier<CloudFrontClient> cloudFrontClientSupplier) {
+    this.cloudFrontClientSupplier = cloudFrontClientSupplier;
+  }
 
-    public void invalidateAll(String distributionId) {
-        try (var cloudFrontClient = cloudFrontClientSupplier.get()) {
-            var request = CreateInvalidationRequest.builder()
-                              .distributionId(distributionId)
-                              .invalidationBatch(batch -> batch
-                                                          .paths(paths -> paths.items(ALL_FILES).quantity(1))
-                                                          .callerReference(getCallerReference())
-                              )
-                              .build();
-            cloudFrontClient.createInvalidation(request);
-        }
+  public void invalidateAll(String distributionId) {
+    try (var cloudFrontClient = cloudFrontClientSupplier.get()) {
+      var request =
+          CreateInvalidationRequest.builder()
+              .distributionId(distributionId)
+              .invalidationBatch(
+                  batch ->
+                      batch
+                          .paths(paths -> paths.items(ALL_FILES).quantity(1))
+                          .callerReference(getCallerReference()))
+              .build();
+      cloudFrontClient.createInvalidation(request);
     }
+  }
 
-    private static String getCallerReference() {
-        return "swagger-generator-" + System.currentTimeMillis();
-    }
+  private static String getCallerReference() {
+    return "swagger-generator-" + System.currentTimeMillis();
+  }
 }

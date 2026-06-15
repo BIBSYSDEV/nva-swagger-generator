@@ -14,40 +14,40 @@ externalDocs:
   description: "Find out more about NVA"
   url: "https://nva.unit.no"
 servers:
-- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
-  variables:
-    basePath:
-      default: "/verified-funding"
+  - url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+    variables:
+      basePath:
+        default: "/verified-funding"
 paths:
   /nfr:
     get:
       tags:
-      - "NfrVerifiedFundingSources"
+        - "NfrVerifiedFundingSources"
       summary: "Query NFR funding by identifier"
       description: "Returns a funding by identifier"
       operationId: "NfrQueryFundings"
       parameters:
-      - name: "term"
-        in: "query"
-        description: "The search term. Required if name is not supplied."
-        schema:
-          type: "string"
-      - name: "name"
-        in: "query"
-        description: "Name of a person. Required if term is not supplied."
-        schema:
-          type: "string"
-      - name: "offset"
-        in: "query"
-        description: "The search offset. At what position in the search result to\
-          \ start. Default is 0 (at the beginning)."
-        schema:
-          type: "string"
-      - name: "size"
-        in: "query"
-        description: "The size of the result set to return. Default is 10."
-        schema:
-          type: "string"
+        - name: "term"
+          in: "query"
+          description: "The search term. Required if name is not supplied."
+          schema:
+            type: "string"
+        - name: "name"
+          in: "query"
+          description: "Name of a person. Required if term is not supplied."
+          schema:
+            type: "string"
+        - name: "offset"
+          in: "query"
+          description: "The search offset. At what position in the search result to\
+            \ start. Default is 0 (at the beginning)."
+          schema:
+            type: "string"
+        - name: "size"
+          in: "query"
+          description: "The size of the result set to return. Default is 10."
+          schema:
+            type: "string"
       responses:
         "200":
           description: "successful operation"
@@ -95,17 +95,17 @@ paths:
   /nfr/{identifier}:
     get:
       tags:
-      - "NfrVerifiedFundingSources"
+        - "NfrVerifiedFundingSources"
       summary: "Get NFR funding by identifier"
       description: "Returns a funding  by identifier"
       operationId: "NfrGetFunding"
       parameters:
-      - name: "identifier"
-        in: "path"
-        description: "The funding identifier"
-        required: true
-        schema:
-          type: "string"
+        - name: "identifier"
+          in: "path"
+          description: "The funding identifier"
+          required: true
+          schema:
+            type: "string"
       responses:
         "404":
           description: "Bad Request"
@@ -143,11 +143,11 @@ paths:
     options:
       summary: "CORS support"
       parameters:
-      - name: "identifier"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "identifier"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
           description: "Default response for CORS method"
@@ -212,7 +212,7 @@ components:
           $ref: "#/components/schemas/Id"
         nextResults:
           $ref: "#/components/schemas/Id"
-        '@context':
+        "@context":
           $ref: "#/components/schemas/Id"
     Id:
       pattern: "https:\\/\\/.*$"

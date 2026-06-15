@@ -4,20 +4,20 @@ info:
   description: "NVA Ontology Service. Provides ontological content in different formats."
   version: "1.0.0"
 servers:
-- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
-  variables:
-    basePath:
-      default: "/ontology"
+  - url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+    variables:
+      basePath:
+        default: "/ontology"
 paths:
   /{name}:
     get:
       operationId: "get"
       parameters:
-      - name: "name"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "name"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "404":
           description: "404 response"
@@ -48,11 +48,11 @@ paths:
                 $ref: "#/components/schemas/Problem"
     options:
       parameters:
-      - name: "name"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "name"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
           description: "200 response"

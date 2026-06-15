@@ -5,19 +5,19 @@ info:
     \ The API has restricted access although no sensitive data is contained within.\n"
   version: "1.0"
 servers:
-- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
-  variables:
-    basePath:
-      default: "/customer"
+  - url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+    variables:
+      basePath:
+        default: "/customer"
 paths:
   /{identifier}/vocabularies:
     get:
       parameters:
-      - name: "identifier"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "identifier"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
           description: "200 response"
@@ -30,11 +30,11 @@ paths:
                 $ref: "#/components/schemas/VocabularyList"
     put:
       parameters:
-      - name: "identifier"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "identifier"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       requestBody:
         content:
           application/json:
@@ -74,11 +74,11 @@ paths:
                 $ref: "#/components/schemas/Problem"
     post:
       parameters:
-      - name: "identifier"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "identifier"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       requestBody:
         content:
           application/json:
@@ -112,11 +112,11 @@ paths:
                 $ref: "#/components/schemas/Problem"
     options:
       parameters:
-      - name: "identifier"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "identifier"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
           description: "200 response"
@@ -134,11 +134,11 @@ paths:
   /orgDomain/{orgDomain}:
     get:
       parameters:
-      - name: "orgDomain"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "orgDomain"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "404":
           description: "404 response"
@@ -169,11 +169,11 @@ paths:
                 $ref: "#/components/schemas/Problem"
     options:
       parameters:
-      - name: "orgDomain"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "orgDomain"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
           description: "200 response"
@@ -191,11 +191,11 @@ paths:
   /{identifier}:
     get:
       parameters:
-      - name: "identifier"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "identifier"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "404":
           description: "404 response"
@@ -226,11 +226,11 @@ paths:
                 $ref: "#/components/schemas/Problem"
     put:
       parameters:
-      - name: "identifier"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "identifier"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       requestBody:
         content:
           application/json:
@@ -264,11 +264,11 @@ paths:
                 $ref: "#/components/schemas/Problem"
     options:
       parameters:
-      - name: "identifier"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "identifier"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
           description: "200 response"
@@ -286,11 +286,11 @@ paths:
   /cristinId/{cristinId}:
     get:
       parameters:
-      - name: "cristinId"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "cristinId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "404":
           description: "404 response"
@@ -321,11 +321,11 @@ paths:
                 $ref: "#/components/schemas/Problem"
     options:
       parameters:
-      - name: "cristinId"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "cristinId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
           description: "200 response"
@@ -430,13 +430,13 @@ components:
         type:
           type: "string"
           enum:
-          - "Vocabulary"
+            - "Vocabulary"
         status:
           type: "string"
           enum:
-          - "disabled"
-          - "enabled"
-          - "default"
+            - "disabled"
+            - "enabled"
+            - "default"
     Customer:
       type: "object"
       properties:
@@ -457,7 +457,7 @@ components:
           type: "string"
         type:
           type: "string"
-        '@context':
+        "@context":
           type: "object"
         createdDate:
           type: "string"
@@ -472,9 +472,9 @@ components:
         publicationWorkflow:
           type: "string"
           enum:
-          - "RegistratorPublishesMetadataOnly"
-          - "RegistratorPublishesMetadataAndFiles"
-          - "RegistratorRequiresApprovalForMetadataAndFiles"
+            - "RegistratorPublishesMetadataOnly"
+            - "RegistratorPublishesMetadataAndFiles"
+            - "RegistratorRequiresApprovalForMetadataAndFiles"
         id:
           type: "string"
           format: "uri"
@@ -495,7 +495,7 @@ components:
         type:
           type: "string"
           enum:
-          - "VocabularyList"
+            - "VocabularyList"
     CustomerIdentifier:
       maximum: 1
       minimum: 1
@@ -545,6 +545,6 @@ components:
           format: "uri"
         type:
           type: "string"
-        '@context':
+        "@context":
           type: "string"
           format: "uri"
