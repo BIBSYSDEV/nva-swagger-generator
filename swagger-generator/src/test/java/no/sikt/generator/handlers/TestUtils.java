@@ -13,7 +13,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import no.sikt.generator.Utils;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.attempt.Try;
@@ -51,7 +50,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 @SuppressWarnings("PMD.TestClassWithoutTestCases")
 public final class TestUtils {
 
-  private static OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
+  private static final OpenAPIV3Parser PARSER = new OpenAPIV3Parser();
 
   private TestUtils() {}
 
@@ -59,7 +58,7 @@ public final class TestUtils {
     var id = filename.substring(filename.lastIndexOf('/') + 1).split(".yaml")[0];
     var fileContentApiGateway = readResource(filename);
     var fileContentGithub = filenameGithub.map(Utils::readResource);
-    var openApi = openApiParser.readContents(fileContentApiGateway).getOpenAPI();
+    var openApi = PARSER.readContents(fileContentApiGateway).getOpenAPI();
     return new TestCase(id, openApi.getInfo().getTitle(), fileContentApiGateway, fileContentGithub);
   }
 
@@ -86,26 +85,47 @@ public final class TestUtils {
       String folder,
       List<Pair<String, Optional<String>>> fileNames) {
     var filePrefix = "openapi_docs/" + (isNull(folder) ? "" : folder + "/");
-    var testCases =
-        fileNames.stream()
-            .map(
-                fileName ->
-                    loadTestCase(
-                        filePrefix + fileName.getLeft(),
-                        fileName.getRight().map(fn -> filePrefix + fn)))
-            .toList();
+    var testCases = loadTestCases(filePrefix, fileNames);
 
+    uploadGithubFilesToS3(s3Client, testCases);
+    stubRestApis(apiGatewayAsyncClient, testCases);
+    stubStages(apiGatewayAsyncClient);
+    stubDocumentationParts(apiGatewayAsyncClient);
+    stubDocumentationVersions(apiGatewayAsyncClient);
+    stubExport(apiGatewayAsyncClient, filePrefix);
+    stubCloudFront(cloudFrontClient);
+  }
+
+  private static List<TestCase> loadTestCases(
+      String filePrefix, List<Pair<String, Optional<String>>> fileNames) {
+    return fileNames.stream()
+        .map(
+            fileName ->
+                loadTestCase(
+                    filePrefix + fileName.getLeft(),
+                    fileName.getRight().map(fn -> filePrefix + fn)))
+        .toList();
+  }
+
+  private static void uploadGithubFilesToS3(S3Client s3Client, List<TestCase> testCases) {
     var s3driver = new S3Driver(s3Client, readOpenApiBucketName());
     testCases.forEach(tc -> loadGithubOpenapiFile(s3driver, tc));
+  }
 
+  private static void stubRestApis(
+      ApiGatewayAsyncClient apiGatewayAsyncClient, List<TestCase> testCases) {
     var getRestApisResponse =
         GetRestApisResponse.builder()
-            .items(
-                testCases.stream()
-                    .map(TestUtils::buildRestApiFromTestCase)
-                    .collect(Collectors.toList()))
+            .items(testCases.stream().map(TestUtils::buildRestApiFromTestCase).toList())
             .build();
 
+    when(apiGatewayAsyncClient.getRestApis())
+        .thenReturn(CompletableFuture.completedFuture(getRestApisResponse));
+    when(apiGatewayAsyncClient.getRestApis(any(GetRestApisRequest.class)))
+        .thenReturn(CompletableFuture.completedFuture(getRestApisResponse));
+  }
+
+  private static void stubStages(ApiGatewayAsyncClient apiGatewayAsyncClient) {
     var getStagesResponse =
         GetStagesResponse.builder()
             .item(
@@ -113,7 +133,15 @@ public final class TestUtils {
                     Stage.builder().stageName("Prod").documentationVersion("doc1").build(),
                     Stage.builder().stageName("Stage").documentationVersion("doc1").build()))
             .build();
+    var updateStageResponse = UpdateStageResponse.builder().build();
 
+    when(apiGatewayAsyncClient.getStages(any(GetStagesRequest.class)))
+        .thenReturn(CompletableFuture.completedFuture(getStagesResponse));
+    when(apiGatewayAsyncClient.updateStage(any(UpdateStageRequest.class)))
+        .thenReturn(CompletableFuture.completedFuture(updateStageResponse));
+  }
+
+  private static void stubDocumentationParts(ApiGatewayAsyncClient apiGatewayAsyncClient) {
     var docPartLoc1 = DocumentationPartLocation.builder().name("loc1").path("/1").build();
     var docPartLoc2 = DocumentationPartLocation.builder().name("loc2").path("/2").build();
     var getDocPartsResponse =
@@ -136,22 +164,16 @@ public final class TestUtils {
                     .build())
             .build();
 
+    when(apiGatewayAsyncClient.getDocumentationParts(any(GetDocumentationPartsRequest.class)))
+        .thenReturn(CompletableFuture.completedFuture(getDocPartsResponse));
+  }
+
+  private static void stubDocumentationVersions(ApiGatewayAsyncClient apiGatewayAsyncClient) {
     var listDocumentationVersionsResponse = GetDocumentationVersionsResponse.builder().build();
     var createDocumentationVersionResponse = CreateDocumentationVersionResponse.builder().build();
     var deleteDocumentationVersionResponse = DeleteDocumentationVersionResponse.builder().build();
     var updateDocumentationVersionResponse = UpdateDocumentationVersionResponse.builder().build();
-    var updateStageResponse = UpdateStageResponse.builder().build();
 
-    when(apiGatewayAsyncClient.getRestApis())
-        .thenReturn(CompletableFuture.completedFuture(getRestApisResponse));
-    when(apiGatewayAsyncClient.getRestApis(any(GetRestApisRequest.class)))
-        .thenReturn(CompletableFuture.completedFuture(getRestApisResponse));
-    when(apiGatewayAsyncClient.getDocumentationParts(any(GetDocumentationPartsRequest.class)))
-        .thenReturn(CompletableFuture.completedFuture(getDocPartsResponse));
-    when(apiGatewayAsyncClient.getStages(any(GetStagesRequest.class)))
-        .thenReturn(CompletableFuture.completedFuture(getStagesResponse));
-    when(apiGatewayAsyncClient.updateStage(any(UpdateStageRequest.class)))
-        .thenReturn(CompletableFuture.completedFuture(updateStageResponse));
     when(apiGatewayAsyncClient.getDocumentationVersions(any(GetDocumentationVersionsRequest.class)))
         .thenReturn(CompletableFuture.completedFuture(listDocumentationVersionsResponse));
     when(apiGatewayAsyncClient.createDocumentationVersion(
@@ -163,7 +185,9 @@ public final class TestUtils {
     when(apiGatewayAsyncClient.updateDocumentationVersion(
             any(UpdateDocumentationVersionRequest.class)))
         .thenReturn(CompletableFuture.completedFuture(updateDocumentationVersionResponse));
+  }
 
+  private static void stubExport(ApiGatewayAsyncClient apiGatewayAsyncClient, String filePrefix) {
     when(apiGatewayAsyncClient.getExport(any(GetExportRequest.class)))
         .thenAnswer(
             invocation -> {
@@ -173,7 +197,9 @@ public final class TestUtils {
               var response = GetExportResponse.builder().body(sdkBody).build();
               return CompletableFuture.completedFuture(response);
             });
+  }
 
+  private static void stubCloudFront(CloudFrontClient cloudFrontClient) {
     var createInvalidationResponse = CreateInvalidationResponse.builder().build();
     when(cloudFrontClient.createInvalidation(any(CreateInvalidationRequest.class)))
         .thenReturn(createInvalidationResponse);
