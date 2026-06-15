@@ -1,7 +1,6 @@
 package no.sikt.generator;
 
 import java.util.function.Supplier;
-import javax.validation.constraints.NotNull;
 import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
 import software.amazon.awssdk.services.cloudfront.model.CreateInvalidationRequest;
 
@@ -27,7 +26,6 @@ public class CloudFrontHighLevelClient {
         }
     }
 
-    @NotNull
     private static String getCallerReference() {
         return "swagger-generator-" + System.currentTimeMillis();
     }
