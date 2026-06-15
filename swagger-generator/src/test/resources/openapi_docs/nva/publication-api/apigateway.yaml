@@ -405,8 +405,8 @@ paths:
         - name: "doNotRedirect"
           in: "query"
           description: "If fetching a deleted / unpublished publication, the response\
-          \ code will be 410, instead of 301. A non deleted / non-unpublished will\
-          \ respond as if the query param was not set."
+            \ code will be 410, instead of 301. A non deleted / non-unpublished will\
+            \ respond as if the query param was not set."
           schema:
             type: "string"
         - name: "publicationIdentifier"
@@ -1437,13 +1437,13 @@ components:
             allowedOperations:
               type: "array"
               description: "Returns a list of allowed operations for the current user\
-              \ on the publication if a bearer token is provided. Otherwise the list\
-              \ will be empty\n  * update - Can edit the publication. Accessed though\
-              \ PUT  \n  * delete - Permanently delete. Accessed though DELETE  \n\
-              \  * terminate - Can mark publication as deleted and remove associated\
-              \ files. Accessed though PUT\n  * unpublish - Can change published publication\
-              \ status to unpublished. Accessed though PUT\n  * ticket/publish - Allowed\
-              \ to approve a PublishingRequest ticket\n"
+                \ on the publication if a bearer token is provided. Otherwise the list\
+                \ will be empty\n  * update - Can edit the publication. Accessed though\
+                \ PUT  \n  * delete - Permanently delete. Accessed though DELETE  \n\
+                \  * terminate - Can mark publication as deleted and remove associated\
+                \ files. Accessed though PUT\n  * unpublish - Can change published publication\
+                \ status to unpublished. Accessed though PUT\n  * ticket/publish - Allowed\
+                \ to approve a PublishingRequest ticket\n"
               items:
                 type: "string"
                 enum:

@@ -974,7 +974,7 @@ paths:
         - name: "user"
           in: "query"
           description: "A person's username in Cristin together with the institution\
-          \ id separated by ':'"
+            \ id separated by ':'"
           schema:
             type: "string"
         - name: "funding_source"
@@ -1000,9 +1000,9 @@ paths:
         - name: "levels"
           in: "query"
           description: "How many levels down from 'parent_unit_id' will be included\
-          \ in the search.'levels=1' will return projects registered to 'parent_unit_id'.\
-          \ 'levels' can also be used by itself to search for all projects registered\
-          \ to a known cristin unit down to the given level."
+            \ in the search.'levels=1' will return projects registered to 'parent_unit_id'.\
+            \ 'levels' can also be used by itself to search for all projects registered\
+            \ to a known cristin unit down to the given level."
           schema:
             type: "string"
         - name: "approved_by"
@@ -1013,8 +1013,8 @@ paths:
         - name: "keyword"
           in: "query"
           description: "Keyword search. '?keyword=wind energy' makes a search for projects\
-          \ with keywords equal to or a substring of 'wind energy'. keyword can be\
-          \ used more than once"
+            \ with keywords equal to or a substring of 'wind energy'. keyword can be\
+            \ used more than once"
           schema:
             type: "string"
         - name: "project_manager"
@@ -1041,13 +1041,13 @@ paths:
         - name: "participant"
           in: "query"
           description: "Cristin id, name or part of the name of a participant of the\
-          \ project. 'participant' can be used more than once."
+            \ project. 'participant' can be used more than once."
           schema:
             type: "string"
         - name: "sort"
           in: "query"
           description: "Sorts on 'start_date' and/or 'end_date'. See Search and sort.\
-          \ Default sort order is on 'cristin_project_id' in ascending order."
+            \ Default sort order is on 'cristin_project_id' in ascending order."
           schema:
             type: "string"
         - name: "page"
@@ -1063,13 +1063,13 @@ paths:
         - name: "institution"
           in: "query"
           description: "Cristin id, acronym, name, or part of the name of the coordinating\
-          \ institution"
+            \ institution"
           schema:
             type: "string"
         - name: "modified_since"
           in: "query"
           description: "Only projects that have been modified since this date will be\
-          \ returned. Format YYYY-MM-DD"
+            \ returned. Format YYYY-MM-DD"
           schema:
             type: "string"
         - name: "biobank"
@@ -1080,7 +1080,7 @@ paths:
         - name: "funding"
           in: "query"
           description: "Funding source code e.g. NFR, and project_code together separated\
-          \ by ':'"
+            \ by ':'"
           schema:
             type: "string"
       responses:
@@ -1341,7 +1341,7 @@ paths:
         - name: "orgId"
           in: "path"
           description: "Identifier of Organization. Sub unit will be converted to parent\
-          \ institution"
+            \ institution"
           required: true
           schema:
             type: "string"
@@ -1408,7 +1408,7 @@ paths:
         - name: "orgId"
           in: "path"
           description: "Identifier of Organization. Sub unit will be converted to parent\
-          \ institution"
+            \ institution"
           required: true
           schema:
             type: "string"
@@ -1442,7 +1442,7 @@ paths:
         - name: "orgId"
           in: "path"
           description: "Identifier of Organization. Sub unit will be converted to parent\
-          \ institution"
+            \ institution"
           required: true
           schema:
             type: "string"
@@ -1674,7 +1674,7 @@ paths:
         - name: "user"
           in: "query"
           description: "A person's username in Cristin together with the institution\
-          \ id separated by ':'"
+            \ id separated by ':'"
           schema:
             type: "string"
         - name: "funding_source"
@@ -1690,9 +1690,9 @@ paths:
         - name: "levels"
           in: "query"
           description: "How many levels down from 'parent_unit_id' will be included\
-          \ in the search.'levels=1' will return projects registered to 'parent_unit_id'.\
-          \ 'levels' can also be used by itself to search for all projects registered\
-          \ to a known cristin unit down to the given level."
+            \ in the search.'levels=1' will return projects registered to 'parent_unit_id'.\
+            \ 'levels' can also be used by itself to search for all projects registered\
+            \ to a known cristin unit down to the given level."
           schema:
             type: "string"
         - name: "approved_by"
@@ -1703,8 +1703,8 @@ paths:
         - name: "keyword"
           in: "query"
           description: "Keyword search. '?keyword=wind energy' makes a search for projects\
-          \ with keywords equal to or a substring of 'wind energy'. keyword can be\
-          \ used more than once"
+            \ with keywords equal to or a substring of 'wind energy'. keyword can be\
+            \ used more than once"
           schema:
             type: "string"
         - name: "project_manager"
@@ -1720,13 +1720,13 @@ paths:
         - name: "participant"
           in: "query"
           description: "Cristin id, name or part of the name of a participant of the\
-          \ project. 'participant' can be used more than once."
+            \ project. 'participant' can be used more than once."
           schema:
             type: "string"
         - name: "sort"
           in: "query"
           description: "Sorts on 'start_date' and/or 'end_date'. See Search and sort.\
-          \ Default sort order is on 'cristin_project_id' in ascending order."
+            \ Default sort order is on 'cristin_project_id' in ascending order."
           schema:
             type: "string"
         - name: "page"
@@ -1742,13 +1742,13 @@ paths:
         - name: "institution"
           in: "query"
           description: "Cristin id, acronym, name, or part of the name of the coordinating\
-          \ institution"
+            \ institution"
           schema:
             type: "string"
         - name: "modified_since"
           in: "query"
           description: "Only projects that have been modified since this date will be\
-          \ returned. Format YYYY-MM-DD"
+            \ returned. Format YYYY-MM-DD"
           schema:
             type: "string"
         - name: "biobank"
@@ -1759,7 +1759,7 @@ paths:
         - name: "funding"
           in: "query"
           description: "Funding source code e.g. NFR, and project_code together separated\
-          \ by ':'"
+            \ by ':'"
           schema:
             type: "string"
       responses:
@@ -1878,7 +1878,7 @@ components:
           description: "The list of position codes returned by the service"
           items:
             $ref: "#/components/schemas/PositionCode"
-        '@context':
+        "@context":
           $ref: "#/components/schemas/Context"
     Organization:
       type: "object"
@@ -1947,7 +1947,7 @@ components:
           pattern: "https:\\/\\/.*$"
           type: "string"
           description: "URI to the next page in the query results"
-        '@context':
+        "@context":
           $ref: "#/components/schemas/Context"
         processingTime:
           type: "integer"
@@ -1997,7 +1997,7 @@ components:
           pattern: "https:\\/\\/.*$"
           type: "string"
           description: "URI to the next page in the query results"
-        '@context':
+        "@context":
           $ref: "#/components/schemas/Context"
         processingTime:
           type: "integer"
@@ -2032,7 +2032,7 @@ components:
           pattern: "https:\\/\\/.*$"
           type: "string"
           description: "URI to the next page in the query results"
-        '@context':
+        "@context":
           $ref: "#/components/schemas/Context"
         processingTime:
           type: "integer"
@@ -2087,7 +2087,7 @@ components:
           pattern: "Project"
           type: "string"
           description: "The type of the returned object, always Project"
-        '@context':
+        "@context":
           $ref: "#/components/schemas/Context"
         startDate:
           type: "string"
@@ -2124,7 +2124,7 @@ components:
         type:
           type: "string"
           description: "Always FundingSources"
-        '@context':
+        "@context":
           $ref: "#/components/schemas/Context"
     PositionCode:
       type: "object"
@@ -2257,7 +2257,7 @@ components:
           pattern: "https:\\/\\/.*$"
           type: "string"
           description: "URI to the next page in the query results"
-        '@context':
+        "@context":
           $ref: "#/components/schemas/Context"
         processingTime:
           type: "integer"
@@ -2271,7 +2271,7 @@ components:
           description: "Phone at this organization"
         id:
           $ref: "#/components/schemas/Id"
-        '@context':
+        "@context":
           $ref: "#/components/schemas/Context"
         email:
           type: "string"
@@ -2406,7 +2406,7 @@ components:
         published:
           type: "boolean"
           description: "If the project is published in Cristin"
-        '@context':
+        "@context":
           $ref: "#/components/schemas/Context"
         relatedProjects:
           type: "array"
@@ -2494,7 +2494,7 @@ components:
           pattern: "https:\\/\\/.*$"
           type: "string"
           description: "URI to the next page in the query results"
-        '@context':
+        "@context":
           $ref: "#/components/schemas/Context"
         processingTime:
           type: "integer"
@@ -2568,7 +2568,7 @@ components:
           pattern: "https:\\/\\/.*$"
           type: "string"
           description: "URI to the next page in the query results"
-        '@context':
+        "@context":
           $ref: "#/components/schemas/Context"
         processingTime:
           type: "integer"
@@ -2663,7 +2663,7 @@ components:
               pattern: "\\+?\\d+"
               type: "string"
           description: "Contact information"
-        '@context':
+        "@context":
           $ref: "#/components/schemas/Context"
     ProjectPatch:
       type: "object"

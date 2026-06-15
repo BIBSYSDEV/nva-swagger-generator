@@ -3,10 +3,10 @@ info:
   title: "NVA S3 Multipart Upload"
   version: "1.0"
 servers:
-- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
-  variables:
-    basePath:
-      default: "/upload"
+  - url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+    variables:
+      basePath:
+        default: "/upload"
 paths:
   /create:
     post:
@@ -36,10 +36,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/createUploadResponseBody"
       security:
-      - CognitoUserPool:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
     options:
       responses:
         "200":
@@ -83,10 +83,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/prepareUploadPartResponseBody"
       security:
-      - CognitoUserPool:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
     options:
       responses:
         "200":
@@ -130,10 +130,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/MODELa280c7"
       security:
-      - CognitoUserPool:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
     options:
       responses:
         "200":
@@ -177,10 +177,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/MODELfdf315"
       security:
-      - CognitoUserPool:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
     options:
       responses:
         "200":
@@ -224,10 +224,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/listPartsResponseBody"
       security:
-      - CognitoUserPool:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
     options:
       responses:
         "200":
@@ -248,8 +248,8 @@ components:
     createUploadRequestBody:
       title: "create multipart upload"
       required:
-      - "filename"
-      - "size"
+        - "filename"
+        - "size"
       type: "object"
       properties:
         filename:
@@ -305,8 +305,8 @@ components:
     abortUploadRequestBody:
       title: "Abort (multipart) upload"
       required:
-      - "key"
-      - "uploadId"
+        - "key"
+        - "uploadId"
       type: "object"
       properties:
         uploadId:
@@ -321,8 +321,8 @@ components:
     listPartsRequestBody:
       title: "List parts already uploaded"
       required:
-      - "key"
-      - "uploadId"
+        - "key"
+        - "uploadId"
       type: "object"
       properties:
         uploadId:
@@ -350,8 +350,8 @@ components:
     prepareUploadPartRequestBody:
       title: "List parts already uploaded"
       required:
-      - "key"
-      - "uploadId"
+        - "key"
+        - "uploadId"
       type: "object"
       properties:
         number:
@@ -372,9 +372,9 @@ components:
     completeUploadRequestBody:
       title: "Complete and finalize (multipart) upload"
       required:
-      - "key"
-      - "parts"
-      - "uploadId"
+        - "key"
+        - "parts"
+        - "uploadId"
       type: "object"
       properties:
         uploadId:

@@ -3,10 +3,10 @@ info:
   title: "NVA Courses API"
   version: "1.0.0"
 servers:
-- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
-  variables:
-    basePath:
-      default: "/courses"
+  - url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+    variables:
+      basePath:
+        default: "/courses"
 paths:
   /:
     get:
@@ -24,10 +24,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
       security:
-      - CognitoUserPool:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
+        - CognitoUserPool:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
 components:
   schemas:
     MODEL132e1d:

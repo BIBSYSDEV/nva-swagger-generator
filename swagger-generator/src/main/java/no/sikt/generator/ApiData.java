@@ -4,6 +4,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static no.sikt.generator.ApplicationConstants.DOMAIN;
 import static no.sikt.generator.ApplicationConstants.EXCLUDED_APIS;
+
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import java.util.HashMap;
@@ -21,138 +22,165 @@ import software.amazon.awssdk.services.s3.model.S3Object;
 
 public class ApiData {
 
-    private final RestApi awsRestApi;
-    private final OpenAPI openapiApiGateway;
-    private final String rawYaml;
-    private final Stage stage;
-    private static final Logger logger = LoggerFactory.getLogger(ApiData.class);
-    private OpenAPI openapiApiGithub;
+  private final RestApi awsRestApi;
+  private final OpenAPI openapiApiGateway;
+  private final String rawYaml;
+  private final Stage stage;
+  private static final Logger logger = LoggerFactory.getLogger(ApiData.class);
+  private OpenAPI openapiApiGithub;
 
-    public ApiData(RestApi awsRestApi, OpenAPI openapiApiGateway, String rawYaml, Stage stage) {
-        this.awsRestApi = awsRestApi;
-        this.openapiApiGateway = openapiApiGateway;
-        this.rawYaml = rawYaml;
-        this.stage = stage;
+  public ApiData(RestApi awsRestApi, OpenAPI openapiApiGateway, String rawYaml, Stage stage) {
+    this.awsRestApi = awsRestApi;
+    this.openapiApiGateway = openapiApiGateway;
+    this.rawYaml = rawYaml;
+    this.stage = stage;
+  }
+
+  public RestApi getAwsRestApi() {
+    return awsRestApi;
+  }
+
+  public OpenAPI getOpenapi() {
+    return openapiApiGateway;
+  }
+
+  public String getName() {
+    return awsRestApi.name();
+  }
+
+  public String getRawYaml() {
+    return rawYaml;
+  }
+
+  public String getCurrentDocVersion() {
+    return stage.documentationVersion();
+  }
+
+  public boolean hasCorrectDomain() {
+    return openapiApiGateway.getServers().stream()
+        .anyMatch(server -> server.getUrl().contains(DOMAIN));
+  }
+
+  public int getDashesInPath() {
+    return Try.attempt(this::getNumberOfDashesInBasePath).orElse(this::handleGetDashesFailure);
+  }
+
+  private Optional<OpenAPI> getOpenapiApiGithub() {
+    return Optional.ofNullable(openapiApiGithub);
+  }
+
+  public void setMatchingGithubOpenapi(List<Pair<S3Object, OpenAPI>> templateOpenapiDocs) {
+    var title = this.openapiApiGateway.getInfo().getTitle();
+    var matchingGithubOpenApi =
+        templateOpenapiDocs.stream()
+            .filter(
+                templateOpenapiDoc ->
+                    templateOpenapiDoc.getRight().getInfo().getTitle().equals(title))
+            .findFirst();
+    if (matchingGithubOpenApi.isPresent()) {
+      logger.info(
+          "Using matching github openapi at "
+              + matchingGithubOpenApi.get().getLeft().key()
+              + " for "
+              + title);
+      this.openapiApiGithub = matchingGithubOpenApi.get().getRight();
+    } else {
+      logger.warn("No matching github openapi found for " + title);
     }
+  }
 
-    public RestApi getAwsRestApi() {
-        return awsRestApi;
+  public ApiData applyEmptySchemasIfNull() {
+    if (isNull(this.openapiApiGateway.getComponents())) {
+      this.openapiApiGateway.setComponents(new Components());
     }
-
-    public OpenAPI getOpenapi() {
-        return openapiApiGateway;
+    if (isNull(this.openapiApiGateway.getComponents().getSchemas())) {
+      this.openapiApiGateway.getComponents().setSchemas(new HashMap<>());
     }
+    return this;
+  }
 
-    public String getName() {
-        return awsRestApi.name();
-    }
-
-    public String getRawYaml() {
-        return rawYaml;
-    }
-
-    public String getCurrentDocVersion() {
-        return stage.documentationVersion();
-    }
-
-    public boolean hasCorrectDomain() {
-        return openapiApiGateway.getServers().stream().anyMatch(server -> server.getUrl().contains(DOMAIN));
-    }
-
-    public int getDashesInPath() {
-        return Try.attempt(this::getNumberOfDashesInBasePath).orElse(this::handleGetDashesFailure);
-    }
-
-    private Optional<OpenAPI> getOpenapiApiGithub() {
-        return Optional.ofNullable(openapiApiGithub);
-    }
-
-    public void setMatchingGithubOpenapi(List<Pair<S3Object, OpenAPI>> templateOpenapiDocs) {
-        var title = this.openapiApiGateway.getInfo().getTitle();
-        var matchingGithubOpenApi = templateOpenapiDocs.stream()
-                                        .filter(templateOpenapiDoc -> templateOpenapiDoc.getRight()
-                                                                          .getInfo()
-                                                                          .getTitle()
-                                                                          .equals(title))
-                                        .findFirst();
-        if (matchingGithubOpenApi.isPresent()) {
-            logger.info("Using matching github openapi at "
-                        + matchingGithubOpenApi.get().getLeft().key()+ " for " + title);
-            this.openapiApiGithub = matchingGithubOpenApi.get().getRight();
-        } else {
-            logger.warn("No matching github openapi found for " + title);
-        }
-    }
-
-    public ApiData applyEmptySchemasIfNull() {
-        if (isNull(this.openapiApiGateway.getComponents())) {
-            this.openapiApiGateway.setComponents(new Components());
-        }
-        if (isNull(this.openapiApiGateway.getComponents().getSchemas())) {
-            this.openapiApiGateway.getComponents().setSchemas(new HashMap<>());
-        }
-        return this;
-    }
-
-    public ApiData overridePropsFromGithub() {
-        var openApiGithub = getOpenapiApiGithub();
-        if (openApiGithub.isPresent()) {
-            this.openapiApiGateway.getPaths().forEach((pathKey, pathItem) -> {
-                pathItem.readOperationsMap().forEach((httpMethod, operation) -> {
-                    if (nonNull(operation.getParameters())) {
-                        operation.getParameters().forEach(parameter -> {
-                            var operationInGithub =
-                                Optional.ofNullable(openApiGithub.get().getPaths().get(pathKey).readOperationsMap()
-                                                                             .get(httpMethod));
-                            operationInGithub.ifPresent(value -> operation.setParameters(value.getParameters()));
+  public ApiData overridePropsFromGithub() {
+    var openApiGithub = getOpenapiApiGithub();
+    if (openApiGithub.isPresent()) {
+      this.openapiApiGateway
+          .getPaths()
+          .forEach(
+              (pathKey, pathItem) -> {
+                pathItem
+                    .readOperationsMap()
+                    .forEach(
+                        (httpMethod, operation) -> {
+                          if (nonNull(operation.getParameters())) {
+                            operation
+                                .getParameters()
+                                .forEach(
+                                    parameter -> {
+                                      var operationInGithub =
+                                          Optional.ofNullable(
+                                              openApiGithub
+                                                  .get()
+                                                  .getPaths()
+                                                  .get(pathKey)
+                                                  .readOperationsMap()
+                                                  .get(httpMethod));
+                                      operationInGithub.ifPresent(
+                                          value -> operation.setParameters(value.getParameters()));
+                                    });
+                          }
                         });
-                    }
+              });
+      if (nonNull(openApiGithub.get().getComponents())
+          && nonNull(openApiGithub.get().getComponents().getSchemas())) {
+        openApiGithub
+            .get()
+            .getComponents()
+            .getSchemas()
+            .forEach(
+                (key, value) -> {
+                  logger.info("Setting schema {} from GitHub", key);
+                  this.openapiApiGateway.getComponents().getSchemas().put(key, value);
                 });
-            });
-            if (nonNull(openApiGithub.get().getComponents())
-                && nonNull(openApiGithub.get().getComponents().getSchemas())
-            ) {
-                openApiGithub.get().getComponents().getSchemas().forEach((key,value) -> {
-                    logger.info("Setting schema {} from GitHub", key);
-                    this.openapiApiGateway.getComponents().getSchemas().put(key, value);
-                });
-            }
-
-        }
-        return this;
+      }
     }
+    return this;
+  }
 
-    @JacocoGenerated
-    private int handleGetDashesFailure(Failure failure) {
-        logger.info("Using default dashes 0");
-        logger.info(failure.getException().toString());
-        return 0;
-    }
+  @JacocoGenerated
+  private int handleGetDashesFailure(Failure failure) {
+    logger.info("Using default dashes 0");
+    logger.info(failure.getException().toString());
+    return 0;
+  }
 
-    private int getNumberOfDashesInBasePath() {
-        return (int) openapiApiGateway.getServers()
-                         .get(0)
-                         .getVariables()
-                         .get("basePath")
-                         .getDefault()
-                         .chars()
-                         .filter(c -> c == '-')
-                         .count();
-    }
+  private int getNumberOfDashesInBasePath() {
+    return (int)
+        openapiApiGateway
+            .getServers()
+            .get(0)
+            .getVariables()
+            .get("basePath")
+            .getDefault()
+            .chars()
+            .filter(c -> c == '-')
+            .count();
+  }
 
-    public boolean isOnExcludeList() {
-        return EXCLUDED_APIS.stream().anyMatch(e -> e.equals(awsRestApi.name()));
-    }
+  public boolean isOnExcludeList() {
+    return EXCLUDED_APIS.stream().anyMatch(e -> e.equals(awsRestApi.name()));
+  }
 
-    public static int sortByDate(ApiData apiData, ApiData otherApiData) {
-        return otherApiData.getAwsRestApi().createdDate().compareTo(apiData.getAwsRestApi().createdDate());
-    }
+  public static int sortByDate(ApiData apiData, ApiData otherApiData) {
+    return otherApiData
+        .getAwsRestApi()
+        .createdDate()
+        .compareTo(apiData.getAwsRestApi().createdDate());
+  }
 
-    public static int sortByDashes(ApiData apiData, ApiData otherApiData) {
-        return Integer.compare(apiData.getDashesInPath(),otherApiData.getDashesInPath());
-    }
+  public static int sortByDashes(ApiData apiData, ApiData otherApiData) {
+    return Integer.compare(apiData.getDashesInPath(), otherApiData.getDashesInPath());
+  }
 
-    public static int sortByName(ApiData apiData, ApiData otherApiData) {
-        return apiData.getName().compareTo(otherApiData.getName());
-    }
+  public static int sortByName(ApiData apiData, ApiData otherApiData) {
+    return apiData.getName().compareTo(otherApiData.getName());
+  }
 }

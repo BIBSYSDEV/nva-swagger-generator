@@ -3,20 +3,20 @@ info:
   title: "DLR LaunchCanvas API"
   version: "1.0"
 servers:
-- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
-  variables:
-    basePath:
-      default: "/lms"
+  - url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+    variables:
+      basePath:
+        default: "/lms"
 paths:
   /lti/canvas/{serviceId}:
     get:
       operationId: "ltiLaunch"
       parameters:
-      - name: "serviceId"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "serviceId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
           description: "200 response"
@@ -48,9 +48,9 @@ components:
       type: "object"
     Error:
       required:
-      - "detail"
-      - "status"
-      - "title"
+        - "detail"
+        - "status"
+        - "title"
       type: "object"
       properties:
         detail:

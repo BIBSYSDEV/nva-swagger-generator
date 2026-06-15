@@ -18,11 +18,10 @@ paths:
         - name: "category"
           in: "query"
           description: "Returns documents with this category code, only one category\
-          \ code is allowed."
+            \ code is allowed."
           schema:
             type: "string"
       responses:
-
         "200":
           description: "OK"
           content:

@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   Swagger Documentation Generator
@@ -26,7 +26,7 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<CommaDelimitedList>
     Default: CognitoAuthorizerUrls
   ApiDomain:
-    Type: 'AWS::SSM::Parameter::Value<String>'
+    Type: "AWS::SSM::Parameter::Value<String>"
     Description: The Api domain
     Default: /NVA/ApiDomain
 
@@ -55,20 +55,20 @@ Resources:
       Type: String
       Value:
         Fn::Sub:
-          - 'Basic ${B64}'
+          - "Basic ${B64}"
           - B64:
               Fn::Base64:
                 Fn::Join:
-                 - ':'
-                 - - !Ref InternalSwaggerUsername
-                   - !Ref InternalSwaggerPassword
+                  - ":"
+                  - - !Ref InternalSwaggerUsername
+                    - !Ref InternalSwaggerPassword
 
   SwaggerGeneratorRole:
     Type: AWS::IAM::Role
     Properties:
       Path: /
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
@@ -85,7 +85,7 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*"
         - PolicyName: readWriteApigateway
           PolicyDocument:
             Version: 2012-10-17
@@ -96,7 +96,7 @@ Resources:
                   - apigateway:POST
                   - apigateway:PATCH
                   - apigateway:DELETE
-                Resource: '*'
+                Resource: "*"
         - PolicyName: readWriteS3Output
           PolicyDocument:
             Version: "2012-10-17"
@@ -108,13 +108,13 @@ Resources:
                   - s3:PutObject
                   - s3:DeleteObject
                 Resource:
-                  - !Sub 'arn:aws:s3:::${InternalSwaggerUiBucket}'
-                  - !Sub 'arn:aws:s3:::${InternalSwaggerUiBucket}/*'
-                  - !Sub 'arn:aws:s3:::${ExternalSwaggerUiBucket}'
-                  - !Sub 'arn:aws:s3:::${ExternalSwaggerUiBucket}/*'
+                  - !Sub "arn:aws:s3:::${InternalSwaggerUiBucket}"
+                  - !Sub "arn:aws:s3:::${InternalSwaggerUiBucket}/*"
+                  - !Sub "arn:aws:s3:::${ExternalSwaggerUiBucket}"
+                  - !Sub "arn:aws:s3:::${ExternalSwaggerUiBucket}/*"
         - PolicyName: OpenapidocsBucket
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Action:
                   - s3:GetObject
@@ -123,8 +123,8 @@ Resources:
                   - s3:ListObjectsV2
                 Effect: Allow
                 Resource:
-                  - !Sub 'arn:aws:s3:::${OpenApiDocsBucket}'
-                  - !Sub 'arn:aws:s3:::${OpenApiDocsBucket}/*'
+                  - !Sub "arn:aws:s3:::${OpenApiDocsBucket}"
+                  - !Sub "arn:aws:s3:::${OpenApiDocsBucket}/*"
         - PolicyName: invalidateCloudFront
           PolicyDocument:
             Version: "2012-10-17"
@@ -133,7 +133,7 @@ Resources:
                 Action:
                   - cloudfront:CreateInvalidation
                 Resource:
-                  - '*'
+                  - "*"
 
   AuthenticateInternalSwaggerUIRole:
     Type: AWS::IAM::Role
@@ -157,19 +157,19 @@ Resources:
                 Action:
                   - "s3:GetObject"
                 Resource:
-                  - !Sub 'arn:aws:s3:::${InternalSwaggerUiBucket}'
-                  - !Sub 'arn:aws:s3:::${InternalSwaggerUiBucket}/*'
+                  - !Sub "arn:aws:s3:::${InternalSwaggerUiBucket}"
+                  - !Sub "arn:aws:s3:::${InternalSwaggerUiBucket}/*"
 
   ExternalSwaggerUiBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub 'nva-swagger-ui-external-${AWS::AccountId}'
+      BucketName: !Sub "nva-swagger-ui-external-${AWS::AccountId}"
       WebsiteConfiguration:
         IndexDocument: "index.html"
   InternalSwaggerUiBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub 'nva-swagger-ui-internal-${AWS::AccountId}'
+      BucketName: !Sub "nva-swagger-ui-internal-${AWS::AccountId}"
       WebsiteConfiguration:
         IndexDocument: "index.html"
 
@@ -185,7 +185,7 @@ Resources:
             Effect: Allow
             Principal:
               CanonicalUser: !GetAtt ExternalOriginAccessIdentity.S3CanonicalUserId
-            Action: 's3:GetObject'
+            Action: "s3:GetObject"
             Resource: !Sub arn:aws:s3:::${ExternalSwaggerUiBucket}/*
 
   InternalSwaggerUiBucketPolicy:
@@ -200,7 +200,7 @@ Resources:
             Effect: Allow
             Principal:
               CanonicalUser: !GetAtt InternalOriginAccessIdentity.S3CanonicalUserId
-            Action: 's3:GetObject'
+            Action: "s3:GetObject"
             Resource: !Sub arn:aws:s3:::${InternalSwaggerUiBucket}/*
 
   CleanupExternalBucketOnDelete:
@@ -228,13 +228,12 @@ Resources:
       - InternalSwaggerUiBucket
     Properties:
       Code:
-        ZipFile:
-          !Sub |
+        ZipFile: !Sub |
           import json, boto3, logging
           import cfnresponse
           logger = logging.getLogger()
           logger.setLevel(logging.INFO)
-          
+
           def lambda_handler(event, context):
               logger.info("event: {}".format(event))
               try:
@@ -246,12 +245,12 @@ Resources:
                       for obj in bucket.objects.filter():
                           logger.info("delete obj: {}".format(obj))
                           s3.Object(bucket.name, obj.key).delete()
-          
+
                   sendResponseCfn(event, context, cfnresponse.SUCCESS)
               except Exception as e:
                   logger.info("Exception: {}".format(e))
                   sendResponseCfn(event, context, cfnresponse.FAILED)
-          
+
           def sendResponseCfn(event, context, responseStatus):
               responseData = {}
               responseData['Data'] = {}
@@ -337,11 +336,11 @@ Resources:
       FunctionCode: !Sub |
         function handler(event) {
           var authHeaders = event.request.headers.authorization;
-        
+
           // The Base64-encoded Auth string that should be present.
           // It is an encoding of `Basic base64([username]:[password])`
           var expected = '${InternalSwaggerUIBase64Auth.Value}'
-        
+
           if (authHeaders && authHeaders.value === expected) {
             return event.request;
           }
@@ -355,25 +354,25 @@ Resources:
               },
             },
           };
-        
+
           return response;
         }
 
       FunctionConfig:
-        Comment: !Sub 'Authentication for internal swagger ui'
+        Comment: !Sub "Authentication for internal swagger ui"
         Runtime: cloudfront-js-1.0
 
   InternalOriginAccessIdentity:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
       CloudFrontOriginAccessIdentityConfig:
-        Comment: !Sub 'CloudFront swagger-ui-internal.${CustomDomain}}'
+        Comment: !Sub "CloudFront swagger-ui-internal.${CustomDomain}}"
 
   ExternalOriginAccessIdentity:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
       CloudFrontOriginAccessIdentityConfig:
-        Comment: !Sub 'CloudFront swagger-ui.${CustomDomain}}'
+        Comment: !Sub "CloudFront swagger-ui.${CustomDomain}}"
 
   CustomDomainCloudfrontDistribution:
     Type: AWS::CloudFront::Distribution
@@ -382,41 +381,41 @@ Resources:
         CustomErrorResponses:
           - ErrorCode: 403
             ResponseCode: 403
-            ResponsePagePath: '/index.html'
+            ResponsePagePath: "/index.html"
         DefaultCacheBehavior:
           ForwardedValues:
             QueryString: true
-          TargetOriginId: 'swagger-ui-bucket-external'
+          TargetOriginId: "swagger-ui-bucket-external"
           ViewerProtocolPolicy: redirect-to-https
           ResponseHeadersPolicyId: !Ref ResponseHeadersPolicy
         DefaultRootObject: index.html
         Enabled: true
-        Comment: !Sub 'Swagger-ui-external ${AWS::StackName}'
+        Comment: !Sub "Swagger-ui-external ${AWS::StackName}"
         Aliases:
-          - !Sub 'swagger-ui.${CustomDomain}'
+          - !Sub "swagger-ui.${CustomDomain}"
         Origins:
-          - Id: 'swagger-ui-bucket-external'
+          - Id: "swagger-ui-bucket-external"
             DomainName: !Sub "${ExternalSwaggerUiBucket}.s3.${AWS::Region}.amazonaws.com"
             S3OriginConfig:
               OriginAccessIdentity:
-                !Join ['', ['origin-access-identity/cloudfront/', !Ref ExternalOriginAccessIdentity]]
+                !Join ["", ["origin-access-identity/cloudfront/", !Ref ExternalOriginAccessIdentity]]
         ViewerCertificate:
           AcmCertificateArn: !Ref SwaggerDomainCertificateArn
-          SslSupportMethod: 'sni-only'
+          SslSupportMethod: "sni-only"
           MinimumProtocolVersion: TLSv1.2_2021
 
   ResponseHeadersPolicy:
-   Type: AWS::CloudFront::ResponseHeadersPolicy
-   Properties:
-     ResponseHeadersPolicyConfig:
-       Name: HSTS-Header-Policy
-       Comment: Policy for adding HSTS header
-       SecurityHeadersConfig:
-         StrictTransportSecurity:
-           AccessControlMaxAgeSec: 63072000
-           IncludeSubdomains: true
-           Preload: true
-           Override: false
+    Type: AWS::CloudFront::ResponseHeadersPolicy
+    Properties:
+      ResponseHeadersPolicyConfig:
+        Name: HSTS-Header-Policy
+        Comment: Policy for adding HSTS header
+        SecurityHeadersConfig:
+          StrictTransportSecurity:
+            AccessControlMaxAgeSec: 63072000
+            IncludeSubdomains: true
+            Preload: true
+            Override: false
 
   InternalCloudfrontDistribution:
     Type: AWS::CloudFront::Distribution
@@ -425,11 +424,11 @@ Resources:
         CustomErrorResponses:
           - ErrorCode: 403
             ResponseCode: 403
-            ResponsePagePath: '/index.html'
+            ResponsePagePath: "/index.html"
         DefaultCacheBehavior:
           ForwardedValues:
             QueryString: true
-          TargetOriginId: 'swagger-ui-bucket-internal'
+          TargetOriginId: "swagger-ui-bucket-internal"
           ViewerProtocolPolicy: redirect-to-https
           ResponseHeadersPolicyId: !Ref ResponseHeadersPolicy
           FunctionAssociations:
@@ -437,16 +436,16 @@ Resources:
               FunctionARN: !GetAtt AuthenticateInternalSwaggerUIHandler.FunctionMetadata.FunctionARN
         DefaultRootObject: index.html
         Enabled: true
-        Comment: !Sub 'Swagger-ui-internal ${AWS::StackName}'
+        Comment: !Sub "Swagger-ui-internal ${AWS::StackName}"
         Aliases:
-          - !Sub 'swagger-ui-internal.${CustomDomain}'
+          - !Sub "swagger-ui-internal.${CustomDomain}"
         Origins:
-          - Id: 'swagger-ui-bucket-internal'
+          - Id: "swagger-ui-bucket-internal"
             DomainName: !Sub "${InternalSwaggerUiBucket}.s3.${AWS::Region}.amazonaws.com"
             S3OriginConfig:
               OriginAccessIdentity:
-                !Join ['', ['origin-access-identity/cloudfront/', !Ref InternalOriginAccessIdentity]]
+                !Join ["", ["origin-access-identity/cloudfront/", !Ref InternalOriginAccessIdentity]]
         ViewerCertificate:
           AcmCertificateArn: !Ref SwaggerDomainCertificateArn
-          SslSupportMethod: 'sni-only'
+          SslSupportMethod: "sni-only"
           MinimumProtocolVersion: TLSv1.2_2021

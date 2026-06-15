@@ -4,10 +4,10 @@ info:
   description: "Api for updating users and roles"
   version: "1.0.0"
 servers:
-- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
-  variables:
-    basePath:
-      default: "/users-roles"
+  - url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+    variables:
+      basePath:
+        default: "/users-roles"
 paths:
   /roles:
     post:
@@ -25,10 +25,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/Role"
       security:
-      - CognitoAuthorizer:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
+        - CognitoAuthorizer:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
     options:
       responses:
         "200":
@@ -57,10 +57,10 @@ paths:
           description: "200 response"
           content: {}
       security:
-      - CognitoAuthorizer:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
+        - CognitoAuthorizer:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
     options:
       responses:
         "200":
@@ -92,10 +92,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/User"
       security:
-      - CognitoAuthorizer:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
+        - CognitoAuthorizer:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
     options:
       responses:
         "200":
@@ -114,11 +114,11 @@ paths:
   /roles/{role}:
     get:
       parameters:
-      - name: "role"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "role"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
           description: "200 response"
@@ -127,17 +127,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/Role"
       security:
-      - CognitoAuthorizer:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
+        - CognitoAuthorizer:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
     options:
       parameters:
-      - name: "role"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "role"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
           description: "200 response"
@@ -155,11 +155,11 @@ paths:
   /institutions/users:
     get:
       parameters:
-      - name: "institution"
-        in: "query"
-        required: true
-        schema:
-          type: "string"
+        - name: "institution"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
           description: "200 response"
@@ -168,10 +168,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/ArrayOfUser"
       security:
-      - CognitoAuthorizer:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
+        - CognitoAuthorizer:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
     options:
       responses:
         "200":
@@ -190,11 +190,11 @@ paths:
   /users/{username}:
     get:
       parameters:
-      - name: "username"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "username"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
           description: "200 response"
@@ -203,17 +203,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/User"
       security:
-      - CognitoAuthorizer:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
+        - CognitoAuthorizer:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
     put:
       parameters:
-      - name: "username"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "username"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       requestBody:
         content:
           application/json:
@@ -229,17 +229,17 @@ paths:
                 type: "string"
           content: {}
       security:
-      - CognitoAuthorizer:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
+        - CognitoAuthorizer:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
     options:
       parameters:
-      - name: "username"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
+        - name: "username"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
       responses:
         "200":
           description: "200 response"
@@ -261,10 +261,10 @@ paths:
           description: "200 response"
           content: {}
       security:
-      - CognitoAuthorizer:
-        - "https://api.nva.unit.no/scopes/backend"
-        - "https://api.nva.unit.no/scopes/frontend"
-        - "aws.cognito.signin.user.admin"
+        - CognitoAuthorizer:
+            - "https://api.nva.unit.no/scopes/backend"
+            - "https://api.nva.unit.no/scopes/frontend"
+            - "aws.cognito.signin.user.admin"
     options:
       responses:
         "200":
@@ -340,8 +340,8 @@ components:
     AccessRight:
       type: "string"
       enum:
-      - "APPROVE_DOI_REQUEST"
-      - "REJECT_DOI_REQUEST"
+        - "APPROVE_DOI_REQUEST"
+        - "REJECT_DOI_REQUEST"
   securitySchemes:
     CognitoAuthorizer:
       type: "apiKey"

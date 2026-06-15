@@ -3,10 +3,10 @@ info:
   title: "Api B"
   version: "1.0"
 servers:
-- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
-  variables:
-    basePath:
-      default: "/pathB"
+  - url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+    variables:
+      basePath:
+        default: "/pathB"
 paths:
   /path:
     get:

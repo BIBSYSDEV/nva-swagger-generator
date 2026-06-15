@@ -3,10 +3,10 @@ info:
   title: "Api B"
   version: "1.0"
 servers:
-- url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
-  variables:
-    basePath:
-      default: "/pathB"
+  - url: "https://api.sandbox.nva.aws.unit.no/{basePath}"
+    variables:
+      basePath:
+        default: "/pathB"
 paths:
   /external:
     get:
@@ -17,7 +17,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ExternalRequestSchema'
+              $ref: "#/components/schemas/ExternalRequestSchema"
       responses:
         "200":
           description: "200 response"
