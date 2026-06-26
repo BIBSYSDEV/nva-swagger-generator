@@ -28,7 +28,7 @@ public final class ApplicationConstants {
     return ENVIRONMENT.readEnv("EXTERNAL_BUCKET_NAME");
   }
 
-  private static String readInternalBucketName() {
+  public static String readInternalBucketName() {
     return ENVIRONMENT.readEnv("INTERNAL_BUCKET_NAME");
   }
 

@@ -320,6 +320,24 @@ Resources:
           Properties:
             Schedule: cron(10 */4 ? * * *)
 
+  GenerateServiceDocsHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: swagger-generator
+      Description: Serves each service's source OpenAPI docs verbatim under /services/index.html
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambda_ReadOnlyAccess
+      Handler: no.sikt.generator.handlers.GenerateServiceDocsHandler::handleRequest
+      Runtime: java21
+      Role: !GetAtt SwaggerGeneratorRole.Arn
+      Timeout: 600
+      Events:
+        GenerateDocsScheduleEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(20 */4 ? * * *)
+
   InstallSwaggerUiHandler:
     Type: AWS::Serverless::Function
     Properties:
