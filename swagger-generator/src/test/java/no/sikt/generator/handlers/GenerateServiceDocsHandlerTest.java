@@ -31,6 +31,7 @@ class GenerateServiceDocsHandlerTest {
 
   private static final String SERVICE_A_KEY = "service-a/openapi.yaml";
   private static final String API_A_RESOURCE = "openapi_docs/api-a.yaml";
+  private static final String API_B_RESOURCE = "openapi_docs/api-b.yaml";
 
   private GenerateServiceDocsHandler handler;
   private S3Driver inputS3Driver;
@@ -81,20 +82,20 @@ class GenerateServiceDocsHandlerTest {
   @Test
   void shouldWriteEachSourceSpecVerbatim() {
     uploadResourceToS3(SERVICE_A_KEY, API_A_RESOURCE);
-    uploadResourceToS3("service-b/openapi.yaml", "openapi_docs/api-b.yaml");
+    uploadResourceToS3("service-b/openapi.yaml", API_B_RESOURCE);
 
     invokeHandler();
 
-    var specA = outputS3Driver.getFile(UnixPath.of("services/specs/service-a-openapi.yaml"));
-    var specB = outputS3Driver.getFile(UnixPath.of("services/specs/service-b-openapi.yaml"));
+    var specA = outputS3Driver.getFile(UnixPath.of("services/specs/service-a/openapi.yaml"));
+    var specB = outputS3Driver.getFile(UnixPath.of("services/specs/service-b/openapi.yaml"));
     assertThat(specA).isEqualTo(readResource(API_A_RESOURCE));
-    assertThat(specB).isEqualTo(readResource("openapi_docs/api-b.yaml"));
+    assertThat(specB).isEqualTo(readResource(API_B_RESOURCE));
   }
 
   @Test
   void shouldWriteManifestListingApiTitlesAndUrls() {
     uploadResourceToS3(SERVICE_A_KEY, API_A_RESOURCE);
-    uploadResourceToS3("service-b/openapi.yaml", "openapi_docs/api-b.yaml");
+    uploadResourceToS3("service-b/openapi.yaml", API_B_RESOURCE);
 
     invokeHandler();
 
@@ -103,8 +104,8 @@ class GenerateServiceDocsHandlerTest {
         softly -> {
           softly.assertThat(manifest).contains("Api A");
           softly.assertThat(manifest).contains("Api B");
-          softly.assertThat(manifest).contains("specs/service-a-openapi.yaml");
-          softly.assertThat(manifest).contains("specs/service-b-openapi.yaml");
+          softly.assertThat(manifest).contains("specs/service-a/openapi.yaml");
+          softly.assertThat(manifest).contains("specs/service-b/openapi.yaml");
         });
   }
 
@@ -139,13 +140,29 @@ class GenerateServiceDocsHandlerTest {
   }
 
   @Test
-  void shouldFallBackToSlugAsNameWhenTitleIsMissing() {
+  void shouldPreserveSourceKeyPathSoSpecsNeverCollide() {
+    uploadResourceToS3("a-b/openapi.yaml", API_A_RESOURCE);
+    uploadResourceToS3("a/b/openapi.yaml", API_B_RESOURCE);
+
+    invokeHandler();
+
+    var firstSpec = outputS3Driver.getFile(UnixPath.of("services/specs/a-b/openapi.yaml"));
+    var secondSpec = outputS3Driver.getFile(UnixPath.of("services/specs/a/b/openapi.yaml"));
+    assertSoftly(
+        softly -> {
+          softly.assertThat(firstSpec).isEqualTo(readResource(API_A_RESOURCE));
+          softly.assertThat(secondSpec).isEqualTo(readResource(API_B_RESOURCE));
+        });
+  }
+
+  @Test
+  void shouldFallBackToKeyPathAsNameWhenTitleIsMissing() {
     uploadResourceToS3("misc/not-openapi.yaml", "openapi_docs/not-openapi.yaml");
 
     invokeHandler();
 
     var manifest = outputS3Driver.getFile(UnixPath.of(MANIFEST_KEY));
-    assertThat(manifest).contains("misc-not-openapi");
+    assertThat(manifest).contains("misc/not-openapi");
   }
 
   @Test
@@ -177,7 +194,7 @@ class GenerateServiceDocsHandlerTest {
             .map(UnixPath::toString)
             .toList();
     assertThat(publishedSpecs)
-        .anyMatch(path -> path.contains("service-a-openapi.yaml"))
+        .anyMatch(path -> path.contains("service-a/openapi.yaml"))
         .noneMatch(path -> path.contains("readme"));
   }
 

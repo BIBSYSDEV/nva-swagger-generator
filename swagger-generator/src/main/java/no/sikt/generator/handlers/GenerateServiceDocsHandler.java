@@ -103,19 +103,20 @@ public class GenerateServiceDocsHandler implements RequestStreamHandler {
   }
 
   private Map<String, String> publishSpec(S3Object s3Object) {
-    var content = readSourceDoc(s3Object.key());
-    var slug = toSlug(s3Object.key());
-    writeToOutput(SPECS_PREFIX + slug + YAML_EXTENSION, content, "application/yaml");
-    LOGGER.info("Published service spec for {}", s3Object.key());
+    var key = s3Object.key();
+    var content = readSourceDoc(key);
+    writeToOutput(SPECS_PREFIX + key, content, "application/yaml");
+    LOGGER.info("Published service spec for {}", key);
 
+    var label = stripExtension(key);
     var entry = new LinkedHashMap<String, String>();
-    entry.put(URL, SPECS_DIRECTORY + slug + YAML_EXTENSION);
-    entry.put(NAME, extractTitle(content, slug));
-    entry.put(SOURCE, sourceLabel(s3Object.key()));
+    entry.put(URL, SPECS_DIRECTORY + key);
+    entry.put(NAME, extractTitle(content, label));
+    entry.put(SOURCE, label);
     return entry;
   }
 
-  private static String sourceLabel(String key) {
+  private static String stripExtension(String key) {
     return Strings.CI.removeEnd(key, YAML_EXTENSION);
   }
 
@@ -129,11 +130,6 @@ public class GenerateServiceDocsHandler implements RequestStreamHandler {
         .toOptional()
         .filter(StringUtils::isNotBlank)
         .orElse(fallback);
-  }
-
-  private static String toSlug(String key) {
-    var withoutExtension = Strings.CI.removeEnd(key, YAML_EXTENSION);
-    return withoutExtension.replaceAll("[^a-zA-Z0-9]+", "-");
   }
 
   private void writeManifest(List<Map<String, String>> entries) {
