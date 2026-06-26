@@ -111,13 +111,12 @@ public class GenerateServiceDocsHandler implements RequestStreamHandler {
     var entry = new LinkedHashMap<String, String>();
     entry.put(URL, SPECS_DIRECTORY + slug + YAML_EXTENSION);
     entry.put(NAME, extractTitle(content, slug));
-    entry.put(SOURCE, baseName(s3Object.key()));
+    entry.put(SOURCE, sourceLabel(s3Object.key()));
     return entry;
   }
 
-  private static String baseName(String key) {
-    var fileName = key.substring(key.lastIndexOf('/') + 1);
-    return Strings.CI.removeEnd(fileName, YAML_EXTENSION);
+  private static String sourceLabel(String key) {
+    return Strings.CI.removeEnd(key, YAML_EXTENSION);
   }
 
   private String readSourceDoc(String key) {

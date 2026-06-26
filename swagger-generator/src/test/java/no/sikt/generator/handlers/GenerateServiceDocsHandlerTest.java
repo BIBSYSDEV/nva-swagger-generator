@@ -109,17 +109,32 @@ class GenerateServiceDocsHandlerTest {
   }
 
   @Test
-  void shouldDisambiguateApisThatShareATitle() {
-    uploadResourceToS3("handle-service/handle-openapi.yaml", API_A_RESOURCE);
-    uploadResourceToS3("handle-service/openapi.yaml", API_A_RESOURCE);
+  void shouldDisambiguateDuplicateTitlesAndFilenames() {
+    uploadResourceToS3("a-service/openapi.yaml", API_A_RESOURCE);
+    uploadResourceToS3("b-service/openapi.yaml", API_A_RESOURCE);
 
     invokeHandler();
 
     var manifest = outputS3Driver.getFile(UnixPath.of(MANIFEST_KEY));
     assertSoftly(
         softly -> {
-          softly.assertThat(manifest).contains("Api A (handle-openapi)");
-          softly.assertThat(manifest).contains("Api A (openapi)");
+          softly.assertThat(manifest).contains("Api A (a-service/openapi)");
+          softly.assertThat(manifest).contains("Api A (b-service/openapi)");
+        });
+  }
+
+  @Test
+  void shouldDisambiguateDuplicateTitlesFromSameService() {
+    uploadResourceToS3("a-service/foo-openapi.yaml", API_A_RESOURCE);
+    uploadResourceToS3("a-service/bar-openapi.yaml", API_A_RESOURCE);
+
+    invokeHandler();
+
+    var manifest = outputS3Driver.getFile(UnixPath.of(MANIFEST_KEY));
+    assertSoftly(
+        softly -> {
+          softly.assertThat(manifest).contains("Api A (a-service/foo-openapi)");
+          softly.assertThat(manifest).contains("Api A (a-service/bar-openapi)");
         });
   }
 
