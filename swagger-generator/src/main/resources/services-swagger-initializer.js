@@ -16,6 +16,9 @@ window.onload = function () {
       var requestedMatch = urls.filter(function (entry) {
         return entry.name === requestedName;
       });
+      if (requestedName && !requestedMatch.length) {
+        showNotice('The requested API "' + requestedName + '" is not available.');
+      }
       var primaryName = requestedMatch.length
         ? requestedMatch[0].name
         : urls.length
@@ -37,3 +40,13 @@ window.onload = function () {
         'Could not load the API documentation. Please try again later.';
     });
 };
+
+function showNotice(message) {
+  var container = document.getElementById('swagger-ui');
+  var notice = document.createElement('div');
+  notice.textContent = message;
+  notice.style.cssText =
+    'max-width: 1460px; margin: 1rem auto; padding: 0.75rem 1rem;' +
+    'background: #fff3cd; border: 1px solid #ffe69c; border-radius: 6px; color: #664d03;';
+  container.parentNode.insertBefore(notice, container);
+}

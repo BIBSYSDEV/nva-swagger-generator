@@ -181,6 +181,7 @@ class GenerateServiceDocsHandlerTest {
           softly.assertThat(apiPage).contains("swagger-ui");
           softly.assertThat(initializer).contains("apis.json");
           softly.assertThat(initializer).contains("Could not load the API documentation");
+          softly.assertThat(initializer).contains("is not available");
         });
   }
 
