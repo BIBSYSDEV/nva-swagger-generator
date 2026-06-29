@@ -1,3 +1,4 @@
+/* global SwaggerUIBundle, SwaggerUIStandalonePreset */
 window.onload = function () {
   // Each entry in apis.json is one service's source OpenAPI doc, served verbatim.
   // Swagger UI renders the selected spec with all its examples and descriptions intact.
