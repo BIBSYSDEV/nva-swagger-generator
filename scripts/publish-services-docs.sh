@@ -27,10 +27,15 @@ command -v aws >/dev/null 2>&1 || {
   exit 1
 }
 
+# Single scratch file for Lambda responses, reused across invocations and removed on
+# any exit (including a set -e abort mid-invoke), so error paths never leak it.
+payload_file="$(mktemp)"
+trap 'rm -f "$payload_file"' EXIT
+
 invoke_handler() {
   local label="$1"
   local name_filter="$2"
-  local function_name payload_file metadata payload
+  local function_name metadata payload
 
   function_name="$(aws lambda list-functions --profile "$profile" \
     --query "Functions[?contains(FunctionName, '$name_filter')].FunctionName" \
@@ -50,12 +55,10 @@ invoke_handler() {
 
   echo "==> Invoking $label"
   echo "    $function_name"
-  payload_file="$(mktemp)"
   # --cli-read-timeout 0: the handlers can run longer than the default 60s socket timeout.
   metadata="$(aws lambda invoke --profile "$profile" \
     --function-name "$function_name" --cli-read-timeout 0 "$payload_file")"
   payload="$(cat "$payload_file")"
-  rm -f "$payload_file"
 
   case "$metadata" in
     *FunctionError*)
