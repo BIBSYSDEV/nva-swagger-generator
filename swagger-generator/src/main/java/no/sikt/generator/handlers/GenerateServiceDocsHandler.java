@@ -21,17 +21,14 @@ import java.util.stream.Collectors;
 import no.sikt.generator.CloudFrontClientSupplier;
 import no.sikt.generator.CloudFrontHighLevelClient;
 import no.unit.nva.s3.S3Driver;
+import nva.commons.core.paths.UnixPath;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.S3Object;
 
 /**
  * Handler that serves each service's source OpenAPI doc verbatim under a {@code services/} prefix
@@ -51,18 +48,16 @@ public class GenerateServiceDocsHandler implements RequestStreamHandler {
   public static final String API_PAGE_RESOURCE = "services-api.html";
   public static final String INITIALIZER_RESOURCE = "services-swagger-initializer.js";
   public static final String YAML_EXTENSION = ".yaml";
-  public static final int MAX_KEYS = 1000;
   private static final String URL = "url";
   private static final String NAME = "name";
   private static final String SOURCE = "source";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GenerateServiceDocsHandler.class);
-  private final S3Client inputS3Client;
+  private final S3Driver inputS3Driver;
   private final S3Client outputS3Client;
   private final CloudFrontHighLevelClient cloudFrontHighLevelClient;
   private final OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
   private final ObjectMapper objectMapper = new ObjectMapper();
-  private final String openApiBucketName = readOpenApiBucketName();
 
   public GenerateServiceDocsHandler() {
     this(
@@ -75,7 +70,7 @@ public class GenerateServiceDocsHandler implements RequestStreamHandler {
       S3Client inputS3Client,
       S3Client outputS3Client,
       CloudFrontHighLevelClient cloudFrontHighLevelClient) {
-    this.inputS3Client = inputS3Client;
+    this.inputS3Driver = new S3Driver(inputS3Client, readOpenApiBucketName());
     this.outputS3Client = outputS3Client;
     this.cloudFrontHighLevelClient = cloudFrontHighLevelClient;
   }
@@ -94,16 +89,15 @@ public class GenerateServiceDocsHandler implements RequestStreamHandler {
     cloudFrontHighLevelClient.invalidateAll(INTERNAL_CLOUD_FRONT_DISTRIBUTION);
   }
 
-  private List<S3Object> listSourceDocs() {
-    var request = ListObjectsRequest.builder().bucket(openApiBucketName).maxKeys(MAX_KEYS).build();
-    return inputS3Client.listObjects(request).contents().stream()
-        .filter(s3Object -> s3Object.key().endsWith(YAML_EXTENSION))
-        .sorted(Comparator.comparing(S3Object::key))
+  private List<String> listSourceDocs() {
+    return inputS3Driver.listAllFiles(UnixPath.EMPTY_PATH).stream()
+        .map(UnixPath::toString)
+        .filter(key -> key.endsWith(YAML_EXTENSION))
+        .sorted()
         .toList();
   }
 
-  private Map<String, String> publishSpec(S3Object s3Object) {
-    var key = s3Object.key();
+  private Map<String, String> publishSpec(String key) {
     var content = readSourceDoc(key);
     writeToOutput(SPECS_PREFIX + key, content, "application/yaml");
     LOGGER.info("Published service spec for {}", key);
@@ -121,8 +115,7 @@ public class GenerateServiceDocsHandler implements RequestStreamHandler {
   }
 
   private String readSourceDoc(String key) {
-    var request = GetObjectRequest.builder().bucket(openApiBucketName).key(key).build();
-    return inputS3Client.getObject(request, ResponseTransformer.toBytes()).asUtf8String();
+    return inputS3Driver.getFile(UnixPath.of(key));
   }
 
   private String extractTitle(String content, String fallback) {
