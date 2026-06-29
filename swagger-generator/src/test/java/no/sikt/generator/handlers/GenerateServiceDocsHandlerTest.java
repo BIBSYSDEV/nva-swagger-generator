@@ -177,8 +177,10 @@ class GenerateServiceDocsHandlerTest {
     assertSoftly(
         softly -> {
           softly.assertThat(landingPage).contains("api.html?api=");
+          softly.assertThat(landingPage).contains("Could not load the list of services");
           softly.assertThat(apiPage).contains("swagger-ui");
           softly.assertThat(initializer).contains("apis.json");
+          softly.assertThat(initializer).contains("Could not load the API documentation");
         });
   }
 

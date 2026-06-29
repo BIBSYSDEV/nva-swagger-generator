@@ -5,6 +5,9 @@ window.onload = function () {
   // the dropdown still lets the user switch between all services.
   fetch('./apis.json')
     .then(function (response) {
+      if (!response.ok) {
+        throw new Error('Failed to fetch apis.json: HTTP ' + response.status);
+      }
       return response.json();
     })
     .then(function (urls) {
@@ -26,5 +29,10 @@ window.onload = function () {
         plugins: [SwaggerUIBundle.plugins.DownloadUrl],
         layout: 'StandaloneLayout',
       });
+    })
+    .catch(function (error) {
+      console.error(error);
+      document.getElementById('swagger-ui').textContent =
+        'Could not load the API documentation. Please try again later.';
     });
 };

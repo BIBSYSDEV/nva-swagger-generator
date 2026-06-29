@@ -87,6 +87,9 @@
     <script>
       fetch("./apis.json")
         .then(function (response) {
+          if (!response.ok) {
+            throw new Error("Failed to fetch apis.json: HTTP " + response.status);
+          }
           return response.json();
         })
         .then(function (apis) {
@@ -107,6 +110,16 @@
             item.appendChild(link);
             list.appendChild(item);
           });
+        })
+        .catch(function (error) {
+          console.error(error);
+          var list = document.getElementById("api-list");
+          list.innerHTML = "";
+          var failed = document.createElement("li");
+          failed.className = "status";
+          failed.textContent =
+            "Could not load the list of services. Please try again later.";
+          list.appendChild(failed);
         });
     </script>
   </body>
