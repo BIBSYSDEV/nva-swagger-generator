@@ -1,0 +1,162 @@
+package no.sikt.generator.handlers;
+
+import static no.sikt.generator.ApplicationConstants.INTERNAL_BUCKET_NAME;
+import static no.sikt.generator.ApplicationConstants.INTERNAL_CLOUD_FRONT_DISTRIBUTION;
+import static no.sikt.generator.ApplicationConstants.readOpenApiBucketName;
+import static no.sikt.generator.Utils.readResource;
+import static nva.commons.core.attempt.Try.attempt;
+
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.parser.OpenAPIV3Parser;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import no.sikt.generator.CloudFrontClientSupplier;
+import no.sikt.generator.CloudFrontHighLevelClient;
+import no.unit.nva.s3.S3Driver;
+import nva.commons.core.paths.UnixPath;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+
+/**
+ * Handler that serves each service's source OpenAPI doc verbatim under a {@code services/} prefix
+ * on the internal Swagger UI bucket. Unlike the combine pipeline, it does not touch API Gateway and
+ * does not merge specs, so all examples and descriptions are preserved.
+ */
+public class GenerateServiceDocsHandler implements RequestStreamHandler {
+
+  public static final String SERVICES_PREFIX = "services/";
+  public static final String SPECS_DIRECTORY = "specs/";
+  public static final String SPECS_PREFIX = SERVICES_PREFIX + SPECS_DIRECTORY;
+  public static final String MANIFEST_KEY = SERVICES_PREFIX + "apis.json";
+  public static final String INDEX_KEY = SERVICES_PREFIX + "index.html";
+  public static final String API_PAGE_KEY = SERVICES_PREFIX + "api.html";
+  public static final String INITIALIZER_KEY = SERVICES_PREFIX + "swagger-initializer.js";
+  public static final String INDEX_RESOURCE = "services-index.html";
+  public static final String API_PAGE_RESOURCE = "services-api.html";
+  public static final String INITIALIZER_RESOURCE = "services-swagger-initializer.js";
+  public static final String YAML_EXTENSION = ".yaml";
+  private static final String URL = "url";
+  private static final String NAME = "name";
+  private static final String SOURCE = "source";
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(GenerateServiceDocsHandler.class);
+  private final S3Driver inputS3Driver;
+  private final S3Client outputS3Client;
+  private final CloudFrontHighLevelClient cloudFrontHighLevelClient;
+  private final OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
+  private final ObjectMapper objectMapper = new ObjectMapper();
+
+  public GenerateServiceDocsHandler() {
+    this(
+        S3Driver.defaultS3Client().build(),
+        S3Driver.defaultS3Client().build(),
+        new CloudFrontHighLevelClient(CloudFrontClientSupplier.getSupplier()));
+  }
+
+  public GenerateServiceDocsHandler(
+      S3Client inputS3Client,
+      S3Client outputS3Client,
+      CloudFrontHighLevelClient cloudFrontHighLevelClient) {
+    this.inputS3Driver = new S3Driver(inputS3Client, readOpenApiBucketName());
+    this.outputS3Client = outputS3Client;
+    this.cloudFrontHighLevelClient = cloudFrontHighLevelClient;
+  }
+
+  @Override
+  public void handleRequest(InputStream input, OutputStream output, Context context) {
+    var sourceDocs = listSourceDocs();
+    LOGGER.info("Found {} source OpenAPI files", sourceDocs.size());
+
+    var manifestEntries = sourceDocs.stream().map(this::publishSpec).toList();
+
+    writeManifest(manifestEntries);
+    writeStaticAsset(INDEX_KEY, INDEX_RESOURCE, "text/html");
+    writeStaticAsset(API_PAGE_KEY, API_PAGE_RESOURCE, "text/html");
+    writeStaticAsset(INITIALIZER_KEY, INITIALIZER_RESOURCE, "application/javascript");
+    cloudFrontHighLevelClient.invalidateAll(INTERNAL_CLOUD_FRONT_DISTRIBUTION);
+  }
+
+  private List<String> listSourceDocs() {
+    return inputS3Driver.listAllFiles(UnixPath.EMPTY_PATH).stream()
+        .map(UnixPath::toString)
+        .filter(key -> key.endsWith(YAML_EXTENSION))
+        .sorted()
+        .toList();
+  }
+
+  private Map<String, String> publishSpec(String key) {
+    var content = readSourceDoc(key);
+    writeToOutput(SPECS_PREFIX + key, content, "application/yaml");
+    LOGGER.info("Published service spec for {}", key);
+
+    var label = stripExtension(key);
+    var entry = new LinkedHashMap<String, String>();
+    entry.put(URL, SPECS_DIRECTORY + key);
+    entry.put(NAME, extractTitle(content, label));
+    entry.put(SOURCE, label);
+    return entry;
+  }
+
+  private static String stripExtension(String key) {
+    return Strings.CI.removeEnd(key, YAML_EXTENSION);
+  }
+
+  private String readSourceDoc(String key) {
+    return inputS3Driver.getFile(UnixPath.of(key));
+  }
+
+  private String extractTitle(String content, String fallback) {
+    return attempt(() -> openApiParser.readContents(content).getOpenAPI().getInfo().getTitle())
+        .toOptional()
+        .filter(StringUtils::isNotBlank)
+        .orElse(fallback);
+  }
+
+  private void writeManifest(List<Map<String, String>> entries) {
+    disambiguateDuplicateNames(entries);
+    var sorted =
+        entries.stream()
+            .map(entry -> Map.of(URL, entry.get(URL), NAME, entry.get(NAME)))
+            .sorted(Comparator.comparing(entry -> entry.get(NAME)))
+            .toList();
+    var json = attempt(() -> objectMapper.writeValueAsString(sorted)).orElseThrow();
+    writeToOutput(MANIFEST_KEY, json, "application/json");
+  }
+
+  private void disambiguateDuplicateNames(List<Map<String, String>> entries) {
+    var nameCounts =
+        entries.stream()
+            .collect(Collectors.groupingBy(entry -> entry.get(NAME), Collectors.counting()));
+    entries.stream()
+        .filter(entry -> nameCounts.get(entry.get(NAME)) > 1)
+        .forEach(entry -> entry.put(NAME, entry.get(NAME) + " (" + entry.get(SOURCE) + ")"));
+  }
+
+  private void writeStaticAsset(String key, String resource, String contentType) {
+    writeToOutput(key, readResource(resource), contentType);
+  }
+
+  private void writeToOutput(String key, String content, String contentType) {
+    var request =
+        PutObjectRequest.builder()
+            .bucket(INTERNAL_BUCKET_NAME)
+            .key(key)
+            .contentType(contentType)
+            .build();
+    var body = RequestBody.fromString(content, StandardCharsets.UTF_8);
+    attempt(() -> outputS3Client.putObject(request, body)).orElseThrow();
+  }
+}
