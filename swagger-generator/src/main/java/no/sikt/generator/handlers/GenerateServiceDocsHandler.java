@@ -132,7 +132,7 @@ public class GenerateServiceDocsHandler implements RequestStreamHandler {
     var sorted =
         entries.stream()
             .map(entry -> Map.of(URL, entry.get(URL), NAME, entry.get(NAME)))
-            .sorted(Comparator.comparing(entry -> entry.get(NAME)))
+            .sorted(Comparator.comparing(entry -> entry.get(NAME), String.CASE_INSENSITIVE_ORDER))
             .toList();
     var json = attempt(() -> objectMapper.writeValueAsString(sorted)).orElseThrow();
     writeToOutput(MANIFEST_KEY, json, "application/json");

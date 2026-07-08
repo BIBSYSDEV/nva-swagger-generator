@@ -65,6 +65,15 @@ class GenerateServiceDocsHandlerTest {
     attempt(() -> inputS3Driver.insertFile(UnixPath.of(key), content)).orElseThrow();
   }
 
+  private static String minimalSpecWithTitle(String title) {
+    return """
+    openapi: 3.0.1
+    info:
+      title: %s
+    """
+        .formatted(title);
+  }
+
   private void uploadResourceToS3(String key, String resource) {
     uploadContentToS3(key, readResource(resource));
   }
@@ -101,6 +110,19 @@ class GenerateServiceDocsHandlerTest {
           softly.assertThat(manifest).contains("specs/service-a/openapi.yaml");
           softly.assertThat(manifest).contains("specs/service-b/openapi.yaml");
         });
+  }
+
+  @Test
+  void shouldSortManifestNamesCaseInsensitively() {
+    uploadContentToS3("a-service/openapi.yaml", minimalSpecWithTitle("apple API"));
+    uploadContentToS3("b-service/openapi.yaml", minimalSpecWithTitle("Banana API"));
+
+    invokeHandler();
+
+    var manifest = outputS3Driver.getFile(UnixPath.of(MANIFEST_KEY));
+    assertThat(manifest.indexOf("apple API"))
+        .isNotNegative()
+        .isLessThan(manifest.indexOf("Banana API"));
   }
 
   @Test
