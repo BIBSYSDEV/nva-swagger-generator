@@ -26,6 +26,7 @@ dependencies {
     implementation(nvaCatalog.log4j.core)
     implementation(nvaCatalog.slf4j.api)
     implementation(nvaLibs.s3)
+    testImplementation(nvaCatalog.assertj.core)
     testImplementation(nvaCatalog.hamcrest)
     testImplementation(nvaCatalog.junit.jupiter.api)
     testImplementation(nvaCatalog.mockito.core)
