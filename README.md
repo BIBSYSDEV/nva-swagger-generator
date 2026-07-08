@@ -13,7 +13,7 @@ It produces two kinds of output:
 
 ## Where to see the published docs
 
-`<env>` is one of `dev`, `test`, `sandbox`.
+`<env>` is one of `dev`, `test`, `sandbox`, `e2e`.
 
 | Site                   | Non-prod                                                      | Prod                                                |
 | ---------------------- | ------------------------------------------------------------- | --------------------------------------------------- |
