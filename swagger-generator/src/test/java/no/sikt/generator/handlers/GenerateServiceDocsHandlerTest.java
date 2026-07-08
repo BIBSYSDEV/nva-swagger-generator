@@ -20,6 +20,7 @@ import no.sikt.generator.CloudFrontHighLevelClient;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeS3Client;
 import nva.commons.core.paths.UnixPath;
+import nva.commons.logutils.LogRecorder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
@@ -179,6 +180,16 @@ class GenerateServiceDocsHandlerTest {
 
     var manifest = outputS3Driver.getFile(UnixPath.of(MANIFEST_KEY));
     assertThat(manifest).contains("misc/not-openapi");
+  }
+
+  @Test
+  void shouldWarnWhenSpecHasNoTitle() {
+    uploadResourceToS3("misc/not-openapi.yaml", "openapi_docs/not-openapi.yaml");
+    var logRecorder = LogRecorder.forRoot(GenerateServiceDocsHandlerTest.class);
+
+    invokeHandler();
+
+    assertThat(logRecorder.messages()).anyMatch(message -> message.contains("No OpenAPI title"));
   }
 
   @Test

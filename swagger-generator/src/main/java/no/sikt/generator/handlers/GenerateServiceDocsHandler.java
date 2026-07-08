@@ -121,10 +121,14 @@ public class GenerateServiceDocsHandler implements RequestStreamHandler {
   }
 
   private String extractTitle(String content, String fallback) {
-    return attempt(() -> openApiParser.readContents(content).getOpenAPI().getInfo().getTitle())
-        .toOptional()
-        .filter(StringUtils::isNotBlank)
-        .orElse(fallback);
+    var title =
+        attempt(() -> openApiParser.readContents(content).getOpenAPI().getInfo().getTitle())
+            .toOptional()
+            .filter(StringUtils::isNotBlank);
+    if (title.isEmpty()) {
+      LOGGER.warn("No OpenAPI title found in {}, using the key path as name", fallback);
+    }
+    return title.orElse(fallback);
   }
 
   private void writeManifest(List<Map<String, String>> entries) {
