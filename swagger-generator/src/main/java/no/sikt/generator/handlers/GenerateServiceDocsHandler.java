@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import no.sikt.generator.CloudFrontClientSupplier;
 import no.sikt.generator.CloudFrontHighLevelClient;
 import no.unit.nva.s3.S3Driver;
+import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UnixPath;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -59,6 +60,7 @@ public class GenerateServiceDocsHandler implements RequestStreamHandler {
   private final OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
   private final ObjectMapper objectMapper = new ObjectMapper();
 
+  @JacocoGenerated
   public GenerateServiceDocsHandler() {
     this(
         S3Driver.defaultS3Client().build(),

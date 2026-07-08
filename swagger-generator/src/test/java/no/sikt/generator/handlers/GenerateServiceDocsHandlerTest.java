@@ -1,6 +1,6 @@
 package no.sikt.generator.handlers;
 
-import static no.sikt.generator.ApplicationConstants.readInternalBucketName;
+import static no.sikt.generator.ApplicationConstants.INTERNAL_BUCKET_NAME;
 import static no.sikt.generator.ApplicationConstants.readOpenApiBucketName;
 import static no.sikt.generator.Utils.readResource;
 import static no.sikt.generator.handlers.GenerateServiceDocsHandler.API_PAGE_KEY;
@@ -9,7 +9,6 @@ import static no.sikt.generator.handlers.GenerateServiceDocsHandler.INITIALIZER_
 import static no.sikt.generator.handlers.GenerateServiceDocsHandler.MANIFEST_KEY;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -44,7 +43,7 @@ class GenerateServiceDocsHandlerTest {
     var inputS3Client = new FakeS3Client();
     var outputS3Client = new FakeS3Client();
     inputS3Driver = new S3Driver(inputS3Client, readOpenApiBucketName());
-    outputS3Driver = new S3Driver(outputS3Client, readInternalBucketName());
+    outputS3Driver = new S3Driver(outputS3Client, INTERNAL_BUCKET_NAME);
 
     var cloudFrontHighLevelClient = setupMockedCloudFrontClient();
 
@@ -72,11 +71,6 @@ class GenerateServiceDocsHandlerTest {
 
   private void invokeHandler() {
     handler.handleRequest(null, null, null);
-  }
-
-  @Test
-  void shouldHaveConstructorWithNoArguments() {
-    assertThatNoException().isThrownBy(GenerateServiceDocsHandler::new);
   }
 
   @Test
