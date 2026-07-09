@@ -1,6 +1,6 @@
 package no.sikt.generator.handlers;
 
-import static no.sikt.generator.ApplicationConstants.readInternalBucketName;
+import static no.sikt.generator.ApplicationConstants.INTERNAL_BUCKET_NAME;
 import static no.sikt.generator.ApplicationConstants.readOpenApiBucketName;
 import static no.sikt.generator.Utils.readResource;
 import static no.sikt.generator.handlers.GenerateServiceDocsHandler.API_PAGE_KEY;
@@ -9,7 +9,6 @@ import static no.sikt.generator.handlers.GenerateServiceDocsHandler.INITIALIZER_
 import static no.sikt.generator.handlers.GenerateServiceDocsHandler.MANIFEST_KEY;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -21,6 +20,7 @@ import no.sikt.generator.CloudFrontHighLevelClient;
 import no.unit.nva.s3.S3Driver;
 import no.unit.nva.stubs.FakeS3Client;
 import nva.commons.core.paths.UnixPath;
+import nva.commons.logutils.LogRecorder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
@@ -44,7 +44,7 @@ class GenerateServiceDocsHandlerTest {
     var inputS3Client = new FakeS3Client();
     var outputS3Client = new FakeS3Client();
     inputS3Driver = new S3Driver(inputS3Client, readOpenApiBucketName());
-    outputS3Driver = new S3Driver(outputS3Client, readInternalBucketName());
+    outputS3Driver = new S3Driver(outputS3Client, INTERNAL_BUCKET_NAME);
 
     var cloudFrontHighLevelClient = setupMockedCloudFrontClient();
 
@@ -66,17 +66,21 @@ class GenerateServiceDocsHandlerTest {
     attempt(() -> inputS3Driver.insertFile(UnixPath.of(key), content)).orElseThrow();
   }
 
+  private static String minimalSpecWithTitle(String title) {
+    return """
+    openapi: 3.0.1
+    info:
+      title: %s
+    """
+        .formatted(title);
+  }
+
   private void uploadResourceToS3(String key, String resource) {
     uploadContentToS3(key, readResource(resource));
   }
 
   private void invokeHandler() {
     handler.handleRequest(null, null, null);
-  }
-
-  @Test
-  void shouldHaveConstructorWithNoArguments() {
-    assertThatNoException().isThrownBy(GenerateServiceDocsHandler::new);
   }
 
   @Test
@@ -107,6 +111,19 @@ class GenerateServiceDocsHandlerTest {
           softly.assertThat(manifest).contains("specs/service-a/openapi.yaml");
           softly.assertThat(manifest).contains("specs/service-b/openapi.yaml");
         });
+  }
+
+  @Test
+  void shouldSortManifestNamesCaseInsensitively() {
+    uploadContentToS3("a-service/openapi.yaml", minimalSpecWithTitle("apple API"));
+    uploadContentToS3("b-service/openapi.yaml", minimalSpecWithTitle("Banana API"));
+
+    invokeHandler();
+
+    var manifest = outputS3Driver.getFile(UnixPath.of(MANIFEST_KEY));
+    assertThat(manifest.indexOf("apple API"))
+        .isNotNegative()
+        .isLessThan(manifest.indexOf("Banana API"));
   }
 
   @Test
@@ -163,6 +180,16 @@ class GenerateServiceDocsHandlerTest {
 
     var manifest = outputS3Driver.getFile(UnixPath.of(MANIFEST_KEY));
     assertThat(manifest).contains("misc/not-openapi");
+  }
+
+  @Test
+  void shouldWarnWhenSpecHasNoTitle() {
+    uploadResourceToS3("misc/not-openapi.yaml", "openapi_docs/not-openapi.yaml");
+    var logRecorder = LogRecorder.forRoot(GenerateServiceDocsHandlerTest.class);
+
+    invokeHandler();
+
+    assertThat(logRecorder.messages()).anyMatch(message -> message.contains("No OpenAPI title"));
   }
 
   @Test

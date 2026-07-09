@@ -13,13 +13,13 @@ It produces two kinds of output:
 
 ## Where to see the published docs
 
-`<env>` is one of `dev`, `test`, `sandbox`.
+`<env>` is one of `dev`, `test`, `sandbox`, `e2e`.
 
-| Site                   | Non-prod                                                      | Prod                                                |
-| ---------------------- | ------------------------------------------------------------- | --------------------------------------------------- |
-| External (public)      | `https://swagger-ui.<env>.nva.aws.unit.no/`                   | `https://swagger-ui.nva.unit.no/`                   |
-| Internal (basic auth)  | `https://swagger-ui-internal.<env>.nva.aws.unit.no/`          | `https://swagger-ui-internal.nva.unit.no/`          |
-| Per-service (internal) | `https://swagger-ui-internal.<env>.nva.aws.unit.no/services/` | `https://swagger-ui-internal.nva.unit.no/services/` |
+| Site                   | Non-prod                                                                | Prod                                                          |
+| ---------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------- |
+| External (public)      | `https://swagger-ui.<env>.nva.aws.unit.no/`                             | `https://swagger-ui.nva.unit.no/`                             |
+| Internal (basic auth)  | `https://swagger-ui-internal.<env>.nva.aws.unit.no/`                    | `https://swagger-ui-internal.nva.unit.no/`                    |
+| Per-service (internal) | `https://swagger-ui-internal.<env>.nva.aws.unit.no/services/index.html` | `https://swagger-ui-internal.nva.unit.no/services/index.html` |
 
 ## How it works
 

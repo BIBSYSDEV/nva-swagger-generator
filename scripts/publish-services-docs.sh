@@ -2,10 +2,11 @@
 #
 # Publish the per-service OpenAPI docs site (/services/) for ONE environment.
 #
-# InstallSwaggerUiHandler and GenerateServiceDocsHandler are scheduled (cron) and
-# do NOT run on stack deploy, so after the swagger-generator stack deploys to an
-# environment this script invokes them once to populate the site. Run it once per
-# environment; the cron keeps the site fresh afterward.
+# Neither handler runs on stack deploy: GenerateServiceDocsHandler is on a cron
+# schedule and InstallSwaggerUiHandler has no trigger at all, so after the
+# swagger-generator stack deploys to an environment this script invokes them once
+# to populate the site. Run it once per environment; the cron keeps the generated
+# docs fresh afterward.
 #
 # Usage:
 #   scripts/publish-services-docs.sh <aws-profile>

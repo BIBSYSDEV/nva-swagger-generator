@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import no.sikt.generator.CloudFrontClientSupplier;
 import no.sikt.generator.CloudFrontHighLevelClient;
 import no.unit.nva.s3.S3Driver;
+import nva.commons.core.JacocoGenerated;
 import nva.commons.core.paths.UnixPath;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -59,6 +60,7 @@ public class GenerateServiceDocsHandler implements RequestStreamHandler {
   private final OpenAPIV3Parser openApiParser = new OpenAPIV3Parser();
   private final ObjectMapper objectMapper = new ObjectMapper();
 
+  @JacocoGenerated
   public GenerateServiceDocsHandler() {
     this(
         S3Driver.defaultS3Client().build(),
@@ -119,10 +121,14 @@ public class GenerateServiceDocsHandler implements RequestStreamHandler {
   }
 
   private String extractTitle(String content, String fallback) {
-    return attempt(() -> openApiParser.readContents(content).getOpenAPI().getInfo().getTitle())
-        .toOptional()
-        .filter(StringUtils::isNotBlank)
-        .orElse(fallback);
+    var title =
+        attempt(() -> openApiParser.readContents(content).getOpenAPI().getInfo().getTitle())
+            .toOptional()
+            .filter(StringUtils::isNotBlank);
+    if (title.isEmpty()) {
+      LOGGER.warn("No OpenAPI title found in {}, using the key path as name", fallback);
+    }
+    return title.orElse(fallback);
   }
 
   private void writeManifest(List<Map<String, String>> entries) {
@@ -130,7 +136,7 @@ public class GenerateServiceDocsHandler implements RequestStreamHandler {
     var sorted =
         entries.stream()
             .map(entry -> Map.of(URL, entry.get(URL), NAME, entry.get(NAME)))
-            .sorted(Comparator.comparing(entry -> entry.get(NAME)))
+            .sorted(Comparator.comparing(entry -> entry.get(NAME), String.CASE_INSENSITIVE_ORDER))
             .toList();
     var json = attempt(() -> objectMapper.writeValueAsString(sorted)).orElseThrow();
     writeToOutput(MANIFEST_KEY, json, "application/json");

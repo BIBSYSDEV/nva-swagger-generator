@@ -1,7 +1,7 @@
 [versions]
 commons-text = { strictly = '1.15.0' }
-swagger-v3 = { strictly = '2.2.51' }
-swagger-parser-v3 = { strictly = '2.1.44' }
+swagger-v3 = { strictly = '2.2.52' }
+swagger-parser-v3 = { strictly = '2.1.45' }
 
 [libraries]
 aws-sdk2-apigateway = { group = 'software.amazon.awssdk', name = 'apigateway' }
