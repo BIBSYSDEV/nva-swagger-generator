@@ -36,7 +36,7 @@ Globals:
     MemorySize: 1800
     Architectures:
       - arm64
-    Runtime: java21
+    Runtime: java25
     Environment:
       Variables:
         DOMAIN: !Ref CustomDomain
@@ -275,7 +275,6 @@ Resources:
         - AWSLambdaBasicExecutionRole
         - AWSLambda_ReadOnlyAccess
       Handler: no.sikt.generator.handlers.PublishDocumentationsHandler::handleRequest
-      Runtime: java21
       Role: !GetAtt SwaggerGeneratorRole.Arn
       Timeout: 600
       Events:
@@ -293,7 +292,6 @@ Resources:
         - AWSLambdaBasicExecutionRole
         - AWSLambda_ReadOnlyAccess
       Handler: no.sikt.generator.handlers.GenerateExternalDocsHandler::handleRequest
-      Runtime: java21
       Role: !GetAtt SwaggerGeneratorRole.Arn
       Timeout: 600
       Events:
@@ -311,7 +309,6 @@ Resources:
         - AWSLambdaBasicExecutionRole
         - AWSLambda_ReadOnlyAccess
       Handler: no.sikt.generator.handlers.GenerateInternalDocsHandler::handleRequest
-      Runtime: java21
       Role: !GetAtt SwaggerGeneratorRole.Arn
       Timeout: 600
       Events:
@@ -329,7 +326,6 @@ Resources:
         - AWSLambdaBasicExecutionRole
         - AWSLambda_ReadOnlyAccess
       Handler: no.sikt.generator.handlers.GenerateServiceDocsHandler::handleRequest
-      Runtime: java21
       Role: !GetAtt SwaggerGeneratorRole.Arn
       Timeout: 600
       Events:
@@ -347,7 +343,6 @@ Resources:
         - AWSLambdaBasicExecutionRole
         - AWSLambda_ReadOnlyAccess
       Handler: no.sikt.generator.handlers.InstallSwaggerUiHandler::handleRequest
-      Runtime: java21
       Timeout: 300
       Role: !GetAtt SwaggerGeneratorRole.Arn
 
