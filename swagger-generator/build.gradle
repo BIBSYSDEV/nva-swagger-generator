@@ -21,7 +21,6 @@ dependencies {
     implementation(nvaCatalog.aws.sdk2.sdk.core)
     implementation(nvaCatalog.aws.sdk2.urlconnection)
     implementation(nvaCatalog.commons.lang)
-    implementation(nvaCatalog.guava)
     implementation(nvaCatalog.jackson.databind)
     implementation(nvaCatalog.log4j.core)
     implementation(nvaCatalog.slf4j.api)

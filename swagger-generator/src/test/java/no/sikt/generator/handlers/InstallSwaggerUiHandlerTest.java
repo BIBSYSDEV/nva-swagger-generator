@@ -2,6 +2,7 @@ package no.sikt.generator.handlers;
 
 import static no.sikt.generator.ApplicationConstants.EXTERNAL_BUCKET_NAME;
 import static no.sikt.generator.ApplicationConstants.INTERNAL_BUCKET_NAME;
+import static nva.commons.core.ioutils.IoUtils.inputStreamFromResources;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
@@ -42,7 +43,7 @@ class InstallSwaggerUiHandlerTest {
     HttpResponse<Object> downloadResponse = mock(HttpResponse.class);
 
     when(gitHubResponse.body()).thenReturn(new GithubApiResponse("http://example.org").toString());
-    when(downloadResponse.body()).thenReturn(Utils.readResourceAsStream("zippedfile.zip"));
+    when(downloadResponse.body()).thenReturn(inputStreamFromResources("zippedfile.zip"));
 
     when(httpClient.send(any(), any())).thenReturn(gitHubResponse);
 

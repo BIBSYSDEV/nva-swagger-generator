@@ -1,35 +1,21 @@
 package no.sikt.generator;
 
 import static java.util.Locale.ENGLISH;
-import static nva.commons.core.attempt.Try.attempt;
+import static nva.commons.core.ioutils.IoUtils.inputStreamFromResources;
+import static nva.commons.core.ioutils.IoUtils.streamToString;
 
-import com.google.common.io.Resources;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import nva.commons.core.ioutils.IoUtils;
 
 public final class Utils {
 
   private Utils() {}
 
   public static String readResource(String filename) {
-    return readResourceOptional(filename).orElseThrow();
-  }
-
-  public static Optional<String> readResourceOptional(String filename) {
-    URL url = Resources.getResource(filename);
-    return attempt(() -> Resources.toString(url, StandardCharsets.UTF_8)).toOptional();
-  }
-
-  public static InputStream readResourceAsStream(String filename) {
-    return IoUtils.inputStreamFromResources(filename);
+    return streamToString(inputStreamFromResources(filename));
   }
 
   public static String toSnakeCase(String string) {
