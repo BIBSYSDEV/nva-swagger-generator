@@ -103,10 +103,9 @@ public class InstallSwaggerUiHandler implements RequestStreamHandler {
         .thenAccept(this::writeZipFileToBuckets)
         .join();
 
-    writeToS3(
-        EXTERNAL_BUCKET_NAME, SWAGGER_INITIALIZER_JS, Utils.readResource(SWAGGER_INITIALIZER_JS));
-    writeToS3(
-        INTERNAL_BUCKET_NAME, SWAGGER_INITIALIZER_JS, Utils.readResource(SWAGGER_INITIALIZER_JS));
+    var content = Utils.readResource(SWAGGER_INITIALIZER_JS);
+    writeToS3(EXTERNAL_BUCKET_NAME, SWAGGER_INITIALIZER_JS, content);
+    writeToS3(INTERNAL_BUCKET_NAME, SWAGGER_INITIALIZER_JS, content);
   }
 
   private void writeZipFileToBuckets(ZipInputStream zipStream) {
