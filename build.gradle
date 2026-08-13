@@ -22,7 +22,7 @@ subprojects {
                 allErrorsAsWarnings = false
             }
             java {
-                languageVersion = 21
+                languageVersion = 25
             }
             pmd {
                 rulesetFile = rootProject.file('config/pmd/ruleset.xml')
