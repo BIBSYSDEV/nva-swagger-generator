@@ -12,6 +12,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -22,8 +23,6 @@ import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.parameters.Parameter.StyleEnum;
 import io.swagger.v3.oas.models.tags.Tag;
 import io.swagger.v3.parser.OpenAPIV3Parser;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -40,7 +39,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
 import software.amazon.awssdk.services.cloudfront.model.CreateInvalidationRequest;
@@ -122,8 +120,8 @@ class GenerateInternalDocsHandlerTest {
   }
 
   @Test
-  void shouldHaveConstructorWithNoArgument() {
-    Executable action = () -> new GenerateInternalDocsHandler();
+  void shouldHaveConstructorWithNoArgument() throws NoSuchMethodException {
+    assertThat(GenerateInternalDocsHandler.class.getConstructor(), notNullValue());
   }
 
   @Test
@@ -257,7 +255,7 @@ class GenerateInternalDocsHandlerTest {
     setupTestCasesFromFiles(
         "server", List.of("api-without-server.yaml", "api-without-server.yaml"));
 
-    handler.handleRequest(null, null, null);
+    assertDoesNotThrow(() -> handler.handleRequest(null, null, null));
   }
 
   @Test
@@ -281,8 +279,7 @@ class GenerateInternalDocsHandlerTest {
     handler.handleRequest(null, null, null);
     var openApi = readGeneratedOpenApi();
     var tags = openApi.getTags().stream().map(Tag::getName).toList();
-    ArrayList<String> sortedTags = new ArrayList<>(tags);
-    Collections.sort(sortedTags);
+    var sortedTags = tags.stream().sorted().toList();
     assertThat(tags, is(equalTo(sortedTags)));
   }
 
@@ -301,7 +298,7 @@ class GenerateInternalDocsHandlerTest {
             .getGet()
             .getParameters()
             .stream()
-            .filter(param -> param.getName().equals("doNotRedirect"))
+            .filter(param -> "doNotRedirect".equals(param.getName()))
             .findFirst()
             .get();
 
@@ -341,10 +338,9 @@ class GenerateInternalDocsHandlerTest {
 
     handler.handleRequest(null, null, null);
     var openApi = readGeneratedOpenApi();
-    var schemas = openApi.getComponents().getSchemas().keySet();
-    ArrayList<String> sortedSchemas = new ArrayList<>(schemas);
-    Collections.sort(sortedSchemas);
-    assertThat(new ArrayList<>(schemas), is(equalTo(sortedSchemas)));
+    var schemas = List.copyOf(openApi.getComponents().getSchemas().keySet());
+    var sortedSchemas = schemas.stream().sorted().toList();
+    assertThat(schemas, is(equalTo(sortedSchemas)));
   }
 
   @Test

@@ -20,7 +20,6 @@ import no.unit.nva.stubs.FakeS3Client;
 import nva.commons.core.paths.UnixPath;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
 
 class InstallSwaggerUiHandlerTest {
 
@@ -51,8 +50,8 @@ class InstallSwaggerUiHandlerTest {
   }
 
   @Test
-  void shouldHaveConstructorWithNoArgument() {
-    Executable action = () -> new InstallSwaggerUiHandler();
+  void shouldHaveConstructorWithNoArgument() throws NoSuchMethodException {
+    assertThat(InstallSwaggerUiHandler.class.getConstructor(), notNullValue());
   }
 
   @Test
