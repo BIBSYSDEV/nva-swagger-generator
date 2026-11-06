@@ -79,14 +79,13 @@ public class OpenApiCombiner {
     renameDuplicateSchemas();
 
     this.others.stream()
-        .forEach(
-            api -> {
-              this.baseTemplate.addTagsItem(OpenApiUtils.convertInfoToTag(api.getInfo()));
-              removeTags(api);
-              mergeComponents(api);
-              mergePaths(api);
-              mergeSecurity(api);
-            });
+        .forEach(api -> {
+          this.baseTemplate.addTagsItem(OpenApiUtils.convertInfoToTag(api.getInfo()));
+          removeTags(api);
+          mergeComponents(api);
+          mergePaths(api);
+          mergeSecurity(api);
+        });
     sortSchemas();
 
     return baseTemplate;
@@ -100,10 +99,9 @@ public class OpenApiCombiner {
     var sorted = unsorted.stream().sorted(Entry.comparingByKey()).collect(Collectors.toList());
 
     this.baseTemplate.getComponents().setSchemas(null);
-    sorted.forEach(
-        e -> {
-          this.baseTemplate.getComponents().addSchemas(e.getKey(), e.getValue());
-        });
+    sorted.forEach(e -> {
+      this.baseTemplate.getComponents().addSchemas(e.getKey(), e.getValue());
+    });
   }
 
   private void removeTag(Operation op) {
@@ -173,39 +171,34 @@ public class OpenApiCombiner {
     Set<String> collidingSchemaNames = new HashSet<>();
 
     this.others.stream()
-        .forEach(
-            api -> {
-              if (nonNull(api.getComponents().getSchemas())) {
-                for (Entry<String, Schema> schema : api.getComponents().getSchemas().entrySet()) {
-                  if (isNull(schemas.get(schema.getKey()))) {
-                    schemas.put(schema.getKey(), schema.getValue());
-                  } else if (!schemas.get(schema.getKey()).equals(schema.getValue())) {
-                    collidingSchemaNames.add(schema.getKey());
-                  }
-                }
+        .forEach(api -> {
+          if (nonNull(api.getComponents().getSchemas())) {
+            for (Entry<String, Schema> schema : api.getComponents().getSchemas().entrySet()) {
+              if (isNull(schemas.get(schema.getKey()))) {
+                schemas.put(schema.getKey(), schema.getValue());
+              } else if (!schemas.get(schema.getKey()).equals(schema.getValue())) {
+                collidingSchemaNames.add(schema.getKey());
               }
-            });
+            }
+          }
+        });
 
     return collidingSchemaNames;
   }
 
   private void removeOptions() {
     this.others.stream()
-        .forEach(
-            api -> {
-              api.getPaths()
-                  .entrySet()
-                  .forEach(
-                      path -> {
-                        if (nonNull(path.getValue().getOptions())) {
-                          LOGGER.info(
-                              "Removing options for {} {}",
-                              api.getInfo().getTitle(),
-                              path.getKey());
-                          path.getValue().setOptions(null);
-                        }
-                      });
-            });
+        .forEach(api -> {
+          api.getPaths()
+              .entrySet()
+              .forEach(path -> {
+                if (nonNull(path.getValue().getOptions())) {
+                  LOGGER.info(
+                      "Removing options for {} {}", api.getInfo().getTitle(), path.getKey());
+                  path.getValue().setOptions(null);
+                }
+              });
+        });
   }
 
   @SuppressWarnings("PMD.AssignmentInOperand")
@@ -227,104 +220,89 @@ public class OpenApiCombiner {
 
   private void renameNestedSchemaRefs(Set<String> duplicateNames) {
     this.others.stream()
-        .forEach(
-            api -> {
-              if (nonNull(api.getComponents().getSchemas())) {
-                for (var schemaEntry : api.getComponents().getSchemas().entrySet()) {
-                  var nestedSchemas = OpenApiUtils.getNestedSchemas(api, schemaEntry.getValue());
-                  nestedSchemas.stream()
-                      .filter(Objects::nonNull)
-                      .forEach(
-                          s -> {
-                            var refName = StringUtils.stripStart(s.get$ref(), COMPONENTS_SCHEMAS);
-                            var newName =
-                                CaseUtils.toCamelCase(api.getInfo().getTitle(), true) + refName;
-                            if (duplicateNames.contains(refName)) {
-                              s.set$ref(COMPONENTS_SCHEMAS + newName);
-                            }
-                          });
-                }
-              }
-            });
+        .forEach(api -> {
+          if (nonNull(api.getComponents().getSchemas())) {
+            for (var schemaEntry : api.getComponents().getSchemas().entrySet()) {
+              var nestedSchemas = OpenApiUtils.getNestedSchemas(api, schemaEntry.getValue());
+              nestedSchemas.stream()
+                  .filter(Objects::nonNull)
+                  .forEach(s -> {
+                    var refName = StringUtils.stripStart(s.get$ref(), COMPONENTS_SCHEMAS);
+                    var newName = CaseUtils.toCamelCase(api.getInfo().getTitle(), true) + refName;
+                    if (duplicateNames.contains(refName)) {
+                      s.set$ref(COMPONENTS_SCHEMAS + newName);
+                    }
+                  });
+            }
+          }
+        });
   }
 
   private void renameSchemas(Set<String> duplicateNames) {
     this.others.stream()
-        .forEach(
-            api -> {
-              if (nonNull(api.getComponents().getSchemas())) {
-                Map<String, Schema> newSchemas = new HashMap<>();
+        .forEach(api -> {
+          if (nonNull(api.getComponents().getSchemas())) {
+            Map<String, Schema> newSchemas = new HashMap<>();
 
-                for (var schemaEntry : api.getComponents().getSchemas().entrySet()) {
+            for (var schemaEntry : api.getComponents().getSchemas().entrySet()) {
 
-                  var oldName = schemaEntry.getKey();
-                  var newName = CaseUtils.toCamelCase(api.getInfo().getTitle(), true) + oldName;
+              var oldName = schemaEntry.getKey();
+              var newName = CaseUtils.toCamelCase(api.getInfo().getTitle(), true) + oldName;
 
-                  if (duplicateNames.contains(oldName)) {
-                    LOGGER.info(
-                        "API {}: Replacing {} with {}",
-                        api.getInfo().getTitle(),
-                        "/" + oldName,
-                        "/" + newName);
-                    renameSchemaRef(api, oldName, newName);
-                    newSchemas.put(newName, schemaEntry.getValue());
-                  } else {
-                    newSchemas.put(oldName, schemaEntry.getValue());
-                  }
-                  api.getComponents().setSchemas(newSchemas);
-                }
+              if (duplicateNames.contains(oldName)) {
+                LOGGER.info(
+                    "API {}: Replacing {} with {}",
+                    api.getInfo().getTitle(),
+                    "/" + oldName,
+                    "/" + newName);
+                renameSchemaRef(api, oldName, newName);
+                newSchemas.put(newName, schemaEntry.getValue());
+              } else {
+                newSchemas.put(oldName, schemaEntry.getValue());
               }
-            });
+              api.getComponents().setSchemas(newSchemas);
+            }
+          }
+        });
   }
 
   private void renameSchemaRef(OpenAPI target, String oldName, String newName) {
     target
         .getPaths()
         .values()
-        .forEach(
-            pathItem -> {
-              pathItem
-                  .readOperations()
-                  .forEach(
-                      pathOperation -> {
-                        pathOperation
-                            .getResponses()
-                            .entrySet()
-                            .forEach(
-                                response -> {
-                                  response
-                                      .getValue()
-                                      .getContent()
-                                      .entrySet()
-                                      .forEach(
-                                          content -> {
-                                            var oldRef = content.getValue().getSchema().get$ref();
-                                            if (oldRef.equals(COMPONENTS_SCHEMAS + oldName)) {
-                                              content
-                                                  .getValue()
-                                                  .getSchema()
-                                                  .set$ref(COMPONENTS_SCHEMAS + newName);
-                                            }
-                                          });
-                                });
-                        var requestBody = pathOperation.getRequestBody();
-                        if (nonNull(requestBody)) {
-                          requestBody
-                              .getContent()
-                              .entrySet()
-                              .forEach(
-                                  content -> {
-                                    var oldRef = content.getValue().getSchema().get$ref();
-                                    if (oldRef.equals(COMPONENTS_SCHEMAS + oldName)) {
-                                      content
-                                          .getValue()
-                                          .getSchema()
-                                          .set$ref(COMPONENTS_SCHEMAS + newName);
-                                    }
-                                  });
+        .forEach(pathItem -> {
+          pathItem
+              .readOperations()
+              .forEach(pathOperation -> {
+                pathOperation
+                    .getResponses()
+                    .entrySet()
+                    .forEach(response -> {
+                      response
+                          .getValue()
+                          .getContent()
+                          .entrySet()
+                          .forEach(content -> {
+                            var oldRef = content.getValue().getSchema().get$ref();
+                            if (oldRef.equals(COMPONENTS_SCHEMAS + oldName)) {
+                              content.getValue().getSchema().set$ref(COMPONENTS_SCHEMAS + newName);
+                            }
+                          });
+                    });
+                var requestBody = pathOperation.getRequestBody();
+                if (nonNull(requestBody)) {
+                  requestBody
+                      .getContent()
+                      .entrySet()
+                      .forEach(content -> {
+                        var oldRef = content.getValue().getSchema().get$ref();
+                        if (oldRef.equals(COMPONENTS_SCHEMAS + oldName)) {
+                          content.getValue().getSchema().set$ref(COMPONENTS_SCHEMAS + newName);
                         }
                       });
-            });
+                }
+              });
+        });
   }
 
   private void mergeScheme(OpenAPI target, Entry<String, Schema> source) {

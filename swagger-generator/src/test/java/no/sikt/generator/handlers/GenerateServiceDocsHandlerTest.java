@@ -104,13 +104,12 @@ class GenerateServiceDocsHandlerTest {
     invokeHandler();
 
     var manifest = outputS3Driver.getFile(UnixPath.of(MANIFEST_KEY));
-    assertSoftly(
-        softly -> {
-          softly.assertThat(manifest).contains("Api A");
-          softly.assertThat(manifest).contains("Api B");
-          softly.assertThat(manifest).contains("specs/service-a/openapi.yaml");
-          softly.assertThat(manifest).contains("specs/service-b/openapi.yaml");
-        });
+    assertSoftly(softly -> {
+      softly.assertThat(manifest).contains("Api A");
+      softly.assertThat(manifest).contains("Api B");
+      softly.assertThat(manifest).contains("specs/service-a/openapi.yaml");
+      softly.assertThat(manifest).contains("specs/service-b/openapi.yaml");
+    });
   }
 
   @Test
@@ -134,11 +133,10 @@ class GenerateServiceDocsHandlerTest {
     invokeHandler();
 
     var manifest = outputS3Driver.getFile(UnixPath.of(MANIFEST_KEY));
-    assertSoftly(
-        softly -> {
-          softly.assertThat(manifest).contains("Api A (a-service/openapi)");
-          softly.assertThat(manifest).contains("Api A (b-service/openapi)");
-        });
+    assertSoftly(softly -> {
+      softly.assertThat(manifest).contains("Api A (a-service/openapi)");
+      softly.assertThat(manifest).contains("Api A (b-service/openapi)");
+    });
   }
 
   @Test
@@ -149,11 +147,10 @@ class GenerateServiceDocsHandlerTest {
     invokeHandler();
 
     var manifest = outputS3Driver.getFile(UnixPath.of(MANIFEST_KEY));
-    assertSoftly(
-        softly -> {
-          softly.assertThat(manifest).contains("Api A (a-service/foo-openapi)");
-          softly.assertThat(manifest).contains("Api A (a-service/bar-openapi)");
-        });
+    assertSoftly(softly -> {
+      softly.assertThat(manifest).contains("Api A (a-service/foo-openapi)");
+      softly.assertThat(manifest).contains("Api A (a-service/bar-openapi)");
+    });
   }
 
   @Test
@@ -165,11 +162,10 @@ class GenerateServiceDocsHandlerTest {
 
     var firstSpec = outputS3Driver.getFile(UnixPath.of("services/specs/a-b/openapi.yaml"));
     var secondSpec = outputS3Driver.getFile(UnixPath.of("services/specs/a/b/openapi.yaml"));
-    assertSoftly(
-        softly -> {
-          softly.assertThat(firstSpec).isEqualTo(readResource(API_A_RESOURCE));
-          softly.assertThat(secondSpec).isEqualTo(readResource(API_B_RESOURCE));
-        });
+    assertSoftly(softly -> {
+      softly.assertThat(firstSpec).isEqualTo(readResource(API_A_RESOURCE));
+      softly.assertThat(secondSpec).isEqualTo(readResource(API_B_RESOURCE));
+    });
   }
 
   @Test
@@ -201,15 +197,14 @@ class GenerateServiceDocsHandlerTest {
     var landingPage = outputS3Driver.getFile(UnixPath.of(INDEX_KEY));
     var apiPage = outputS3Driver.getFile(UnixPath.of(API_PAGE_KEY));
     var initializer = outputS3Driver.getFile(UnixPath.of(INITIALIZER_KEY));
-    assertSoftly(
-        softly -> {
-          softly.assertThat(landingPage).contains("api.html?api=");
-          softly.assertThat(landingPage).contains("Could not load the list of services");
-          softly.assertThat(apiPage).contains("swagger-ui");
-          softly.assertThat(initializer).contains("apis.json");
-          softly.assertThat(initializer).contains("Could not load the API documentation");
-          softly.assertThat(initializer).contains("is not available");
-        });
+    assertSoftly(softly -> {
+      softly.assertThat(landingPage).contains("api.html?api=");
+      softly.assertThat(landingPage).contains("Could not load the list of services");
+      softly.assertThat(apiPage).contains("swagger-ui");
+      softly.assertThat(initializer).contains("apis.json");
+      softly.assertThat(initializer).contains("Could not load the API documentation");
+      softly.assertThat(initializer).contains("is not available");
+    });
   }
 
   @Test

@@ -35,15 +35,14 @@ public class OpenApiExtractor {
 
     var newSchemas = new HashMap<String, Schema>();
 
-    allSchemas.forEach(
-        key -> {
-          var value = schemas.get(key);
-          if (usedSchemas.contains(COMPONENTS_SCHEMAS + key)) {
-            newSchemas.put(key, value);
-          } else {
-            LOGGER.info("Removing schema " + key + " as no reference found");
-          }
-        });
+    allSchemas.forEach(key -> {
+      var value = schemas.get(key);
+      if (usedSchemas.contains(COMPONENTS_SCHEMAS + key)) {
+        newSchemas.put(key, value);
+      } else {
+        LOGGER.info("Removing schema " + key + " as no reference found");
+      }
+    });
     openAPI.getComponents().setSchemas(newSchemas);
   }
 
@@ -63,17 +62,16 @@ public class OpenApiExtractor {
   private void removeExternalOps(Entry<String, PathItem> pathEntry) {
     var path = pathEntry.getValue();
     path.readOperationsMap()
-        .forEach(
-            (httpMethod, operation) -> {
-              if (isNull(operation.getTags())
-                  || !operation.getTags().stream().anyMatch(this::anyTagIsExternal)) {
-                LOGGER.info(
-                    "Removing operation {} {} because its not tagged as external",
-                    httpMethod,
-                    pathEntry.getKey());
-                path.operation(httpMethod, null);
-              }
-            });
+        .forEach((httpMethod, operation) -> {
+          if (isNull(operation.getTags())
+              || !operation.getTags().stream().anyMatch(this::anyTagIsExternal)) {
+            LOGGER.info(
+                "Removing operation {} {} because its not tagged as external",
+                httpMethod,
+                pathEntry.getKey());
+            path.operation(httpMethod, null);
+          }
+        });
   }
 
   private boolean anyTagIsExternal(String tag) {
