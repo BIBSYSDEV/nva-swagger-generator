@@ -70,11 +70,10 @@ public final class TestUtils {
 
   public static void loadGithubOpenapiFile(S3Driver s3Driver, TestCase testCase) {
     if (testCase.getContentGithub().isPresent()) {
-      Try.attempt(
-          () ->
-              s3Driver.insertFile(
-                  UnixPath.of(String.valueOf(Path.of(testCase.getId() + ".yaml"))),
-                  testCase.getContentGithub().get()));
+      Try.attempt(() ->
+          s3Driver.insertFile(
+              UnixPath.of(String.valueOf(Path.of(testCase.getId() + ".yaml"))),
+              testCase.getContentGithub().get()));
     }
   }
 
@@ -99,11 +98,9 @@ public final class TestUtils {
   private static List<TestCase> loadTestCases(
       String filePrefix, List<Pair<String, Optional<String>>> fileNames) {
     return fileNames.stream()
-        .map(
-            fileName ->
-                loadTestCase(
-                    filePrefix + fileName.getLeft(),
-                    fileName.getRight().map(fn -> filePrefix + fn)))
+        .map(fileName ->
+            loadTestCase(
+                filePrefix + fileName.getLeft(), fileName.getRight().map(fn -> filePrefix + fn)))
         .toList();
   }
 
@@ -189,14 +186,13 @@ public final class TestUtils {
 
   private static void stubExport(ApiGatewayAsyncClient apiGatewayAsyncClient, String filePrefix) {
     when(apiGatewayAsyncClient.getExport(any(GetExportRequest.class)))
-        .thenAnswer(
-            invocation -> {
-              var requestedId = invocation.getArgument(0, GetExportRequest.class).restApiId();
-              var fileContent = readResource(filePrefix + requestedId + ".yaml");
-              var sdkBody = SdkBytes.fromString(fileContent, UTF_8);
-              var response = GetExportResponse.builder().body(sdkBody).build();
-              return CompletableFuture.completedFuture(response);
-            });
+        .thenAnswer(invocation -> {
+          var requestedId = invocation.getArgument(0, GetExportRequest.class).restApiId();
+          var fileContent = readResource(filePrefix + requestedId + ".yaml");
+          var sdkBody = SdkBytes.fromString(fileContent, UTF_8);
+          var response = GetExportResponse.builder().body(sdkBody).build();
+          return CompletableFuture.completedFuture(response);
+        });
   }
 
   private static void stubCloudFront(CloudFrontClient cloudFrontClient) {

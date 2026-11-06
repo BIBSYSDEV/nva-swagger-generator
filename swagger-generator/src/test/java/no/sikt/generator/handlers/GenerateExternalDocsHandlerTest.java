@@ -30,7 +30,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.services.apigateway.ApiGatewayAsyncClient;
 import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
 import software.amazon.awssdk.services.cloudfront.model.CreateInvalidationRequest;
@@ -90,8 +89,8 @@ class GenerateExternalDocsHandlerTest {
   }
 
   @Test
-  void shouldHaveConstructorWithNoArgument() {
-    Executable action = () -> new GenerateExternalDocsHandler();
+  void shouldHaveConstructorWithNoArgument() throws NoSuchMethodException {
+    assertThat(GenerateExternalDocsHandler.class.getConstructor(), notNullValue());
   }
 
   @Test

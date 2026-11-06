@@ -18,11 +18,10 @@ public class CloudFrontHighLevelClient {
       var request =
           CreateInvalidationRequest.builder()
               .distributionId(distributionId)
-              .invalidationBatch(
-                  batch ->
-                      batch
-                          .paths(paths -> paths.items(ALL_FILES).quantity(1))
-                          .callerReference(getCallerReference()))
+              .invalidationBatch(batch ->
+                  batch
+                      .paths(paths -> paths.items(ALL_FILES).quantity(1))
+                      .callerReference(getCallerReference()))
               .build();
       cloudFrontClient.createInvalidation(request);
     }

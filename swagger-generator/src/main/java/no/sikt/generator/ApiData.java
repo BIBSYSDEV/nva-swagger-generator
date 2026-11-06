@@ -73,9 +73,8 @@ public class ApiData {
     var title = this.openapiApiGateway.getInfo().getTitle();
     var matchingGithubOpenApi =
         templateOpenapiDocs.stream()
-            .filter(
-                templateOpenapiDoc ->
-                    templateOpenapiDoc.getRight().getInfo().getTitle().equals(title))
+            .filter(templateOpenapiDoc ->
+                templateOpenapiDoc.getRight().getInfo().getTitle().equals(title))
             .findFirst();
     if (matchingGithubOpenApi.isPresent()) {
       LOGGER.info(
@@ -104,42 +103,38 @@ public class ApiData {
     if (openApiGithub.isPresent()) {
       this.openapiApiGateway
           .getPaths()
-          .forEach(
-              (pathKey, pathItem) -> {
-                pathItem
-                    .readOperationsMap()
-                    .forEach(
-                        (httpMethod, operation) -> {
-                          if (nonNull(operation.getParameters())) {
-                            operation
-                                .getParameters()
-                                .forEach(
-                                    parameter -> {
-                                      var operationInGithub =
-                                          Optional.ofNullable(
-                                              openApiGithub
-                                                  .get()
-                                                  .getPaths()
-                                                  .get(pathKey)
-                                                  .readOperationsMap()
-                                                  .get(httpMethod));
-                                      operationInGithub.ifPresent(
-                                          value -> operation.setParameters(value.getParameters()));
-                                    });
-                          }
+          .forEach((pathKey, pathItem) -> {
+            pathItem
+                .readOperationsMap()
+                .forEach((httpMethod, operation) -> {
+                  if (nonNull(operation.getParameters())) {
+                    operation
+                        .getParameters()
+                        .forEach(parameter -> {
+                          var operationInGithub =
+                              Optional.ofNullable(
+                                  openApiGithub
+                                      .get()
+                                      .getPaths()
+                                      .get(pathKey)
+                                      .readOperationsMap()
+                                      .get(httpMethod));
+                          operationInGithub.ifPresent(
+                              value -> operation.setParameters(value.getParameters()));
                         });
-              });
+                  }
+                });
+          });
       if (nonNull(openApiGithub.get().getComponents())
           && nonNull(openApiGithub.get().getComponents().getSchemas())) {
         openApiGithub
             .get()
             .getComponents()
             .getSchemas()
-            .forEach(
-                (key, value) -> {
-                  LOGGER.info("Setting schema {} from GitHub", key);
-                  this.openapiApiGateway.getComponents().getSchemas().put(key, value);
-                });
+            .forEach((key, value) -> {
+              LOGGER.info("Setting schema {} from GitHub", key);
+              this.openapiApiGateway.getComponents().getSchemas().put(key, value);
+            });
       }
     }
     return this;
