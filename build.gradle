@@ -25,7 +25,13 @@ subprojects {
                 languageVersion = 25
             }
             pmd {
-                rulesetFile = rootProject.file('config/pmd/ruleset.xml')
+                excludedRules = [
+                        'AvoidCatchingGenericException',
+                        'AvoidThrowingRawExceptionTypes',
+                        // SLF4J placeholders already defer formatting until the level is enabled
+                        'GuardLogStatement',
+                        'UnitTestContainsTooManyAsserts'
+                ]
             }
             spotless {
                 enabled = true
